@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useMemo, useState, useCallback, type CSSProperties } from "react";
+import { useMemo, useState, useCallback } from "react";
 import { ChevronDown } from "lucide-react";
 import {
   dashboardTree,
@@ -23,6 +23,11 @@ import {
   SettingsIcon,
   UsersIcon,
   BookSmallIcon,
+  GlobeIcon,
+  SparkIcon,
+  FlaskIcon,
+  PaletteIcon,
+  ArrowDownIcon,
 } from "@/components/icons";
 import { roleLabels } from "@/lib/dashboard-nav";
 
@@ -36,6 +41,18 @@ const iconMap = {
   settings: SettingsIcon,
   calendar: CalendarSmallIcon,
   book: BookSmallIcon,
+  info: GlobeIcon,
+  admission: GraduationCapIcon,
+  student: UsersIcon,
+  facilities: SparkIcon,
+  others: GlobeIcon,
+  about: GlobeIcon,
+  library: BookIcon,
+  lab: FlaskIcon,
+  fees: CalendarIcon,
+  exam: CalendarIcon,
+  gallery: PaletteIcon,
+  download: ArrowDownIcon,
 } as const;
 
 function iconFor(name: string) {
@@ -50,7 +67,7 @@ function isLeafActive(leaf: DashTreeNode, pathname: string): boolean {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Recursive tree node                                              */
+/*  Compact tree node with proper hierarchy                           */
 /* ------------------------------------------------------------------ */
 
 function TreeNode({
@@ -72,89 +89,66 @@ function TreeNode({
   const key = nodeKey(node, parentKey);
   const isOpen = open.has(key);
   const Icon = iconFor(node.icon ?? "home");
+  const isGroup = node.kind === "group";
 
-  // --- leaf -------------------------------------------------------
-  if (node.kind === "leaf") {
-    const active = isLeafActive(node, pathname);
+  // Group header (collapsible section)
+  if (isGroup) {
+    const active = isNodeOrChildActive(node, pathname);
+    const children = node.children ?? [];
+
     return (
-      <li
-        className={`tree-node${active ? " tree-leaf-active" : ""}`}
-        data-last={isLast || undefined}
-        data-level={level}
-      >
-        <Link
-          href={node.href ?? "/"}
-          aria-current={active ? "page" : undefined}
-          className={`flex items-center gap-2 rounded-sm px-3 py-1.5 text-sm font-medium transition-colors ${
-            active
-              ? "bg-navy-50 text-navy-800"
-              : "text-ink-600 hover:text-navy-800"
-          }`}
-          style={{ paddingLeft: `${14 + level * 16}px` }}
+      <li className="sidebar-group" data-level={level}>
+        <button
+          type="button"
+          onClick={() => toggle(key, parentKey)}
+          aria-expanded={isOpen}
+          className={`sidebar-group-btn ${active ? "active" : ""}`}
         >
-          <Icon className="h-3.5 w-3.5 shrink-0" />
-          {node.label}
-        </Link>
+          <span className="flex items-center gap-2.5">
+            <Icon className="h-4 w-4 shrink-0 opacity-70" />
+            <span className="flex-1 text-left">{node.label}</span>
+          </span>
+          <ChevronDown
+            className={`h-3.5 w-3.5 shrink-0 transition-transform duration-200 ${
+              isOpen ? "rotate-0" : "-rotate-90"
+            }`}
+          />
+        </button>
+
+        <div className={`sidebar-children ${isOpen ? "open" : ""}`}>
+          <ul className="sidebar-children-list">
+            {children.map((child, i) => (
+              <TreeNode
+                key={nodeKey(child, key)}
+                node={child}
+                parentKey={key}
+                level={level + 1}
+                open={open}
+                toggle={toggle}
+                isLast={i === children.length - 1}
+              />
+            ))}
+          </ul>
+        </div>
       </li>
     );
   }
 
-  // --- group ------------------------------------------------------
-  const active = isNodeOrChildActive(node, pathname);
-  const children = node.children ?? [];
+  // Leaf node (actual link)
+  const active = isLeafActive(node, pathname);
 
   return (
-    <li className="tree-node" data-last={isLast || undefined} data-level={level}>
-      <button
-        type="button"
-        onClick={() => toggle(key, parentKey)}
-        aria-expanded={isOpen}
-        className={`flex w-full items-center justify-between rounded-sm px-3 py-1.5 text-xs font-semibold uppercase tracking-wide transition-colors ${
-          active
-            ? "text-navy-800"
-            : "text-ink-500 hover:text-navy-800"
-        }`}
-        style={{ paddingLeft: `${14 + level * 16}px` }}
+    <li className="sidebar-leaf" data-level={level}>
+      <Link
+        href={node.href ?? "/"}
+        aria-current={active ? "page" : undefined}
+        className={`sidebar-leaf-link ${active ? "active" : ""}`}
       >
-        <span className="flex items-center gap-2">
-          {node.icon && <Icon className="h-3.5 w-3.5" />}
-          {node.label}
+        <span className="flex items-center gap-2.5">
+          <Icon className="h-3.5 w-3.5 shrink-0 opacity-60" />
+          <span>{node.label}</span>
         </span>
-        <ChevronDown
-          className={`h-3 w-3 shrink-0 transition-transform duration-200 ${
-            isOpen ? "rotate-0" : "-rotate-90"
-          }`}
-        />
-      </button>
-      <div
-        className={`grid overflow-hidden transition-[grid-template-rows] duration-200 ease-in-out ${
-          isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
-        }`}
-      >
-        <div className="min-h-0">
-          {children.length > 0 && (
-            <ul
-              className="tree-branch space-y-0.5"
-              style={{ "--tx": `${14 + level * 16}px` } as CSSProperties}
-              aria-label={`${node.label} submenu`}
-            >
-              {children.map((child, i) => (
-                <TreeNode
-                  key={nodeKey(child, key)}
-                  node={child}
-                  parentKey={key}
-                  level={level + 1}
-                  open={open}
-                  toggle={toggle}
-                  isLast={i === children.length - 1}
-                />
-
-
-              ))}
-            </ul>
-          )}
-        </div>
-      </div>
+      </Link>
     </li>
   );
 }
@@ -182,16 +176,17 @@ export default function Sidebar({
     setOpen((prev) => {
       const wasOpen = prev.has(key);
       const next = new Set(prev);
-      // Accordion: close every sibling at the same level.
-      // (Ancestors at other levels stay open so the active trail remains visible.)
+
+      // Accordion: close siblings at the same level
       Array.from(next).forEach((k) => {
         const idx = k.lastIndexOf("/");
         const parent = idx === -1 ? null : k.slice(0, idx);
         if (parent === parentKey) next.delete(k);
       });
+
       if (!wasOpen) {
         next.add(key);
-        // Collapse any descendants of this group so only one path is ever open.
+        // Collapse descendants
         const prefix = `${key}/`;
         Array.from(next).forEach((k) => {
           if (k.startsWith(prefix)) next.delete(k);
@@ -202,19 +197,22 @@ export default function Sidebar({
   }, []);
 
   return (
-    <aside className="hidden w-64 shrink-0 border-r border-ink-200 bg-white lg:block">
-      <div className="flex h-16 items-center gap-2.5 border-b border-ink-200 px-5">
-        <span className="flex h-9 w-9 items-center justify-center rounded-sm bg-navy-800 text-white">
-          <GraduationCapIcon className="h-5 w-5" />
+    <aside className="flex h-screen w-64 shrink-0 flex-col border-r border-slate-200 bg-white">
+      {/* Header */}
+      <div className="flex h-14 items-center gap-2.5 border-b border-slate-200 px-4">
+        <span className="flex h-8 w-8 items-center justify-center rounded-sm bg-indigo-600 text-white">
+          <GraduationCapIcon className="h-4 w-4" />
         </span>
-        <span className="font-display text-sm font-extrabold leading-tight text-navy-900">
-          MHS Dashboard
-        </span>
+        <div className="flex flex-col">
+          <span className="text-sm font-bold text-slate-900">MHS</span>
+          <span className="text-[10px] text-slate-500">Dashboard</span>
+        </div>
       </div>
 
-      <nav className="p-3" aria-label="Dashboard navigation">
-        <ul className="space-y-0.5">
-          {items.map((node) => (
+      {/* Navigation */}
+      <nav className="flex-1 overflow-y-auto py-3 px-3" aria-label="Dashboard navigation">
+        <ul className="sidebar-nav">
+          {items.map((node, i) => (
             <TreeNode
               key={nodeKey(node, null)}
               node={node}
@@ -222,17 +220,17 @@ export default function Sidebar({
               level={0}
               open={open}
               toggle={toggle}
+              isLast={i === items.length - 1}
             />
           ))}
         </ul>
       </nav>
 
-      <div className="mt-auto border-t border-ink-200 p-4">
-        <p className="text-xs text-ink-400">Signed in as</p>
-        <p className="text-sm font-semibold text-navy-800">
-          {name ?? roleLabels[role]}
-        </p>
-        <p className="text-[11px] text-ink-500">{roleLabels[role]}</p>
+      {/* User info footer */}
+      <div className="border-t border-slate-200 p-4">
+        <p className="text-[10px] uppercase tracking-wider text-slate-400">Signed in as</p>
+        <p className="mt-0.5 text-sm font-semibold text-slate-900">{name ?? roleLabels[role]}</p>
+        <p className="text-xs text-slate-500">{roleLabels[role]}</p>
       </div>
     </aside>
   );
