@@ -1,0 +1,24 @@
+# CODEOWNERS — automatically requests reviews from the listed owners
+# whenever a pull request touches the matching paths.
+# Format: <pattern>   <owner1> <owner2> ...
+
+# Default owners for everything in the repo
+*                          @MustafizurRahman
+
+# Frontend (apps/web)
+/apps/web/                 @MustafizurRahman
+/apps/web/src/app/         @MustafizurRahman
+/apps/web/src/components/  @MustafizurRahman
+
+# Backend (apps/api)
+/apps/api/                 @MustafizurRahman
+/apps/api/src/             @MustafizurRahman
+
+# Shared package — review required for breaking changes
+/packages/shared-types/   @MustafizurRahman
+
+# Build & tooling changes — require owner review
+/turbo.json                @MustafizurRahman
+/pnpm-workspace.yaml       @MustafizurRahman
+/package.json              @MustafizurRahman
+/.github/                  @MustafizurRahman

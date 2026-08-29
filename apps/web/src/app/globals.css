@@ -1,0 +1,129 @@
+@import "tailwindcss";
+
+/* ----------------------------------------------------------------------------
+   Model High School — design tokens (Tailwind CSS v4.3 @theme)
+   Palette: navy (primary) / blue (brand) / gold (accent)
+---------------------------------------------------------------------------- */
+@theme {
+  /* Navy — primary, authoritative */
+  --color-navy-50: #eef2f9;
+  --color-navy-100: #d6deef;
+  --color-navy-200: #aebfe0;
+  --color-navy-300: #7e97cd;
+  --color-navy-400: #4f6fb6;
+  --color-navy-500: #2f4f97;
+  --color-navy-600: #1f3a78;
+  --color-navy-700: #172c5c;
+  --color-navy-800: #111f42;
+  --color-navy-900: #0b1630;
+  --color-navy-950: #060c1c;
+
+  /* Blue — brand / interactive */
+  --color-brand-50: #eff6ff;
+  --color-brand-100: #dbeafe;
+  --color-brand-200: #bfdbfe;
+  --color-brand-300: #93c5fd;
+  --color-brand-400: #60a5fa;
+  --color-brand-500: #3b82f6;
+  --color-brand-600: #2563eb;
+  --color-brand-700: #1d4ed8;
+  --color-brand-800: #1e40af;
+  --color-brand-900: #1e3a8a;
+
+  /* Gold — accent / highlights */
+  --color-gold-100: #fdf3d8;
+  --color-gold-200: #fbe6ad;
+  --color-gold-300: #f7d277;
+  --color-gold-400: #f1ba45;
+  --color-gold-500: #e0a020;
+  --color-gold-600: #b87d12;
+
+  /* Neutral ink scale */
+  --color-ink-50: #f8fafc;
+  --color-ink-100: #f1f5f9;
+  --color-ink-200: #e2e8f0;
+  --color-ink-300: #cbd5e1;
+  --color-ink-400: #94a3b8;
+  --color-ink-500: #64748b;
+  --color-ink-600: #475569;
+  --color-ink-700: #334155;
+  --color-ink-800: #1e293b;
+  --color-ink-900: #0f172a;
+
+  --font-display: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+
+  --radius-card: 1rem;
+
+  --shadow-card: 0 1px 2px rgb(11 22 48 / 0.05), 0 14px 36px -16px rgb(11 22 48 / 0.22);
+  --shadow-soft: 0 1px 2px rgb(11 22 48 / 0.04), 0 8px 24px -16px rgb(11 22 48 / 0.12);
+
+  --animate-fade-in-up: fade-in-up 0.6s ease-out both;
+  --animate-marquee: marquee 28s linear infinite;
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--color-ink-50);
+    color: var(--color-ink-800);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+  }
+
+  ::selection {
+    background-color: var(--color-brand-200);
+    color: var(--color-navy-900);
+  }
+
+  /* Visible keyboard focus for accessibility */
+  :focus-visible {
+    outline: 2px solid var(--color-brand-500);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+@utility bg-grid {
+  background-image:
+    linear-gradient(to right, rgb(11 22 48 / 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(11 22 48 / 0.05) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+/* Pause the notice marquee on hover for readability */
+@utility marquee-track {
+  animation: var(--animate-marquee);
+}
