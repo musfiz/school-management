@@ -13,19 +13,24 @@ export const site = {
   eiin: "108765",
   heroImages: [
     {
-      src: "https://picsum.photos/id/1043/1600/700",
+      src: "/hero-slider/01.jpg",
       alt: "Students in the school assembly ground",
       caption: "A vibrant campus where every learner belongs.",
     },
     {
-      src: "https://picsum.photos/id/0/1600/700",
+      src: "/hero-slider/02.jpg",
       alt: "Bright classrooms and engaged learning",
       caption: "Modern classrooms built for curious minds.",
     },
     {
-      src: "https://picsum.photos/id/1059/1600/700",
+      src: "/hero-slider/03.jpg",
       alt: "Library and study spaces for students",
       caption: "Libraries, labs and spaces to grow.",
+    },
+    {
+      src: "/hero-slider/04.jpg",
+      alt: "School events and student life",
+      caption: "Celebrating learning, sport and creativity every day.",
     },
   ],
   facebook: "https://facebook.com",

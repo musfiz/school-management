@@ -110,20 +110,22 @@ export default function Header() {
       {/* ── Tier 2: logo + name + address ──────────────────────────────── */}
       <div className="border-b border-ink-200 bg-white">
         <div className="mx-auto flex max-w-7xl items-center gap-4 px-4 py-3 sm:px-6">
-          {/* School logo (400x400 source) */}
+          {/* School logo — rendered as a rectangle, height-constrained so
+              the natural aspect ratio of the image is preserved. */}
           <Link href="/" aria-label={`${site.name} home`} className="shrink-0">
             <Image
-              src="/logo.svg"
+              src="/logo.png"
               alt={`${site.name} logo`}
-              width={80}
-              height={80}
+              width={160}
+              height={64}
               priority
-              className="h-16 w-16 rounded-full sm:h-20 sm:w-20"
+              sizes="(max-width: 640px) 112px, 160px"
+              className="h-14 w-auto rounded-md object-contain sm:h-12"
             />
           </Link>
 
           {/* Name + EST. year + address rows */}
-          <div className="min-w-0">
+          {/* <div className="min-w-0">
             <Link href="/" className="block">
               <h1 className="font-display text-xl font-extrabold leading-none text-navy-900 sm:text-2xl">
                 {site.name}
@@ -131,15 +133,13 @@ export default function Header() {
               <p className="mt-1 text-xs font-semibold uppercase tracking-wider text-gold-600 sm:text-sm">
                 Est. {site.established}
               </p>
-              <p className="mt-1 text-sm leading-none text-navy-600 sm:text-base">
-                {site.tagline}
-              </p>
+              <p className="mt-1 text-sm leading-none text-navy-600 sm:text-base">{site.tagline}</p>
             </Link>
             <p className="mt-1.5 flex items-center gap-1.5 text-xs text-ink-500 sm:text-sm">
               <Phone className="h-3.5 w-3.5 shrink-0 text-ink-400" />
               <span className="truncate">{site.address}</span>
             </p>
-          </div>
+          </div> */}
         </div>
       </div>
 
@@ -266,7 +266,9 @@ export default function Header() {
                         href={item.href}
                         onClick={() => setMobileOpen(false)}
                         className={`block rounded-lg px-3 py-2.5 text-sm font-medium ${
-                          isActive(item.href) ? "bg-navy-900 font-semibold text-white" : "text-navy-50"
+                          isActive(item.href)
+                            ? "bg-navy-900 font-semibold text-white"
+                            : "text-navy-50"
                         }`}
                       >
                         {item.label}
