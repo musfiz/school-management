@@ -26,7 +26,7 @@ export function AboutPreview() {
               "Free tuition with support for those who need it",
             ].map((item) => (
               <li key={item} className="flex items-start gap-3 text-ink-700">
-                <span className="mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-gold-500 text-navy-900">
+                <span className="mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-sm bg-gold-500 text-navy-900">
                   <ArrowRightIcon className="h-3 w-3" />
                 </span>
                 {item}
@@ -35,7 +35,7 @@ export function AboutPreview() {
           </ul>
           <Link
             href="/about/about-us"
-            className="mt-8 inline-flex items-center gap-2 rounded-xl bg-navy-800 px-6 py-3.5 text-sm font-semibold text-white shadow-soft transition-colors hover:bg-navy-900"
+            className="mt-8 inline-flex items-center gap-2 rounded-sm bg-navy-800 px-6 py-3.5 text-sm font-semibold text-white shadow-soft transition-colors hover:bg-navy-900"
           >
             Learn our story
             <ArrowRightIcon className="h-4 w-4" />
@@ -51,7 +51,7 @@ export function AboutPreview() {
           ].map((s) => (
             <div
               key={s.l}
-              className="rounded-card border border-ink-200 bg-ink-50 p-6 text-center shadow-soft"
+              className="rounded-sm border border-ink-200 bg-ink-50 p-6 text-center shadow-soft"
             >
               <p className="font-display text-3xl font-extrabold text-brand-600">
                 {s.v}
@@ -89,7 +89,7 @@ export function NoticeBoard() {
         </Link>
       </div>
 
-      <ul className="mt-8 divide-y divide-ink-200 overflow-hidden rounded-card border border-ink-200 bg-white shadow-soft">
+      <ul className="mt-8 divide-y divide-ink-200 overflow-hidden rounded-sm border border-ink-200 bg-white shadow-soft">
         {latest.map((n) => (
           <li
             key={n.id}
@@ -102,7 +102,7 @@ export function NoticeBoard() {
                 year: "numeric",
               })}
             </span>
-            <span className="hidden shrink-0 rounded-full bg-navy-50 px-2.5 py-1 text-xs font-semibold text-navy-700 sm:inline">
+            <span className="hidden shrink-0 rounded-sm bg-navy-50 px-2.5 py-1 text-xs font-semibold text-navy-700 sm:inline">
               {n.category}
             </span>
             <Link

@@ -28,9 +28,9 @@ export default function EventPage() {
           {events.map((e) => (
             <div
               key={e.id}
-              className="flex flex-col gap-4 rounded-card border border-ink-200 bg-white p-6 shadow-soft sm:flex-row sm:items-center"
+              className="flex flex-col gap-4 rounded-sm border border-ink-200 bg-white p-6 shadow-soft sm:flex-row sm:items-center"
             >
-              <div className="flex h-16 w-16 shrink-0 flex-col items-center justify-center rounded-2xl bg-navy-800 text-white">
+              <div className="flex h-16 w-16 shrink-0 flex-col items-center justify-center rounded-sm bg-navy-800 text-white">
                 <span className="text-xs font-medium text-navy-100">
                   {new Date(e.date).toLocaleDateString("en-GB", { month: "short" })}
                 </span>

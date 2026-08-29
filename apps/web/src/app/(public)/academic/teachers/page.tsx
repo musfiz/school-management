@@ -32,10 +32,10 @@ export default function TeachersPage() {
           {current.map((t) => (
             <div
               key={t.id}
-              className="rounded-card border border-ink-200 bg-white p-6 shadow-soft"
+              className="rounded-sm border border-ink-200 bg-white p-6 shadow-soft"
             >
               <div className="flex items-center gap-4">
-                <span className="flex h-12 w-12 items-center justify-center rounded-full bg-navy-50 font-display text-lg font-bold text-navy-800">
+                <span className="flex h-12 w-12 items-center justify-center rounded-sm bg-navy-50 font-display text-lg font-bold text-navy-800">
                   {t.name.split(" ").slice(-1)[0].charAt(0)}
                 </span>
                 <div>
@@ -60,7 +60,7 @@ export default function TeachersPage() {
               {former.map((t) => (
                 <li
                   key={t.id}
-                  className="rounded-card border border-ink-200 bg-ink-50 px-5 py-4"
+                  className="rounded-sm border border-ink-200 bg-ink-50 px-5 py-4"
                 >
                   <p className="font-semibold text-navy-900">{t.name}</p>
                   <p className="text-sm text-ink-500">{t.designation}</p>

@@ -26,11 +26,11 @@ export default function ContactPage() {
       />
 
       <Section>
-        <div className="grid gap-10 rounded-card border border-ink-200 bg-white p-8 shadow-soft sm:p-12 lg:grid-cols-2">
+        <div className="grid gap-10 rounded-sm border border-ink-200 bg-white p-8 shadow-soft sm:p-12 lg:grid-cols-2">
           <div>
             <ul className="space-y-5">
               <li className="flex items-start gap-3 text-ink-700">
-                <span className="mt-0.5 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-navy-50 text-navy-700">
+                <span className="mt-0.5 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-sm bg-navy-50 text-navy-700">
                   <PinIcon className="h-5 w-5" />
                 </span>
                 <span>
@@ -39,7 +39,7 @@ export default function ContactPage() {
                 </span>
               </li>
               <li className="flex items-start gap-3 text-ink-700">
-                <span className="mt-0.5 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-navy-50 text-navy-700">
+                <span className="mt-0.5 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-sm bg-navy-50 text-navy-700">
                   <PhoneIcon className="h-5 w-5" />
                 </span>
                 <span>
@@ -50,7 +50,7 @@ export default function ContactPage() {
                 </span>
               </li>
               <li className="flex items-start gap-3 text-ink-700">
-                <span className="mt-0.5 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-navy-50 text-navy-700">
+                <span className="mt-0.5 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-sm bg-navy-50 text-navy-700">
                   <MailIcon className="h-5 w-5" />
                 </span>
                 <span>
@@ -67,7 +67,7 @@ export default function ContactPage() {
                 (badge) => (
                   <span
                     key={badge}
-                    className="rounded-full border border-ink-200 bg-ink-50 px-3 py-1 text-xs font-medium text-ink-500"
+                    className="rounded-sm border border-ink-200 bg-ink-50 px-3 py-1 text-xs font-medium text-ink-500"
                   >
                     {badge}
                   </span>
@@ -76,13 +76,13 @@ export default function ContactPage() {
             </div>
 
             {/* Map placeholder (swap for an embedded map) */}
-            <div className="mt-8 overflow-hidden rounded-2xl border border-ink-200 bg-ink-100 p-8 text-center text-sm text-ink-400">
+            <div className="mt-8 overflow-hidden rounded-sm border border-ink-200 bg-ink-100 p-8 text-center text-sm text-ink-400">
               Campus map · {site.address}
             </div>
           </div>
 
           <form
-            className="grid gap-4 rounded-2xl border border-ink-200 bg-ink-50 p-6"
+            className="grid gap-4 rounded-sm border border-ink-200 bg-ink-50 p-6"
             action="#"
             method="post"
           >
@@ -93,7 +93,7 @@ export default function ContactPage() {
                 name="name"
                 required
                 placeholder="Full name"
-                className="mt-1.5 w-full rounded-xl border border-ink-200 bg-white px-4 py-3 text-sm font-normal text-ink-900 outline-none placeholder:text-ink-400 focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
+                className="mt-1.5 w-full rounded-sm border border-ink-200 bg-white px-4 py-3 text-sm font-normal text-ink-900 outline-none placeholder:text-ink-400 focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
               />
             </label>
             <label className="text-sm font-semibold text-ink-700">
@@ -103,7 +103,7 @@ export default function ContactPage() {
                 name="email"
                 required
                 placeholder="you@email.com"
-                className="mt-1.5 w-full rounded-xl border border-ink-200 bg-white px-4 py-3 text-sm font-normal text-ink-900 outline-none placeholder:text-ink-400 focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
+                className="mt-1.5 w-full rounded-sm border border-ink-200 bg-white px-4 py-3 text-sm font-normal text-ink-900 outline-none placeholder:text-ink-400 focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
               />
             </label>
             <label className="text-sm font-semibold text-ink-700">
@@ -112,7 +112,7 @@ export default function ContactPage() {
                 type="text"
                 name="subject"
                 placeholder="How can we help?"
-                className="mt-1.5 w-full rounded-xl border border-ink-200 bg-white px-4 py-3 text-sm font-normal text-ink-900 outline-none placeholder:text-ink-400 focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
+                className="mt-1.5 w-full rounded-sm border border-ink-200 bg-white px-4 py-3 text-sm font-normal text-ink-900 outline-none placeholder:text-ink-400 focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
               />
             </label>
             <label className="text-sm font-semibold text-ink-700">
@@ -122,12 +122,12 @@ export default function ContactPage() {
                 rows={5}
                 required
                 placeholder="Write your message…"
-                className="mt-1.5 w-full resize-none rounded-xl border border-ink-200 bg-white px-4 py-3 text-sm font-normal text-ink-900 outline-none placeholder:text-ink-400 focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
+                className="mt-1.5 w-full resize-none rounded-sm border border-ink-200 bg-white px-4 py-3 text-sm font-normal text-ink-900 outline-none placeholder:text-ink-400 focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
               />
             </label>
             <button
               type="submit"
-              className="mt-1 inline-flex items-center justify-center rounded-xl bg-navy-800 px-6 py-3.5 text-sm font-semibold text-white shadow-soft transition-colors hover:bg-navy-900"
+              className="mt-1 inline-flex items-center justify-center rounded-sm bg-navy-800 px-6 py-3.5 text-sm font-semibold text-white shadow-soft transition-colors hover:bg-navy-900"
             >
               Send message
             </button>

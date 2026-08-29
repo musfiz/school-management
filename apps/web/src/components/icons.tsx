@@ -225,6 +225,25 @@ export function XIconBrand(props: IconProps) {
   );
 }
 
+export function CalendarSmallIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <rect x="3.5" y="5" width="17" height="16" rx="2.5" />
+      <path d="M3.5 9.5h17" />
+      <path d="M8 3v4M16 3v4" />
+    </svg>
+  );
+}
+
+export function BookSmallIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M4 5a2 2 0 0 1 2-2h11a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H6a2 2 0 0 0-2 2V5Z" />
+      <path d="M9 7h6" />
+    </svg>
+  );
+}
+
 export function CloseIcon(props: IconProps) {
   return (
     <svg {...base} {...props}>

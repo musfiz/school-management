@@ -27,10 +27,10 @@ export default function NewsPage() {
           {news.map((item) => (
             <article
               key={item.id}
-              className="flex flex-col rounded-card border border-ink-200 bg-white p-6 shadow-soft"
+              className="flex flex-col rounded-sm border border-ink-200 bg-white p-6 shadow-soft"
             >
               <div className="flex items-center gap-3 text-xs font-medium text-ink-400">
-                <span className="rounded-full bg-gold-100 px-2.5 py-1 font-semibold text-navy-800">
+                <span className="rounded-sm bg-gold-100 px-2.5 py-1 font-semibold text-navy-800">
                   News
                 </span>
                 <span>

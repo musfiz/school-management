@@ -27,7 +27,7 @@ export function DashCard({
   className?: string;
 }) {
   return (
-    <div className={`rounded-card border border-ink-200 bg-white p-6 shadow-soft ${className}`}>
+    <div className={`rounded-sm border border-ink-200 bg-white p-6 shadow-soft ${className}`}>
       {title && (
         <h2 className="mb-4 font-display text-lg font-bold text-navy-900">{title}</h2>
       )}
@@ -42,7 +42,7 @@ export function StatGrid({ items }: { items: { value: string; label: string }[] 
       {items.map((s) => (
         <div
           key={s.label}
-          className="rounded-card border border-ink-200 bg-white p-5 shadow-soft"
+          className="rounded-sm border border-ink-200 bg-white p-5 shadow-soft"
         >
           <p className="font-display text-2xl font-extrabold text-navy-800">
             {s.value}

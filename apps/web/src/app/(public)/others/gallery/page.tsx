@@ -28,7 +28,7 @@ export default function GalleryPage() {
           {gallery.map((img) => (
             <figure
               key={img.id}
-              className="group overflow-hidden rounded-card border border-ink-200 bg-white shadow-soft"
+              className="group overflow-hidden rounded-sm border border-ink-200 bg-white shadow-soft"
             >
               <Image
                 src={img.src}

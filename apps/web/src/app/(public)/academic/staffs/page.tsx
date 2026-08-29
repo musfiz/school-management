@@ -30,7 +30,7 @@ export default function StaffsPage() {
           {current.map((s) => (
             <div
               key={s.id}
-              className="rounded-card border border-ink-200 bg-white p-5 shadow-soft"
+              className="rounded-sm border border-ink-200 bg-white p-5 shadow-soft"
             >
               <h3 className="font-display font-bold text-navy-900">{s.name}</h3>
               <p className="text-sm text-brand-600">{s.role}</p>
@@ -45,7 +45,7 @@ export default function StaffsPage() {
               {former.map((s) => (
                 <li
                   key={s.id}
-                  className="rounded-card border border-ink-200 bg-ink-50 px-5 py-4"
+                  className="rounded-sm border border-ink-200 bg-ink-50 px-5 py-4"
                 >
                   <p className="font-semibold text-navy-900">{s.name}</p>
                   <p className="text-sm text-ink-500">{s.role}</p>

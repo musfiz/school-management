@@ -34,7 +34,7 @@ export default function Footer() {
               alt={`${site.name} logo`}
               width={48}
               height={48}
-              className="h-12 w-12 rounded-full"
+              className="h-12 w-12 rounded-sm"
             />
             <span className="font-display text-base font-extrabold text-white">
               {site.name}
@@ -51,7 +51,7 @@ export default function Footer() {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={label}
-                  className="flex h-9 w-9 items-center justify-center rounded-full border border-white/15 text-ink-200 transition-colors hover:border-gold-400 hover:text-gold-300"
+                  className="flex h-9 w-9 items-center justify-center rounded-sm border border-white/15 text-ink-200 transition-colors hover:border-gold-400 hover:text-gold-300"
                 >
                   <Icon className="h-4 w-4" />
                 </a>

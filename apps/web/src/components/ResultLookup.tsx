@@ -32,14 +32,14 @@ export default function ResultLookup() {
   }
 
   return (
-    <div className="rounded-card border border-ink-200 bg-white p-6 shadow-soft">
+    <div className="rounded-sm border border-ink-200 bg-white p-6 shadow-soft">
       <form onSubmit={onSubmit} className="grid gap-4 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
         <label className="text-sm font-semibold text-ink-700">
           Class
           <select
             value={cls}
             onChange={(e) => setCls(e.target.value)}
-            className="mt-1.5 w-full rounded-xl border border-ink-200 bg-white px-4 py-3 text-sm font-normal text-ink-900 outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
+            className="mt-1.5 w-full rounded-sm border border-ink-200 bg-white px-4 py-3 text-sm font-normal text-ink-900 outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
           >
             {CLASSES.map((c) => (
               <option key={c} value={c}>
@@ -56,26 +56,26 @@ export default function ResultLookup() {
             onChange={(e) => setRoll(e.target.value)}
             placeholder="e.g. 1001"
             required
-            className="mt-1.5 w-full rounded-xl border border-ink-200 bg-white px-4 py-3 text-sm font-normal text-ink-900 outline-none placeholder:text-ink-400 focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
+            className="mt-1.5 w-full rounded-sm border border-ink-200 bg-white px-4 py-3 text-sm font-normal text-ink-900 outline-none placeholder:text-ink-400 focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
           />
         </label>
         <button
           type="submit"
           disabled={loading}
-          className="rounded-xl bg-navy-800 px-6 py-3.5 text-sm font-semibold text-white shadow-soft transition-colors hover:bg-navy-900 disabled:opacity-60"
+          className="rounded-sm bg-navy-800 px-6 py-3.5 text-sm font-semibold text-white shadow-soft transition-colors hover:bg-navy-900 disabled:opacity-60"
         >
           {loading ? "Searching…" : "View result"}
         </button>
       </form>
 
       {error && (
-        <p className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+        <p className="mt-4 rounded-sm border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           {error}
         </p>
       )}
 
       {result && (
-        <div className="mt-6 overflow-hidden rounded-xl border border-brand-200 bg-brand-50">
+        <div className="mt-6 overflow-hidden rounded-sm border border-brand-200 bg-brand-50">
           <div className="flex items-center justify-between bg-navy-800 px-5 py-3 text-white">
             <span className="font-display text-lg font-bold">{result.name}</span>
             <span className="text-sm text-navy-100">

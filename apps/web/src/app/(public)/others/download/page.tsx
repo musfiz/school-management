@@ -24,7 +24,7 @@ export default function DownloadPage() {
         ]}
       />
       <Section>
-        <ul className="divide-y divide-ink-200 overflow-hidden rounded-card border border-ink-200 bg-white shadow-soft">
+        <ul className="divide-y divide-ink-200 overflow-hidden rounded-sm border border-ink-200 bg-white shadow-soft">
           {downloads.map((d) => (
             <li key={d.id}>
               <a
@@ -32,7 +32,7 @@ export default function DownloadPage() {
                 className="flex items-center justify-between gap-4 px-6 py-4 transition-colors hover:bg-ink-50"
               >
                 <span className="flex items-center gap-4">
-                  <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-navy-50 text-xs font-bold text-navy-800">
+                  <span className="flex h-10 w-10 items-center justify-center rounded-sm bg-navy-50 text-xs font-bold text-navy-800">
                     {d.format}
                   </span>
                   <span>

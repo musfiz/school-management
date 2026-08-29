@@ -30,7 +30,7 @@ export default function RoutinePage() {
         ]}
       />
       <Section>
-        <div className="overflow-hidden rounded-card border border-ink-200 bg-white shadow-soft">
+        <div className="overflow-hidden rounded-sm border border-ink-200 bg-white shadow-soft">
           <div className="border-b border-ink-200 bg-navy-50 px-6 py-4">
             <h2 className="font-display text-lg font-bold text-navy-900">
               Sample Daily Class Routine — Class VII

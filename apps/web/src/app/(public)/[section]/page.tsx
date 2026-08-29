@@ -54,7 +54,7 @@ export default async function SectionPage({
                 <a
                   key={c.href}
                   href={c.href}
-                  className="group flex items-center justify-between rounded-card border border-ink-200 bg-white p-5 shadow-soft transition-all hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-card"
+                  className="group flex items-center justify-between rounded-sm border border-ink-200 bg-white p-5 shadow-soft transition-all hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-card"
                 >
                   <span>
                     <span className="block font-display text-base font-bold text-navy-900">

@@ -1,29 +1,13 @@
-"use client";
+import { redirect } from "next/navigation";
+import { getSession } from "@/lib/auth";
+import StudentsView from "./StudentsView";
 
-import { DashCard, DashPageHeader } from "@/components/dashboard/DashPage";
-import { teachers } from "@/lib/content/collections";
+export const dynamic = "force-dynamic";
 
-export default function DashboardStudents() {
-  return (
-    <div>
-      <DashPageHeader
-        title="Students"
-        description="Browse and manage student records (admin / management / teacher)."
-      />
-      <DashCard title="Student directory">
-        <p className="text-sm text-ink-500">
-          A searchable student list will render here. Sample faculty shown for
-          layout reference:
-        </p>
-        <ul className="mt-4 divide-y divide-ink-200">
-          {teachers.slice(0, 4).map((t) => (
-            <li key={t.id} className="flex items-center justify-between py-3">
-              <span className="font-medium text-navy-900">{t.name}</span>
-              <span className="text-sm text-ink-500">{t.department}</span>
-            </li>
-          ))}
-        </ul>
-      </DashCard>
-    </div>
-  );
+export default async function DashboardStudentsPage() {
+  const session = await getSession();
+  if (!session) {
+    redirect("/login?returnTo=/dashboard/students");
+  }
+  return <StudentsView />;
 }

@@ -8,7 +8,7 @@ function Callout({ tone, title, text }: Extract<Block, { type: "callout" }>) {
     gold: "border-gold-200 bg-gold-100 text-navy-900",
   } as const;
   return (
-    <div className={`rounded-card border p-5 ${tones[tone]}`}>
+    <div className={`rounded-sm border p-5 ${tones[tone]}`}>
       <p className="font-display text-base font-bold">{title}</p>
       <p className="mt-1.5 text-sm leading-relaxed opacity-90">{text}</p>
     </div>
@@ -66,7 +66,7 @@ export default function ContentRenderer({ blocks }: { blocks: Block[] }) {
             return (
               <dl
                 key={i}
-                className="grid grid-cols-2 gap-px overflow-hidden rounded-card border border-ink-200 bg-ink-200 shadow-soft sm:grid-cols-4"
+                className="grid grid-cols-2 gap-px overflow-hidden rounded-sm border border-ink-200 bg-ink-200 shadow-soft sm:grid-cols-4"
               >
                 {block.items.map((s) => (
                   <div key={s.label} className="bg-white px-5 py-6 text-center">
@@ -86,7 +86,7 @@ export default function ContentRenderer({ blocks }: { blocks: Block[] }) {
                 {block.items.map((c) => (
                   <div
                     key={c.title}
-                    className="rounded-card border border-ink-200 bg-white p-6 shadow-soft"
+                    className="rounded-sm border border-ink-200 bg-white p-6 shadow-soft"
                   >
                     {c.meta && (
                       <p className="text-xs font-bold uppercase tracking-wider text-gold-600">
@@ -107,7 +107,7 @@ export default function ContentRenderer({ blocks }: { blocks: Block[] }) {
             return (
               <blockquote
                 key={i}
-                className="rounded-card border-l-4 border-gold-400 bg-navy-50 p-6"
+                className="rounded-sm border-l-4 border-gold-400 bg-navy-50 p-6"
               >
                 <p className="font-display text-xl font-medium italic text-navy-900">
                   “{block.text}”
@@ -129,7 +129,7 @@ export default function ContentRenderer({ blocks }: { blocks: Block[] }) {
                     src={img.src}
                     alt={img.alt}
                     loading="lazy"
-                    className="aspect-[4/3] w-full rounded-card object-cover shadow-soft"
+                    className="aspect-[4/3] w-full rounded-sm object-cover shadow-soft"
                   />
                 ))}
               </div>
@@ -138,7 +138,7 @@ export default function ContentRenderer({ blocks }: { blocks: Block[] }) {
             return (
               <div
                 key={i}
-                className="flex flex-col items-start gap-4 rounded-card bg-navy-800 p-8 text-white sm:flex-row sm:items-center sm:justify-between"
+                className="flex flex-col items-start gap-4 rounded-sm bg-navy-800 p-8 text-white sm:flex-row sm:items-center sm:justify-between"
               >
                 <div>
                   <h3 className="font-display text-xl font-bold">{block.title}</h3>
@@ -146,7 +146,7 @@ export default function ContentRenderer({ blocks }: { blocks: Block[] }) {
                 </div>
                 <a
                   href={block.href}
-                  className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-gold-500 px-5 py-3 text-sm font-semibold text-navy-900 hover:bg-gold-400"
+                  className="inline-flex shrink-0 items-center gap-2 rounded-sm bg-gold-500 px-5 py-3 text-sm font-semibold text-navy-900 hover:bg-gold-400"
                 >
                   {block.hrefLabel}
                   <ArrowRightIcon className="h-4 w-4" />

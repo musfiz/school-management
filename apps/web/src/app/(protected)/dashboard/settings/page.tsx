@@ -1,20 +1,13 @@
-"use client";
+import { redirect } from "next/navigation";
+import { getSession } from "@/lib/auth";
+import SettingsView from "./SettingsView";
 
-import { DashCard, DashPageHeader } from "@/components/dashboard/DashPage";
+export const dynamic = "force-dynamic";
 
-export default function DashboardSettings() {
-  return (
-    <div>
-      <DashPageHeader
-        title="Settings"
-        description="Portal configuration (admin / management)."
-      />
-      <DashCard title="Preferences">
-        <p className="text-sm text-ink-500">
-          Theme, notifications and access controls will be configured here once
-          connected to a real backend.
-        </p>
-      </DashCard>
-    </div>
-  );
+export default async function DashboardSettingsPage() {
+  const session = await getSession();
+  if (!session) {
+    redirect("/login?returnTo=/dashboard/settings");
+  }
+  return <SettingsView />;
 }

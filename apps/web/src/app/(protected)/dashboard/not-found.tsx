@@ -12,7 +12,7 @@ export default function DashboardNotFound() {
       </p>
       <Link
         href="/dashboard"
-        className="mt-6 inline-flex items-center gap-2 rounded-xl bg-navy-800 px-5 py-3 text-sm font-semibold text-white hover:bg-navy-900"
+        className="mt-6 inline-flex items-center gap-2 rounded-sm bg-navy-800 px-5 py-3 text-sm font-semibold text-white hover:bg-navy-900"
       >
         Back to dashboard
       </Link>

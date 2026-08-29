@@ -53,7 +53,7 @@ export function Button({
   return (
     <a
       href={href}
-      className={`inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold transition-colors ${styles[variant]} ${className}`}
+      className={`inline-flex items-center justify-center gap-2 rounded-sm px-5 py-3 text-sm font-semibold transition-colors ${styles[variant]} ${className}`}
       {...rest}
     >
       {children}

@@ -127,3 +127,96 @@
 @utility marquee-track {
   animation: var(--animate-marquee);
 }
+
+/* ------------------------------------------------------------------ */
+/*  Dashboard sidebar — tree connector lines                           */
+/*  A vertical "rail" runs down each nested branch at --tx; every row   */
+/*  gets a horizontal stub joining it to that rail, so each parent→     */
+/*  child link is visibly connected. Top level stays clean.             */
+/* ------------------------------------------------------------------ */
+.tree-branch {
+  position: relative;
+  /* --tx = x of the rail (set per level); --cy = vertical centre of a row. */
+  --cy: 1.375rem; /* centre of a ~2.75rem-tall row (py-1.5 + text) */
+}
+
+/* Vertical rail: runs from the top of the branch down to the last child's
+   centre (bottom = --cy), so it connects every row without dangling past it.
+   z-index keeps the line above any hovered row background. */
+.tree-branch::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: var(--cy);
+  left: var(--tx, 0);
+  width: 1.5px;
+  background-color: var(--color-ink-400);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.tree-branch .tree-node {
+  position: relative;
+}
+
+/* Horizontal stub joining each row to the vertical rail. Its width equals one
+   indent step (1rem) so it reaches the child row's left edge. z-index lifts it
+   above the row's hover background, so the connector stays visible on hover. */
+.tree-branch .tree-node::after {
+  content: "";
+  position: absolute;
+  top: var(--cy);
+  left: var(--tx, 0);
+  width: 1rem;
+  height: 1.5px;
+  background-color: var(--color-ink-400);
+  pointer-events: none;
+  transform: translateY(-50%);
+  z-index: 1;
+}
+
+/* Active branch path: rail + stub turn navy so the current trail is clear. */
+.tree-branch:has(.tree-leaf-active)::before,
+.tree-branch .tree-leaf-active::after {
+  background-color: var(--color-navy-500);
+}
+
+/* ------------------------------------------------------------------ */
+/*  Sidebar rows — cursor + per-level hover tint                       */
+/* ------------------------------------------------------------------ */
+
+/* Every clickable row shows a pointer cursor. */
+.tree-node > a,
+.tree-node > button {
+  cursor: pointer;
+}
+
+/* Distinct hover tint per nesting level so deeper nav steps read separately.
+   Levels are capped at 4 (deeper levels reuse the last tint). */
+.tree-node[data-level="0"] > a:hover,
+.tree-node[data-level="0"] > button:hover {
+  background-color: var(--color-ink-100);
+}
+
+.tree-node[data-level="1"] > a:hover,
+.tree-node[data-level="1"] > button:hover {
+  background-color: var(--color-navy-50);
+}
+
+.tree-node[data-level="2"] > a:hover,
+.tree-node[data-level="2"] > button:hover {
+  background-color: color-mix(in srgb, var(--color-navy-100) 55%, white);
+}
+
+.tree-node[data-level="3"] > a:hover,
+.tree-node[data-level="3"] > button:hover,
+.tree-node[data-level="4"] > a:hover,
+.tree-node[data-level="4"] > button:hover {
+  background-color: color-mix(in srgb, var(--color-navy-200) 45%, white);
+}
+
+/* Keep connector lines above hovered backgrounds at every level. */
+.tree-branch::before,
+.tree-branch .tree-node::after {
+  z-index: 2;
+}

@@ -28,10 +28,10 @@ export default function NoticePage() {
           {sorted.map((n) => (
             <li
               key={n.id}
-              className="rounded-card border border-ink-200 bg-white p-6 shadow-soft"
+              className="rounded-sm border border-ink-200 bg-white p-6 shadow-soft"
             >
               <div className="flex flex-wrap items-center gap-3">
-                <span className="rounded-full bg-navy-50 px-2.5 py-1 text-xs font-semibold text-navy-700">
+                <span className="rounded-sm bg-navy-50 px-2.5 py-1 text-xs font-semibold text-navy-700">
                   {n.category}
                 </span>
                 <span className="text-sm text-ink-400">
