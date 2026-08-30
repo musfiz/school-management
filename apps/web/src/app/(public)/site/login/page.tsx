@@ -39,7 +39,7 @@ export default async function SiteLoginPage({
         className="absolute -bottom-32 -left-32 h-96 w-96 rounded-full bg-brand-200/40 blur-3xl"
       />
 
-      <div className="relative z-10 mx-auto max-w-md">
+      <div className="relative z-10 flex w-full items-center justify-center">
         <LoginForm variant="public" returnTo={safeTo} />
       </div>
     </div>

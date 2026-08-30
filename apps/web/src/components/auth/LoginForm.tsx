@@ -1,7 +1,6 @@
 "use client";
 
 import { useId, useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -15,7 +14,6 @@ import {
   Loader2,
 } from "lucide-react";
 import { loginSchema, type LoginInput } from "@/lib/validations";
-import { site } from "@/lib/site";
 
 /**
  * Login form with Zod validation.
@@ -33,7 +31,6 @@ export default function LoginForm({
   variant: "staff" | "public";
   returnTo: string;
 }) {
-  const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [showPassword, setShowPassword] = useState(false);
   const [globalError, setGlobalError] = useState<string | null>(null);
@@ -84,16 +81,13 @@ export default function LoginForm({
 
   return (
     <div className="w-full max-w-md">
-      <div className="rounded-2xl border border-ink-200/80 bg-white p-7 shadow-card sm:p-9">
+      <div className="rounded-lg border border-ink-200/80 bg-white p-7 shadow-card sm:p-9">
         {/* Heading */}
         <div>
           <h1 className="font-display text-2xl font-extrabold tracking-tight text-navy-900 sm:text-[1.65rem]">
-            Welcome to {site.name}
+            Welcome to School Portal
           </h1>
-          <h2 className="mt-1 text-base font-semibold text-navy-700">Sign in</h2>
-          <p className="mt-1.5 text-sm text-ink-500">
-            Enter your email and password to sign in.
-          </p>
+          <p className="mt-1.5 text-sm text-ink-500">Enter your email and password to sign in.</p>
         </div>
 
         {/* Form */}
@@ -104,7 +98,7 @@ export default function LoginForm({
               Email address
             </label>
             <div
-              className={`mt-1.5 flex items-center gap-2 rounded-lg border bg-white px-3 py-2.5 transition-colors focus-within:border-navy-400 focus-within:ring-2 focus-within:ring-navy-100 ${
+              className={`mt-1.5 flex items-center gap-2 rounded-md border bg-white px-3 py-2.5 transition-colors focus-within:border-navy-400 focus-within:ring-2 focus-within:ring-navy-100 ${
                 errors.email
                   ? "border-red-400 focus-within:border-red-500 focus-within:ring-red-100"
                   : "border-ink-200"
@@ -140,10 +134,7 @@ export default function LoginForm({
           {/* Password */}
           <div>
             <div className="flex items-baseline justify-between">
-              <label
-                htmlFor={passwordId}
-                className="block text-sm font-semibold text-ink-700"
-              >
+              <label htmlFor={passwordId} className="block text-sm font-semibold text-ink-700">
                 Password
               </label>
               <Link
@@ -154,7 +145,7 @@ export default function LoginForm({
               </Link>
             </div>
             <div
-              className={`mt-1.5 flex items-center gap-2 rounded-lg border bg-white px-3 py-2.5 transition-colors focus-within:border-navy-400 focus-within:ring-2 focus-within:ring-navy-100 ${
+              className={`mt-1.5 flex items-center gap-2 rounded-md border bg-white px-3 py-2.5 transition-colors focus-within:border-navy-400 focus-within:ring-2 focus-within:ring-navy-100 ${
                 errors.password
                   ? "border-red-400 focus-within:border-red-500 focus-within:ring-red-100"
                   : "border-ink-200"
@@ -202,7 +193,7 @@ export default function LoginForm({
           {globalError && (
             <div
               role="alert"
-              className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2.5 text-sm text-red-700"
+              className="flex items-start gap-2 rounded-md border border-red-200 bg-red-50 px-3 py-2.5 text-sm text-red-700"
             >
               <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
               <span>{globalError}</span>
@@ -213,7 +204,7 @@ export default function LoginForm({
           <button
             type="submit"
             disabled={isPending}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-navy-800 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-navy-900 focus-visible:ring-2 focus-visible:ring-navy-300 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-70"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-navy-800 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-navy-900 focus-visible:ring-2 focus-visible:ring-navy-300 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-70"
           >
             {isPending ? (
               <>
@@ -242,7 +233,7 @@ export default function LoginForm({
         <button
           type="button"
           onClick={onGoogleClick}
-          className="inline-flex w-full items-center justify-center gap-2.5 rounded-lg border border-ink-200 bg-white px-4 py-2.5 text-sm font-semibold text-ink-700 shadow-sm transition-colors hover:bg-ink-50 focus-visible:ring-2 focus-visible:ring-navy-300 focus-visible:ring-offset-2"
+          className="inline-flex w-full items-center justify-center gap-2.5 rounded-md border border-ink-200 bg-white px-4 py-2.5 text-sm font-semibold text-ink-700 shadow-sm transition-colors hover:bg-ink-50 focus-visible:ring-2 focus-visible:ring-navy-300 focus-visible:ring-offset-2"
         >
           <GoogleIcon />
           Continue with Google
