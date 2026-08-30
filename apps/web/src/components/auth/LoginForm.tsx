@@ -10,7 +10,6 @@ import {
   ArrowRight,
   Eye,
   EyeOff,
-  LogIn,
   Mail,
   KeyRound,
   Loader2,
@@ -85,29 +84,15 @@ export default function LoginForm({
 
   return (
     <div className="w-full max-w-md">
-      {/* Brand mark above the card */}
-      <div className="mb-6 flex flex-col items-center text-center">
-        <span
-          aria-hidden
-          className="mb-3 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-navy-900 text-white shadow-card"
-        >
-          <LogIn className="h-5 w-5" />
-        </span>
-        <p className="text-xs font-semibold uppercase tracking-[0.25em] text-gold-600">
-          {site.name}
-        </p>
-      </div>
-
       <div className="rounded-2xl border border-ink-200/80 bg-white p-7 shadow-card sm:p-9">
         {/* Heading */}
         <div>
           <h1 className="font-display text-2xl font-extrabold tracking-tight text-navy-900 sm:text-[1.65rem]">
-            {isStaff ? "Staff Portal" : "Student & Parent Portal"}
+            Welcome to {site.name}
           </h1>
+          <h2 className="mt-1 text-base font-semibold text-navy-700">Sign in</h2>
           <p className="mt-1.5 text-sm text-ink-500">
-            {isStaff
-              ? "Sign in to manage students, results and notices."
-              : "Sign in to view your results, routine and notices."}
+            Enter your email and password to sign in.
           </p>
         </div>
 
