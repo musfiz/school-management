@@ -3,6 +3,7 @@ import LoginForm from "@/components/auth/LoginForm";
 import { getSession, safeReturnTo } from "@/lib/auth";
 import { site } from "@/lib/site";
 
+
 /**
  * Staff sign-in page.
  *
@@ -37,13 +38,23 @@ export default async function LoginPage({
   }
 
   return (
-    <main className="flex min-h-screen flex-col bg-white px-4 py-12 sm:py-16">
-      <div className="mx-auto w-full max-w-md">
-        <div className="mb-6 text-center">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-600">
-            {site.name}
-          </p>
-        </div>
+    <main className="relative isolate flex min-h-screen flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-navy-50 via-white to-gold-100 px-4 py-12 sm:py-16">
+      {/* Decorative background — soft dot grid + amber glow. The two
+          blobs are aria-hidden so screen readers skip them. */}
+      <div
+        aria-hidden
+        className="bg-grid absolute inset-0 opacity-40"
+      />
+      <div
+        aria-hidden
+        className="absolute -top-32 -right-32 h-96 w-96 rounded-full bg-gold-200/40 blur-3xl"
+      />
+      <div
+        aria-hidden
+        className="absolute -bottom-32 -left-32 h-96 w-96 rounded-full bg-brand-200/40 blur-3xl"
+      />
+
+      <div className="relative z-10 mx-auto w-full">
         <LoginForm variant="staff" returnTo={safeTo} />
       </div>
     </main>

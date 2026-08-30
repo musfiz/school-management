@@ -27,8 +27,19 @@ export default async function SiteLoginPage({
   }
 
   return (
-    <div className="bg-white px-4 py-12 sm:py-16">
-      <div className="mx-auto max-w-md">
+    <div className="relative isolate overflow-hidden bg-gradient-to-br from-navy-50 via-white to-gold-100 px-4 py-12 sm:py-20">
+      {/* Decorative background — soft dot grid + amber glow. */}
+      <div aria-hidden className="bg-grid absolute inset-0 opacity-40" />
+      <div
+        aria-hidden
+        className="absolute -top-32 -right-32 h-96 w-96 rounded-full bg-gold-200/40 blur-3xl"
+      />
+      <div
+        aria-hidden
+        className="absolute -bottom-32 -left-32 h-96 w-96 rounded-full bg-brand-200/40 blur-3xl"
+      />
+
+      <div className="relative z-10 mx-auto max-w-md">
         <LoginForm variant="public" returnTo={safeTo} />
       </div>
     </div>
