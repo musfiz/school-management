@@ -133,17 +133,9 @@ export default function LoginForm({
 
           {/* Password */}
           <div>
-            <div className="flex items-baseline justify-between">
-              <label htmlFor={passwordId} className="block text-sm font-semibold text-ink-700">
-                Password
-              </label>
-              <Link
-                href="/forgot-password"
-                className="text-xs font-medium text-navy-700 transition-colors hover:text-navy-900"
-              >
-                Forgot password?
-              </Link>
-            </div>
+            <label htmlFor={passwordId} className="block text-sm font-semibold text-ink-700">
+              Password
+            </label>
             <div
               className={`mt-1.5 flex items-center gap-2 rounded-md border bg-white px-3 py-2.5 transition-colors focus-within:border-navy-400 focus-within:ring-2 focus-within:ring-navy-100 ${
                 errors.password
@@ -187,6 +179,15 @@ export default function LoginForm({
                 {errors.password.message}
               </p>
             )}
+
+            <div className="mt-2 flex justify-end">
+              <Link
+                href="/forgot-password"
+                className="text-xs font-medium text-navy-700 transition-colors hover:text-navy-900"
+              >
+                Forgot password?
+              </Link>
+            </div>
           </div>
 
           {/* Global error (server / network) */}
