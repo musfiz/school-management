@@ -49,6 +49,24 @@ export default function LoginForm({
     mode: "onBlur",
   });
 
+  // Wrappers around `register()` that also clear the global server-error
+  // banner the moment the user starts editing the field. Keeps the form
+  // honest — a stale "Invalid credentials" must not linger after the user
+  // has already started typing a fix.
+  const emailReg = register("email");
+  const passwordReg = register("password");
+  const clearErrorOnEdit = () => {
+    if (globalError) setGlobalError(null);
+  };
+  const emailOnChange: React.ChangeEventHandler<HTMLInputElement> = (e) => {
+    clearErrorOnEdit();
+    void emailReg.onChange(e);
+  };
+  const passwordOnChange: React.ChangeEventHandler<HTMLInputElement> = (e) => {
+    clearErrorOnEdit();
+    void passwordReg.onChange(e);
+  };
+
   function onSubmit(data: LoginInput) {
     setGlobalError(null);
     startTransition(async () => {
@@ -92,6 +110,18 @@ export default function LoginForm({
 
         {/* Form */}
         <form onSubmit={handleSubmit(onSubmit)} className="mt-7 space-y-4" noValidate>
+          {/* Server / network error — rendered at the top so it's the first
+              thing the eye lands on after a failed submit. */}
+          {globalError && (
+            <div
+              role="alert"
+              className="flex items-start gap-2 rounded-md border border-red-200 bg-red-50 px-3 py-2.5 text-sm text-red-700"
+            >
+              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+              <span>{globalError}</span>
+            </div>
+          )}
+
           {/* Email */}
           <div>
             <label htmlFor={emailId} className="block text-sm font-semibold text-ink-700">
@@ -115,7 +145,11 @@ export default function LoginForm({
                 placeholder="you@example.com"
                 aria-invalid={errors.email ? "true" : "false"}
                 aria-describedby={errors.email ? emailErrorId : undefined}
-                {...register("email")}
+                {...emailReg}
+                onChange={emailOnChange}
+                onBlur={emailReg.onBlur}
+                ref={emailReg.ref}
+                name={emailReg.name}
                 className="w-full bg-transparent text-sm outline-none placeholder:text-ink-400"
               />
             </div>
@@ -151,7 +185,11 @@ export default function LoginForm({
                 placeholder="••••••••"
                 aria-invalid={errors.password ? "true" : "false"}
                 aria-describedby={errors.password ? passwordErrorId : undefined}
-                {...register("password")}
+                {...passwordReg}
+                onChange={passwordOnChange}
+                onBlur={passwordReg.onBlur}
+                ref={passwordReg.ref}
+                name={passwordReg.name}
                 className="w-full bg-transparent text-sm outline-none placeholder:text-ink-400"
               />
               <button
@@ -190,16 +228,7 @@ export default function LoginForm({
             </div>
           </div>
 
-          {/* Global error (server / network) */}
-          {globalError && (
-            <div
-              role="alert"
-              className="flex items-start gap-2 rounded-md border border-red-200 bg-red-50 px-3 py-2.5 text-sm text-red-700"
-            >
-              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
-              <span>{globalError}</span>
-            </div>
-          )}
+          {/* Global error (server / network) — moved to the top of the form */}
 
           {/* Submit */}
           <button
