@@ -9,14 +9,7 @@ import {
 } from 'typeorm';
 import { Exclude } from 'class-transformer';
 import * as bcrypt from 'bcryptjs';
-
-export enum UserRole {
-  ADMIN = 'admin',
-  MANAGEMENT = 'management',
-  TEACHER = 'teacher',
-  STUDENT = 'student',
-  GUARDIAN = 'guardian',
-}
+import { UserRole } from './user-role.enum';
 
 @Entity('users')
 export class User {
@@ -48,11 +41,11 @@ export class User {
   @Column({ type: 'timestamp', nullable: true })
   lastLoginAt?: Date;
 
-  @CreateDateColumn()
-  createdAt!: Date;
+  @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
+  created_at!: Date;
 
-  @UpdateDateColumn()
-  updatedAt!: Date;
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
+  updated_at!: Date;
 
   @BeforeInsert()
   @BeforeUpdate()

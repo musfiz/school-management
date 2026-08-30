@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { User } from './user.entity';
+import { User } from '../database/entities/user.entity';
 import { CreateUserDto, UpdateUserDto } from './user.dto';
 
 @Injectable()
@@ -23,14 +23,14 @@ export class UsersService {
 
   async findAll(): Promise<User[]> {
     return this.usersRepository.find({
-      select: ['id', 'name', 'email', 'role', 'phone', 'isActive', 'isVerified', 'createdAt'],
+      select: ['id', 'name', 'email', 'role', 'phone', 'isActive', 'isVerified', 'created_at'],
     });
   }
 
   async findOne(id: number): Promise<User> {
     const user = await this.usersRepository.findOne({
       where: { id },
-      select: ['id', 'name', 'email', 'role', 'phone', 'isActive', 'isVerified', 'lastLoginAt', 'createdAt'],
+      select: ['id', 'name', 'email', 'role', 'phone', 'isActive', 'isVerified', 'lastLoginAt', 'created_at'],
     });
 
     if (!user) {

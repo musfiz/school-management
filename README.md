@@ -407,3 +407,5 @@ jobs:
 
 netstat -ano | findstr "3030 3031 3032"
 
+
+taskkill /PID  /F

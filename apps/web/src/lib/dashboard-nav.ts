@@ -286,4 +286,11 @@ export const dashboardTree: DashTreeNode[] = [
     { kind: "leaf", label: "Profile", href: "/dashboard/profile", roles: ROLES, icon: "profile" },
     { kind: "leaf", label: "Settings", href: "/dashboard/settings", roles: ["admin", "management"], icon: "settings" },
   ]},
+
+  // ── Website Management ───────────────────────────────────────
+  { kind: "group", label: "Website Management", icon: "info", children: [
+    { kind: "leaf", label: "About Us", href: "/dashboard/website-management/about-us", roles: ROLES, icon: "about" },
+    { kind: "leaf", label: "Governing Body", href: "/dashboard/website-management/governing-body", roles: ROLES, icon: "about" },
+    { kind: "leaf", label: "Menu", href: "/dashboard/website-management/menu", roles: ROLES, icon: "about" },
+  ]},
 ];

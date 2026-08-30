@@ -3,7 +3,7 @@ import { z } from "zod";
 import { loginSchema } from "@/lib/validations";
 import { setSessionCookie } from "@/lib/auth";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3032";
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3031";
 
 /**
  * POST /api/auth/login

@@ -44,9 +44,12 @@ export default function LoginForm({
     register,
     handleSubmit,
     formState: { errors },
+    setValue,
+    clearErrors,
+    trigger,
   } = useForm<LoginInput>({
     resolver: zodResolver(loginSchema),
-    mode: "onBlur",
+    mode: "onChange",
   });
 
   // Wrappers around `register()` that also clear the global server-error
@@ -225,6 +228,37 @@ export default function LoginForm({
               >
                 Forgot password?
               </Link>
+            </div>
+
+            {/* Debug quick-login — wire to a test account and log in instantly. */}
+            <div className="mt-3 rounded-md border border-ink-200 bg-ink-50/60 p-3">
+              <p className="text-xs font-semibold uppercase tracking-wider text-ink-500">
+                Debug login
+              </p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {[
+                  { label: "Admin", email: "admin@school.com", password: "admin123" },
+                  { label: "Management", email: "principal@school.com", password: "principal123" },
+                  { label: "Teacher", email: "teacher@school.com", password: "teacher123" },
+                ].map((item) => (
+                  <button
+                    key={item.label}
+                    type="button"
+                    onClick={() => {
+                      setValue("email", item.email);
+                      setValue("password", item.password);
+                      clearErrors(["email", "password"]);
+                      void trigger(["email", "password"]);
+                    }}
+                    className="rounded-md border border-ink-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-navy-800 shadow-sm transition-colors hover:bg-navy-50 focus-visible:ring-2 focus-visible:ring-navy-300 focus-visible:ring-offset-2"
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+              <p className="mt-2 text-[11px] text-ink-400">
+                Uses seed accounts: admin / principal / teacher.
+              </p>
             </div>
           </div>
 
