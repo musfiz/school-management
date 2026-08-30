@@ -44,17 +44,17 @@ export class CreateUsersTable1701234567890 implements MigrationInterface {
             isNullable: true,
           },
           {
-            name: 'isActive',
+            name: 'is_active',
             type: 'boolean',
             default: true,
           },
           {
-            name: 'isVerified',
+            name: 'is_verified',
             type: 'boolean',
             default: false,
           },
           {
-            name: 'lastLoginAt',
+            name: 'last_login_at',
             type: 'timestamp',
             isNullable: true,
           },

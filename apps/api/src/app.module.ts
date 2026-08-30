@@ -7,6 +7,7 @@ import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { DatabaseService } from './database/database.service';
 import { JwtAuthGuard } from './auth/jwt-auth.guard';
 
 @Module({
@@ -19,6 +20,7 @@ import { JwtAuthGuard } from './auth/jwt-auth.guard';
   controllers: [AppController],
   providers: [
     AppService,
+    DatabaseService,
     // Global guard: every route requires a valid JWT unless it opts out
     // with @Public() (see AuthController). AuthModule exports JwtAuthGuard.
     { provide: APP_GUARD, useClass: JwtAuthGuard },

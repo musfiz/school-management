@@ -5,10 +5,18 @@ import { AppModule } from './app.module';
 import { config } from './config';
 
 async function bootstrap() {
+  // Fail fast on missing critical env vars
+  const requiredEnv = ['JWT_SECRET', 'DB_HOST', 'DB_DATABASE'];
+  const missing = requiredEnv.filter((key) => !process.env[key]);
+  if (missing.length > 0) {
+    throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
+  }
+
   const app = await NestFactory.create(AppModule);
 
-  // Enable CORS
-  app.enableCors();
+  // Enable CORS — restrict to frontend origin in production
+  const corsOrigin = process.env.CORS_ORIGIN || 'http://localhost:3030';
+  app.enableCors({ origin: corsOrigin });
 
   // Global validation pipe
   app.useGlobalPipes(

@@ -22,23 +22,23 @@ export class User {
   @Column({ type: 'varchar', length: 100, unique: true })
   email!: string;
 
-  @Column({ type: 'varchar', length: 255 })
+  @Column({ name: 'password', type: 'varchar', length: 255 })
   @Exclude()
   password!: string;
 
-  @Column({ type: 'enum', enum: UserRole, default: UserRole.STUDENT })
+  @Column({ name: 'role', type: 'enum', enum: UserRole, default: UserRole.STUDENT })
   role!: UserRole;
 
-  @Column({ type: 'varchar', length: 20, nullable: true })
+  @Column({ name: 'phone', type: 'varchar', length: 20, nullable: true })
   phone?: string;
 
-  @Column({ type: 'boolean', default: true })
+  @Column({ name: 'is_active', type: 'boolean', default: true })
   isActive!: boolean;
 
-  @Column({ type: 'boolean', default: false })
+  @Column({ name: 'is_verified', type: 'boolean', default: false })
   isVerified!: boolean;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ name: 'last_login_at', type: 'timestamp', nullable: true })
   lastLoginAt?: Date;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
