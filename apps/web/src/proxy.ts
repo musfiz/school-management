@@ -22,7 +22,7 @@ function addBearerHeader(req: NextRequest): void {
   }
 }
 
-export function middleware(req: NextRequest) {
+export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   // 1. Public paths — allow through immediately.
