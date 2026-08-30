@@ -12,26 +12,17 @@ import type { Role } from "@/lib/dashboard-nav";
 interface RoleContextValue {
   role: Role | null;
   name: string | null;
-  username: string | null;
+  id: number | null;
   setRole: (role: Role) => void;
   clearRole: () => void;
 }
 
 const RoleContext = createContext<RoleContextValue | null>(null);
 
-const COOKIE = "mhs_user";
-
-function readCookieUsername(): string | null {
-  if (typeof document === "undefined") return null;
-  const match = document.cookie
-    .split("; ")
-    .find((c) => c.startsWith(`${COOKIE}=`));
-  return match ? decodeURIComponent(match.split("=")[1]) : null;
-}
-
 interface RoleProviderInitial {
-  username: string;
+  id: number;
   name: string;
+  email: string;
   role: Role;
 }
 
@@ -44,37 +35,24 @@ export function RoleProvider({
 }) {
   const [role, setRoleState] = useState<Role | null>(initial?.role ?? null);
   const [name, setName] = useState<string | null>(initial?.name ?? null);
-  const [username, setUsername] = useState<string | null>(
-    initial?.username ?? null,
-  );
+  const [id, setId] = useState<number | null>(initial?.id ?? null);
 
-  // Local helper used by mock flows. The real flow is: server sets the cookie
-  // (via /api/auth/login), then router.refresh() re-renders this provider
-  // with a fresh `initial` prop. These setters remain for one-off UI flows
-  // (e.g. role-switcher in development).
+  // These setters exist for development conveniences (e.g. role-switcher).
+  // In production the session flows: server validates JWT → /api/auth/login
+  // sets the httpOnly cookie → router.refresh() re-renders with fresh `initial`.
   const setRole = useCallback((next: Role) => {
-    document.cookie = `${COOKIE}=${encodeURIComponent("")}; path=/; max-age=0; samesite=lax`;
     setRoleState(next);
   }, []);
 
   const clearRole = useCallback(() => {
-    document.cookie = `${COOKIE}=; path=/; max-age=0; samesite=lax`;
     setRoleState(null);
     setName(null);
-    setUsername(null);
+    setId(null);
   }, []);
 
-  // Expose a tiny sync helper in case a child component wants to pick up
-  // changes made to the cookie outside the React tree (e.g. the logout API).
   const value = useMemo<RoleContextValue>(
-    () => ({
-      role,
-      name,
-      username,
-      setRole,
-      clearRole,
-    }),
-    [role, name, username, setRole, clearRole],
+    () => ({ role, name, id, setRole, clearRole }),
+    [role, name, id, setRole, clearRole],
   );
 
   return <RoleContext.Provider value={value}>{children}</RoleContext.Provider>;
@@ -84,9 +62,4 @@ export function useRole() {
   const ctx = useContext(RoleContext);
   if (!ctx) throw new Error("useRole must be used within RoleProvider");
   return ctx;
-}
-
-/** Re-read the session cookie on demand (best-effort, client-only). */
-export function readClientSession(): { username: string | null } {
-  return { username: readCookieUsername() };
 }

@@ -28,7 +28,12 @@ export class AuthService {
 
     await this.usersService.updateLastLogin(user.id);
 
-    const payload = { sub: String(user.id), email: user.email, role: user.role };
+    const payload = {
+      sub: String(user.id),
+      email: user.email,
+      role: user.role,
+      name: user.name,
+    };
     const access_token = this.jwtService.sign(payload);
 
     return {
@@ -55,7 +60,12 @@ export class AuthService {
       role: 'student' as any,
     });
 
-    const payload = { sub: String(user.id), email: user.email, role: user.role };
+    const payload = {
+      sub: String(user.id),
+      email: user.email,
+      role: user.role,
+      name: user.name,
+    };
     const access_token = this.jwtService.sign(payload);
 
     return {

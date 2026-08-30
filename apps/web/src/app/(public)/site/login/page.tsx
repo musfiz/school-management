@@ -28,7 +28,7 @@ export default async function SiteLoginPage({
 
   return (
     <div className="bg-white px-4 py-12 sm:py-16">
-      <div className="mx-auto max-w-md">``q
+      <div className="mx-auto max-w-md">
         <LoginForm variant="public" returnTo={safeTo} />
       </div>
     </div>

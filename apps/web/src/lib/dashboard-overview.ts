@@ -34,7 +34,7 @@ export const overviewByRole: Record<Role, RoleOverview> = {
       { value: "12", label: "Open notices" },
     ],
     quickActions: [
-      { label: "Manage users", href: "/dashboard/settings" },
+      { label: "Manage users", href: "/dashboard/teachers" },
       { label: "Publish notice", href: "/dashboard/notices" },
       { label: "Review results", href: "/dashboard/results" },
       { label: "School settings", href: "/dashboard/settings" },

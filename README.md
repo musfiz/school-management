@@ -403,3 +403,7 @@ jobs:
 ## 📄 License
 
 [MIT](./LICENSE) © Contributors
+
+
+netstat -ano | findstr "3030 3031 3032"
+
