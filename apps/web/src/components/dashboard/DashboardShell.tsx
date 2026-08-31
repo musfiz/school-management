@@ -15,13 +15,15 @@ import type { Session } from "@/lib/auth";
 export default function DashboardShell({
   session,
   children,
+  className,
 }: {
   session: Session;
   children: React.ReactNode;
+  className?: string;
 }) {
   return (
     <RoleProvider initial={session}>
-      <div className="flex min-h-screen flex-col bg-ink-50 lg:flex-row">
+      <div className={`flex min-h-screen flex-col bg-ink-50 lg:flex-row ${className ?? ""}`}>
         <Sidebar role={session.role} name={session.name} />
         <div className="flex min-h-screen flex-1 flex-col">
           <Topbar name={session.name} email={session.email} role={session.role} />

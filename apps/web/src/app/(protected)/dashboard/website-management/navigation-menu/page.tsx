@@ -1,7 +1,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Plus, Trash2, ChevronUp, ChevronDown, Save, Loader2 } from "lucide-react";
+import {
+  Plus,
+  Minus,
+  Trash2,
+  ChevronUp,
+  ChevronDown,
+  Eye,
+  EyeOff,
+  Save,
+  Loader2,
+} from "lucide-react";
 import { mainNav, type NavItem } from "@/lib/navigation";
 import { confirmDialog, toast } from "@/lib/swal";
 
@@ -10,6 +20,7 @@ interface MenuNode {
   labelEn: string;
   labelBn: string;
   href: string;
+  isVisible: boolean;
   children: MenuNode[];
 }
 
@@ -21,6 +32,7 @@ interface ApiNode {
   labelEn: string;
   labelBn?: string | null;
   href: string;
+  isVisible?: boolean;
   children?: ApiNode[];
 }
 
@@ -30,6 +42,7 @@ function fromApi(nodes: ApiNode[]): MenuNode[] {
     labelEn: n.labelEn,
     labelBn: n.labelBn ?? "",
     href: n.href,
+    isVisible: n.isVisible ?? true,
     children: n.children?.length ? fromApi(n.children) : [],
   }));
 }
@@ -40,6 +53,7 @@ function fromNavItems(items: NavItem[]): MenuNode[] {
     labelEn: item.label,
     labelBn: "",
     href: item.href,
+    isVisible: true,
     children: item.children?.length ? fromNavItems(item.children) : [],
   }));
 }
@@ -49,6 +63,7 @@ function toApi(nodes: MenuNode[]): ApiNode[] {
     labelEn: n.labelEn,
     labelBn: n.labelBn || undefined,
     href: n.href,
+    isVisible: n.isVisible,
     children: n.children.length ? toApi(n.children) : undefined,
   }));
 }
@@ -70,7 +85,14 @@ function addChild(nodes: MenuNode[], parentId: string): MenuNode[] {
           ...n,
           children: [
             ...n.children,
-            { id: tmpId(), labelEn: "New item", labelBn: "", href: "/", children: [] },
+            {
+              id: tmpId(),
+              labelEn: "New item",
+              labelBn: "",
+              href: "/",
+              isVisible: true,
+              children: [],
+            },
           ],
         }
       : { ...n, children: addChild(n.children, parentId) },
@@ -96,12 +118,16 @@ function MenuRow({
   total,
   depth,
   onChange,
+  collapsed,
+  onToggleCollapse,
 }: {
   node: MenuNode;
   index: number;
   total: number;
   depth: number;
   onChange: (fn: (tree: MenuNode[]) => MenuNode[]) => void;
+  collapsed: Set<string>;
+  onToggleCollapse: (id: string) => void;
 }) {
   async function handleDelete() {
     const confirmed = await confirmDialog({
@@ -115,12 +141,27 @@ function MenuRow({
     if (confirmed) onChange((t) => remove(t, node.id));
   }
 
+  const hasChildren = node.children.length > 0;
+  const isOpen = !collapsed.has(node.id);
+
   return (
     <li
-      className="rounded-md border border-ink-200 bg-white p-2.5"
-      style={{ marginLeft: depth * 20 }}
+      className={`rounded-md border border-ink-200 bg-white p-2.5 ${node.isVisible ? "" : "opacity-50"}`}
     >
       <div className="flex flex-wrap items-center gap-2">
+        {hasChildren ? (
+          <button
+            type="button"
+            onClick={() => onToggleCollapse(node.id)}
+            className="rounded p-1.5 text-ink-500 hover:bg-ink-50"
+            aria-label={isOpen ? "Collapse sub-items" : "Expand sub-items"}
+            aria-expanded={isOpen}
+          >
+            {isOpen ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+          </button>
+        ) : (
+          depth === 0 && <span className="w-7 shrink-0" />
+        )}
         <input
           value={node.labelEn}
           onChange={(e) => onChange((t) => update(t, node.id, { labelEn: e.target.value }))}
@@ -170,6 +211,15 @@ function MenuRow({
           )}
           <button
             type="button"
+            onClick={() => onChange((t) => update(t, node.id, { isVisible: !node.isVisible }))}
+            className={`rounded p-1.5 hover:bg-ink-50 ${node.isVisible ? "text-emerald-600" : "text-ink-400"}`}
+            aria-label={node.isVisible ? "Active — click to hide" : "Inactive — click to show"}
+            title={node.isVisible ? "Active (visible on site)" : "Inactive (hidden from site)"}
+          >
+            {node.isVisible ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+          </button>
+          <button
+            type="button"
             onClick={handleDelete}
             className="rounded p-1.5 text-red-600 hover:bg-red-50"
             aria-label="Delete"
@@ -179,8 +229,11 @@ function MenuRow({
         </div>
       </div>
 
-      {node.children.length > 0 && (
-        <ul className="mt-2 space-y-2">
+      {hasChildren && isOpen && (
+        <ul
+          className="mt-2 space-y-2 border-l-2 border-ink-200 pl-6"
+          style={{ marginLeft: "2rem" }}
+        >
           {node.children.map((child, i) => (
             <MenuRow
               key={child.id}
@@ -189,6 +242,8 @@ function MenuRow({
               total={node.children.length}
               depth={depth + 1}
               onChange={onChange}
+              collapsed={collapsed}
+              onToggleCollapse={onToggleCollapse}
             />
           ))}
         </ul>
@@ -203,6 +258,16 @@ export default function NavigationMenuPage() {
   const [saving, setSaving] = useState(false);
   const [savedAt, setSavedAt] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
+
+  function toggleCollapse(id: string) {
+    setCollapsed((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
 
   useEffect(() => {
     (async () => {
@@ -298,6 +363,8 @@ export default function NavigationMenuPage() {
               total={tree.length}
               depth={0}
               onChange={updateTree}
+              collapsed={collapsed}
+              onToggleCollapse={toggleCollapse}
             />
           ))}
         </ul>
@@ -308,7 +375,14 @@ export default function NavigationMenuPage() {
         onClick={() =>
           updateTree((t) => [
             ...t,
-            { id: tmpId(), labelEn: "New item", labelBn: "", href: "/", children: [] },
+            {
+              id: tmpId(),
+              labelEn: "New item",
+              labelBn: "",
+              href: "/",
+              isVisible: true,
+              children: [],
+            },
           ])
         }
         className="mt-4 flex items-center gap-1.5 rounded-md border border-dashed border-ink-300 px-3 py-2 text-sm font-semibold text-ink-600 hover:border-brand-400 hover:text-brand-600"

@@ -111,6 +111,28 @@
     color: var(--color-navy-900);
   }
 
+    /* Tailwind Preflight doesn't set a pointer cursor on buttons — make every
+       clickable control (buttons, links, custom "role=button" triggers) show
+       one, so this doesn't have to be repeated per-component. */
+    button:not(:disabled),
+    [type="button"]:not(:disabled),
+    [type="submit"]:not(:disabled),
+    [type="reset"]:not(:disabled),
+    [role="button"]:not([aria-disabled="true"]),
+    a,
+    summary,
+    select,
+    label[for] {
+      cursor: pointer;
+    }
+  
+    button:disabled,
+    [type="button"]:disabled,
+    [type="submit"]:disabled,
+    [type="reset"]:disabled,
+    [role="button"][aria-disabled="true"] {
+      cursor: not-allowed;
+    }
   /* Visible keyboard focus for accessibility */
   :focus-visible {
     outline: 2px solid var(--color-brand-500);
@@ -119,6 +141,28 @@
   }
 }
 
+/* Public site: English uses Geist, Bangla keeps Anek Bangla (it doesn't
+   support Latin as well). Locale class is set on <html> in the root layout.
+   The dashboard always overrides back to Geist below, regardless of locale. */
+html.lang-en {
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Dashboard (protected) area uses Geist instead of the marketing site font.
+   Overriding the tokens (not just font-family) means font-display/font-sans
+   utilities used by dashboard components pick up Geist automatically. */
+.dashboard-font {
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-sans);
+}
+
+/* SweetAlert2 renders into document.body (outside the dashboard DOM subtree),
+   so it can't inherit --font-sans from .dashboard-font; it's dashboard-only. */
+.swal2-popup {
+  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+}
 @utility bg-grid {
   background-image:
     linear-gradient(to right, rgb(11 22 48 / 0.05) 1px, transparent 1px),
@@ -163,13 +207,13 @@
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  padding: 7px 8px;
-  font-size: 13px;
+  padding: 3px 8px;
+    font-size: 14px;
   font-weight: 600;
   color: var(--color-ink-600);
   background: transparent;
   border: none;
-  border-radius: 10px;
+  border-radius: 6px;
   cursor: pointer;
   transition: background-color 0.15s ease, color 0.15s ease;
 }
@@ -190,7 +234,7 @@
   flex-shrink: 0;
   align-items: center;
   justify-content: center;
-  border-radius: 8px;
+  border-radius: 6px;
   background-color: var(--color-ink-100);
   color: var(--color-ink-500);
   transition: background-color 0.15s ease, color 0.15s ease;
@@ -221,8 +265,8 @@
 /* Children list — indent guide */
 .sidebar-children-list {
   position: relative;
-  margin: 2px 0 2px 23px;
-  padding-left: 14px;
+  margin: 1px 0 1px 20px;
+    padding-left: 12px;
   border-left: 1.5px solid var(--color-ink-200);
   display: flex;
   flex-direction: column;
@@ -230,7 +274,7 @@
 }
 
 .sidebar-children .sidebar-children .sidebar-children-list {
-  margin-left: 14px;
+  margin-left: 12px;
 }
 
 /* Leaf link */
@@ -238,12 +282,12 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 6.5px 10px;
+  padding: 6px 10px;
   font-size: 13px;
   font-weight: 500;
   color: var(--color-ink-500);
   text-decoration: none;
-  border-radius: 8px;
+  border-radius: 6px;
   transition: background-color 0.15s ease, color 0.15s ease;
 }
 
@@ -284,7 +328,7 @@
   width: 42px;
   align-items: center;
   justify-content: center;
-  border-radius: 12px;
+  border-radius: 8px;
   border: none;
   background: transparent;
   color: var(--color-ink-500);
@@ -342,7 +386,7 @@
 .sidebar-flyout-card {
   min-width: 230px;
   max-width: 280px;
-  border-radius: 12px;
+  border-radius: 8px;
   border: 1px solid var(--color-ink-200);
   background-color: #fff;
   box-shadow: var(--shadow-card);

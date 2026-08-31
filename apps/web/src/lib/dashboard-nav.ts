@@ -208,7 +208,42 @@ export function filterTreeForRole(nodes: DashTreeNode[], role: Role): DashTreeNo
 export const dashboardTree: DashTreeNode[] = [
   // ── Overview (standalone leaf) ─────────────────────────────────
   { kind: "leaf", label: "Overview", href: "/dashboard", roles: ROLES, icon: "home" },
-
+  // ── Website Management ───────────────────────────────────────
+  {
+    kind: "group",
+    label: "Website Management",
+    icon: "info",
+    children: [
+      {
+        kind: "leaf",
+        label: "Navigation Menu",
+        href: "/dashboard/website-management/navigation-menu",
+        roles: ["admin", "management"],
+        icon: "settings",
+      },
+      {
+        kind: "leaf",
+        label: "About Us",
+        href: "/dashboard/website-management/about-us",
+        roles: ROLES,
+        icon: "about",
+      },
+      {
+        kind: "leaf",
+        label: "Governing Body",
+        href: "/dashboard/website-management/governing-body",
+        roles: ROLES,
+        icon: "about",
+      },
+      {
+        kind: "leaf",
+        label: "Menu",
+        href: "/dashboard/website-management/menu",
+        roles: ROLES,
+        icon: "about",
+      },
+    ],
+  },
   // ── About ─────────────────────────────────────────────────────
   {
     kind: "group",
@@ -686,43 +721,6 @@ export const dashboardTree: DashTreeNode[] = [
         kind: "leaf",
         label: "Settings",
         href: "/dashboard/settings",
-        roles: ["admin", "management"],
-        icon: "settings",
-      },
-    ],
-  },
-
-  // ── Website Management ───────────────────────────────────────
-  {
-    kind: "group",
-    label: "Website Management",
-    icon: "info",
-    children: [
-      {
-        kind: "leaf",
-        label: "About Us",
-        href: "/dashboard/website-management/about-us",
-        roles: ROLES,
-        icon: "about",
-      },
-      {
-        kind: "leaf",
-        label: "Governing Body",
-        href: "/dashboard/website-management/governing-body",
-        roles: ROLES,
-        icon: "about",
-      },
-      {
-        kind: "leaf",
-        label: "Menu",
-        href: "/dashboard/website-management/menu",
-        roles: ROLES,
-        icon: "about",
-      },
-      {
-        kind: "leaf",
-        label: "Navigation Menu",
-        href: "/dashboard/website-management/navigation-menu",
         roles: ["admin", "management"],
         icon: "settings",
       },

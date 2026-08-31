@@ -18,5 +18,9 @@ export default async function DashboardLayout({
     // matches the URL the visitor actually requested.
     redirect("/login?returnTo=/dashboard");
   }
-  return <DashboardShell session={session}>{children}</DashboardShell>;
+  return (
+    <DashboardShell session={session} className="dashboard-font">
+      {children}
+    </DashboardShell>
+  );
 }
