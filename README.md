@@ -50,14 +50,14 @@ A monorepo for a school management platform — a **Next.js** web frontend, a
 
 ## 🧰 Tech Stack
 
-| Layer        | Tooling                                                   |
-| ------------ | --------------------------------------------------------- |
-| Package mgr. | [pnpm](https://pnpm.io) 11+ with workspaces               |
-| Monorepo     | [Turborepo](https://turborepo.dev)                        |
-| Frontend     | [Next.js](https://nextjs.org) 16, React 19, Tailwind 4    |
-| Backend      | [NestJS](https://nestjs.com) 11, TypeScript 6             |
-| Shared       | TypeScript 6 (compiled to CommonJS + `.d.ts`)             |
-| Lint/Format  | ESLint (Next config) + Prettier                           |
+| Layer        | Tooling                                                |
+| ------------ | ------------------------------------------------------ |
+| Package mgr. | [pnpm](https://pnpm.io) 11+ with workspaces            |
+| Monorepo     | [Turborepo](https://turborepo.dev)                     |
+| Frontend     | [Next.js](https://nextjs.org) 16, React 19, Tailwind 4 |
+| Backend      | [NestJS](https://nestjs.com) 11, TypeScript 6          |
+| Shared       | TypeScript 6 (compiled to CommonJS + `.d.ts`)          |
+| Lint/Format  | ESLint (Next config) + Prettier                        |
 
 ## ✅ Prerequisites
 
@@ -91,26 +91,25 @@ pnpm install
 ```
 
 This installs dependencies for every workspace (`apps/web`, `apps/api`,
-`packages/shared-types`) in one pass.
+`packages/shared-types`) in one pass. A `postinstall` hook then automatically:
 
-### 3. Configure environment variables
+- creates `.env`, `apps/api/.env`, and `apps/web/.env` from their `.env.example`
+  files (only if they don't already exist — never overwrites your local values)
+- builds `packages/shared-types` so both apps can resolve its types immediately
 
-```sh
-cp .env.example .env
-cp apps/web/.env.example apps/web/.env
-cp apps/api/.env.example apps/api/.env
-```
+No other setup commands are required before running the apps in dev mode.
 
-Fill in any real values (DB URL, JWT secret, etc.) as needed. The defaults
-already work for a local dev run with the bundled mocks.
+### 3. Review environment variables
 
-### 4. Build the shared types (one-time, and after any type change)
+The `.env` files created in step 2 already work for local dev with the bundled
+mocks. Open them and fill in real values (DB credentials, `JWT_SECRET`, etc.)
+when you're ready to connect a real database:
 
-```sh
-pnpm --filter shared-types build
-```
+- [`.env`](.env)
+- [`apps/api/.env`](apps/api/.env)
+- [`apps/web/.env`](apps/web/.env)
 
-### 5. Start everything in dev mode
+### 4. Start everything in dev mode
 
 ```sh
 pnpm dev
@@ -118,10 +117,10 @@ pnpm dev
 
 This runs `turbo run dev`, which launches **all apps in parallel**:
 
-| App          | URL                       |
-| ------------ | ------------------------- |
-| `apps/web`   | http://localhost:3000     |
-| `apps/api`   | http://localhost:4000     |
+| App        | URL                   |
+| ---------- | --------------------- |
+| `apps/web` | http://localhost:3030 |
+| `apps/api` | http://localhost:3031 |
 
 You can also run them in **separate terminals** — useful for focused logs:
 
@@ -211,13 +210,13 @@ pnpm --filter shared-types clean
 
 All scripts run from the repo root and are powered by Turborepo.
 
-| Command          | What it does                                                   |
-| ---------------- | -------------------------------------------------------------- |
-| `pnpm dev`       | Runs `dev` in every workspace **in parallel** (watch mode)     |
-| `pnpm build`     | Builds every workspace in dependency order, with caching       |
-| `pnpm lint`      | Lints every workspace                                          |
-| `pnpm clean`     | Removes build artifacts (delegated to each workspace)          |
-| `pnpm typecheck` | Type-checks every workspace (if configured)                    |
+| Command          | What it does                                               |
+| ---------------- | ---------------------------------------------------------- |
+| `pnpm dev`       | Runs `dev` in every workspace **in parallel** (watch mode) |
+| `pnpm build`     | Builds every workspace in dependency order, with caching   |
+| `pnpm lint`      | Lints every workspace                                      |
+| `pnpm clean`     | Removes build artifacts (delegated to each workspace)      |
+| `pnpm typecheck` | Type-checks every workspace (if configured)                |
 
 Filter any of these with `--filter`:
 
@@ -285,11 +284,11 @@ school-management/
 All apps follow Next.js / NestJS conventions. **Never commit real secrets** —
 commit only the `.env.example` files.
 
-| Scope       | File                    | Notes                                                              |
-| ----------- | ----------------------- | ------------------------------------------------------------------ |
-| Root        | `.env.example`          | Documents shared variables (template)                              |
-| `apps/web`  | `apps/web/.env.example` | Vars prefixed with `NEXT_PUBLIC_` are exposed to the browser       |
-| `apps/api`  | `apps/api/.env.example` | Server-only — CORS, DB, JWT, etc.                                  |
+| Scope      | File                    | Notes                                                        |
+| ---------- | ----------------------- | ------------------------------------------------------------ |
+| Root       | `.env.example`          | Documents shared variables (template)                        |
+| `apps/web` | `apps/web/.env.example` | Vars prefixed with `NEXT_PUBLIC_` are exposed to the browser |
+| `apps/api` | `apps/api/.env.example` | Server-only — CORS, DB, JWT, etc.                            |
 
 Local overrides go in `.env.local` (gitignored).
 
@@ -347,9 +346,11 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for branching, commit, and PR conventions
    pnpm --filter shared-types build
    ```
 3. **Consume** it from `apps/web` or `apps/api`:
+
    ```ts
    import type { School, Student } from 'shared-types';
    ```
+
    (Works because `shared-types` is a workspace package; the `main` / `types`
    fields in its `package.json` point at `dist/`.)
 
@@ -404,8 +405,6 @@ jobs:
 
 [MIT](./LICENSE) © Contributors
 
-
 netstat -ano | findstr "3030 3031 3032"
 
-
-taskkill /PID  /F
+taskkill /PID /F

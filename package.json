@@ -1,11 +1,21 @@
 {
   "name": "school-management",
   "private": true,
+  "engines": {
+    "node": ">=20",
+    "pnpm": ">=11"
+  },
   "scripts": {
+    "postinstall": "node scripts/postinstall.mjs",
     "dev": "turbo run dev",
     "build": "turbo run build",
     "lint": "turbo run lint",
-    "clean": "turbo run clean"
+    "clean": "turbo run clean",
+    "migration:generate": "pnpm --filter api run migration:generate",
+    "migration:make": "node scripts/make-migration.mjs",
+    "migration:run": "pnpm --filter api run migration:run",
+    "migration:revert": "pnpm --filter api run migration:revert",
+    "seed": "pnpm --filter api run seed"
   },
   "devDependencies": {
     "turbo": "latest"

@@ -1,9 +1,9 @@
 packages:
-  - "apps/*"
-  - "packages/*"
+  - 'apps/*'
+  - 'packages/*'
 
 allowBuilds:
   '@scarf/scarf': false
   bcrypt: false
-  esbuild: set this to true or false
+  esbuild: true
   unrs-resolver: true

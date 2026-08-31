@@ -7,6 +7,10 @@ node_modules/
 .pnp.cjs
 .pnp.loader.mjs
 
+# This is a pnpm workspace — never commit npm/yarn lockfiles
+package-lock.json
+yarn.lock
+
 # =====================================================
 # Environment files (commit only the examples)
 # =====================================================
@@ -76,7 +80,6 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 # =====================================================
 .idea/
 .vscode/*
-!.vscode/settings.json
 !.vscode/extensions.json
 !.vscode/launch.json
 *.swp
