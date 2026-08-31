@@ -5,6 +5,7 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { findNav, mainNav } from "@/lib/navigation";
 import { getPage } from "@/lib/content/pages";
 import { getCmsPage } from "@/lib/cms-pages";
+import { getGoverningBody } from "@/lib/governing-body";
 import { resolveImageUrl, isExternalImage } from "@/lib/media";
 import { breadcrumbJsonLd } from "@/lib/jsonld";
 import { Breadcrumbs, JsonLd, PageHeader, Section } from "@/components/ui";
@@ -55,6 +56,67 @@ export default async function SubPage({
     }
   }
   const home = tNav("home");
+
+  // Governing body roster is dashboard-managed (name/designation/photo list)
+  // rather than a single bilingual document, so it gets its own branch.
+  if (slug === "governing-body") {
+    const members = await getGoverningBody();
+    const locale = await getLocale();
+    // Each row picks the Bangla text when the locale is bn and a translation
+    // was provided; otherwise falls back to the English value so untranslated
+    // rows still render correctly under a Bangla session.
+    const localized = members.map((m) => ({
+      ...m,
+      displayName: (locale === "bn" && m.nameBn) || m.name,
+      displayDesignation: (locale === "bn" && m.designationBn) || m.designation,
+    }));
+    const parentLabel = (parent && translateSection(parent.section)) || parent?.label;
+    const title = nav?.label || "Governing Body";
+    const crumbs = [
+      { name: home, href: "/" },
+      ...(parent ? [{ name: parentLabel!, href: `/${section}` }] : []),
+      { name: title, href: `/${section}/${slug}` },
+    ];
+
+    return (
+      <>
+        <JsonLd data={breadcrumbJsonLd(crumbs)} />
+        <PageHeader eyebrow={parentLabel} title={title} />
+        <Breadcrumbs items={crumbs} />
+        <Section>
+          {localized.length === 0 ? (
+            <p className="text-ink-500">No governing body members published yet.</p>
+          ) : (
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {localized.map((m) => (
+                <div
+                  key={m.id}
+                  className="flex flex-col items-center rounded-md border border-ink-200 bg-white p-6 text-center shadow-soft"
+                >
+                  {m.imageUrl ? (
+                    <Image
+                      src={resolveImageUrl(m.imageUrl)}
+                      alt={m.displayName}
+                      width={112}
+                      height={112}
+                      unoptimized={isExternalImage(m.imageUrl)}
+                      className="h-28 w-28 rounded-full object-cover"
+                    />
+                  ) : (
+                    <span className="flex h-28 w-28 items-center justify-center rounded-full bg-ink-100 text-2xl font-semibold text-ink-400">
+                      {m.displayName.slice(0, 1).toUpperCase()}
+                    </span>
+                  )}
+                  <p className="mt-4 font-display text-lg font-bold text-navy-900">{m.displayName}</p>
+                  <p className="mt-1 text-sm text-ink-500">{m.displayDesignation}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </Section>
+      </>
+    );
+  }
 
   // Dashboard-managed content (bilingual + image) takes priority over the
   // hand-authored static blocks below, once an admin has saved this slug.

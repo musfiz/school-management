@@ -9,6 +9,7 @@ import { MenusModule } from './menus/menus.module';
 import { SiteSettingsModule } from './site-settings/site-settings.module';
 import { PagesModule } from './pages/pages.module';
 import { UploadsModule } from './uploads/uploads.module';
+import { GoverningBodyModule } from './governing-body/governing-body.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { DatabaseService } from './database/database.service';
@@ -24,6 +25,7 @@ import { JwtAuthGuard } from './auth/jwt-auth.guard';
     SiteSettingsModule,
     PagesModule,
     UploadsModule,
+    GoverningBodyModule,
   ],
   controllers: [AppController],
   providers: [
