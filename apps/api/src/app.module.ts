@@ -5,6 +5,7 @@ import { ConfigModule } from '@nestjs/config';
 import { dataSourceOptions } from './database/data-source';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
+import { MenusModule } from './menus/menus.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { DatabaseService } from './database/database.service';
@@ -16,6 +17,7 @@ import { JwtAuthGuard } from './auth/jwt-auth.guard';
     TypeOrmModule.forRoot(dataSourceOptions),
     AuthModule,
     UsersModule,
+    MenusModule,
   ],
   controllers: [AppController],
   providers: [

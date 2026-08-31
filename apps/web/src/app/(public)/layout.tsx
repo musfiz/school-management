@@ -1,12 +1,11 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import NoticeTicker from "@/components/NoticeTicker";
+import { getHeaderNav } from "@/lib/menus";
 
-export default function PublicLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default async function PublicLayout({ children }: { children: React.ReactNode }) {
+  const navItems = await getHeaderNav();
+
   return (
     <div className="flex min-h-screen flex-col font-sans antialiased">
       <a
@@ -15,7 +14,7 @@ export default function PublicLayout({
       >
         Skip to content
       </a>
-      <Header />
+      <Header navItems={navItems} />
       <NoticeTicker />
       <main id="main" className="flex-1">
         {children}

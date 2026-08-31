@@ -1,0 +1,19 @@
+{
+  "common": {
+    "siteName": "স্কুল ম্যানেজমেন্ট",
+    "onlineApply": "অনলাইনে আবেদন",
+    "language": "ভাষা"
+  },
+  "nav": {
+    "home": "হোম",
+    "about": "আমাদের সম্পর্কে",
+    "information": "তথ্য",
+    "academic": "শিক্ষাক্রম",
+    "admission": "ভর্তি",
+    "student": "শিক্ষার্থী",
+    "facilities": "সুযোগ-সুবিধা",
+    "results": "ফলাফল",
+    "others": "অন্যান্য",
+    "contact": "যোগাযোগ"
+  }
+}

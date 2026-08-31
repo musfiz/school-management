@@ -34,7 +34,7 @@ export default function HeroSlider() {
       onMouseLeave={() => setPaused(false)}
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
-        <div className="relative h-[36vh] min-h-[260px] w-full overflow-hidden sm:h-[44vh] lg:h-[50vh]">
+        <div className="relative h-[calc(36vh+50px)] min-h-65 w-full overflow-hidden sm:h-[calc(44vh+150px)] lg:h-[calc(50vh+150px)]">
           {slides.map((slide, i) => (
             <div
               key={slide.src}

@@ -28,15 +28,24 @@ export class RegisterDto {
   password!: string;
 }
 
+export class AuthUserDto {
+  @ApiProperty()
+  id!: number;
+
+  @ApiProperty()
+  name!: string;
+
+  @ApiProperty()
+  email!: string;
+
+  @ApiProperty()
+  role!: string;
+}
+
 export class AuthResponseDto {
   @ApiProperty()
   access_token!: string;
 
-  @ApiProperty()
-  user!: {
-    id: number;
-    name: string;
-    email: string;
-    role: string;
-  };
+  @ApiProperty({ type: () => AuthUserDto })
+  user!: AuthUserDto;
 }

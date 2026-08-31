@@ -2,14 +2,15 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useMemo, useState, useCallback } from "react";
-import { ChevronDown } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ChevronDown, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import {
   dashboardTree,
   filterTreeForRole,
   defaultOpenGroups,
   isNodeOrChildActive,
   nodeKey,
+  roleLabels,
   type DashTreeNode,
   type Role,
 } from "@/lib/dashboard-nav";
@@ -29,7 +30,6 @@ import {
   PaletteIcon,
   ArrowDownIcon,
 } from "@/components/icons";
-import { roleLabels } from "@/lib/dashboard-nav";
 
 const iconMap = {
   home: GraduationCapIcon,
@@ -56,18 +56,18 @@ const iconMap = {
 } as const;
 
 function iconFor(name: string) {
-  return iconMap[name as keyof typeof iconMap];
+  return iconMap[name as keyof typeof iconMap] ?? GraduationCapIcon;
 }
 
 function isLeafActive(leaf: DashTreeNode, pathname: string): boolean {
   if (!leaf.href) return false;
-  return leaf.href === "/dashboard"
-    ? pathname === "/dashboard"
-    : pathname.startsWith(leaf.href);
+  return leaf.href === "/dashboard" ? pathname === "/dashboard" : pathname.startsWith(leaf.href);
 }
 
+const COLLAPSE_STORAGE_KEY = "dashboard:sidebar-collapsed";
+
 /* ------------------------------------------------------------------ */
-/*  Compact tree node with proper hierarchy                           */
+/*  Expanded mode — inline accordion tree                             */
 /* ------------------------------------------------------------------ */
 
 function TreeNode({
@@ -76,14 +76,12 @@ function TreeNode({
   level,
   open,
   toggle,
-  isLast = false,
 }: {
   node: DashTreeNode;
   parentKey: string | null;
   level: number;
   open: Set<string>;
   toggle: (key: string, parentKey: string | null) => void;
-  isLast?: boolean;
 }) {
   const pathname = usePathname();
   const key = nodeKey(node, parentKey);
@@ -104,12 +102,14 @@ function TreeNode({
           aria-expanded={isOpen}
           className={`sidebar-group-btn ${active ? "active" : ""}`}
         >
-          <span className="flex items-center gap-2.5">
-            <Icon className="h-4 w-4 shrink-0 opacity-70" />
-            <span className="flex-1 text-left">{node.label}</span>
+          <span className="flex min-w-0 items-center gap-2.5">
+            <span className="sidebar-icon-chip">
+              <Icon className="h-4 w-4 shrink-0" />
+            </span>
+            <span className="flex-1 truncate text-left">{node.label}</span>
           </span>
           <ChevronDown
-            className={`h-3.5 w-3.5 shrink-0 transition-transform duration-200 ${
+            className={`h-3.5 w-3.5 shrink-0 text-ink-400 transition-transform duration-200 ${
               isOpen ? "rotate-0" : "-rotate-90"
             }`}
           />
@@ -117,16 +117,8 @@ function TreeNode({
 
         <div className={`sidebar-children ${isOpen ? "open" : ""}`}>
           <ul className="sidebar-children-list">
-            {children.map((child, i) => (
-              <TreeNode
-                key={nodeKey(child, key)}
-                node={child}
-                parentKey={key}
-                level={level + 1}
-                open={open}
-                toggle={toggle}
-                isLast={i === children.length - 1}
-              />
+            {children.map((child) => (
+              <TreeNode key={nodeKey(child, key)} node={child} parentKey={key} level={level + 1} open={open} toggle={toggle} />
             ))}
           </ul>
         </div>
@@ -139,38 +131,125 @@ function TreeNode({
 
   return (
     <li className="sidebar-leaf" data-level={level}>
-      <Link
-        href={node.href ?? "/"}
-        aria-current={active ? "page" : undefined}
-        className={`sidebar-leaf-link ${active ? "active" : ""}`}
-      >
-        <span className="flex items-center gap-2.5">
-          <Icon className="h-3.5 w-3.5 shrink-0 opacity-60" />
-          <span>{node.label}</span>
-        </span>
+      <Link href={node.href ?? "/"} aria-current={active ? "page" : undefined} className={`sidebar-leaf-link ${active ? "active" : ""}`}>
+        <span className="sidebar-leaf-dot" aria-hidden />
+        <span className="truncate">{node.label}</span>
       </Link>
     </li>
   );
 }
 
 /* ------------------------------------------------------------------ */
-/*  Sidebar shell                                                    */
+/*  Collapsed mode — icon rail; hovering a group opens a flyout panel  */
 /* ------------------------------------------------------------------ */
 
-export default function Sidebar({
-  role,
-  name,
-}: {
-  role: Role;
-  name?: string;
-}) {
+function FlyoutNode({ node, onNavigate }: { node: DashTreeNode; onNavigate: () => void }) {
+  const pathname = usePathname();
+
+  if (node.kind === "group") {
+    return (
+      <li className="px-1 py-1">
+        <p className="px-2 py-1 text-[11px] font-semibold uppercase tracking-wider text-ink-400">{node.label}</p>
+        <ul className="space-y-0.5">
+          {(node.children ?? []).map((child) => (
+            <FlyoutNode key={child.label} node={child} onNavigate={onNavigate} />
+          ))}
+        </ul>
+      </li>
+    );
+  }
+
+  const active = isLeafActive(node, pathname);
+  return (
+    <li>
+      <Link
+        href={node.href ?? "/"}
+        onClick={onNavigate}
+        aria-current={active ? "page" : undefined}
+        className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+          active ? "bg-brand-50 text-brand-700" : "text-ink-600 hover:bg-ink-50 hover:text-ink-900"
+        }`}
+      >
+        <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${active ? "bg-brand-600" : "bg-ink-300"}`} />
+        <span className="truncate">{node.label}</span>
+      </Link>
+    </li>
+  );
+}
+
+function RailItem({ node, active }: { node: DashTreeNode; active: boolean }) {
+  const [hovered, setHovered] = useState(false);
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const Icon = iconFor(node.icon ?? "home");
+
+  function open() {
+    if (closeTimer.current) clearTimeout(closeTimer.current);
+    setHovered(true);
+  }
+  function scheduleClose() {
+    closeTimer.current = setTimeout(() => setHovered(false), 120);
+  }
+  useEffect(() => () => {
+    if (closeTimer.current) clearTimeout(closeTimer.current);
+  }, []);
+
+  if (node.kind === "leaf") {
+    return (
+      <li className="group relative">
+        <Link href={node.href ?? "/"} aria-current={active ? "page" : undefined} className={`sidebar-rail-btn ${active ? "active" : ""}`}>
+          <Icon className="h-4.5 w-4.5" />
+        </Link>
+        <span className="sidebar-rail-tooltip">{node.label}</span>
+      </li>
+    );
+  }
+
+  return (
+    <li className="relative" onMouseEnter={open} onMouseLeave={scheduleClose}>
+      <button type="button" className={`sidebar-rail-btn ${active ? "active" : ""}`} aria-haspopup="true" aria-expanded={hovered}>
+        <Icon className="h-4.5 w-4.5" />
+      </button>
+      {!hovered && <span className="sidebar-rail-tooltip">{node.label}</span>}
+
+      {hovered && (
+        <div className="sidebar-flyout" role="menu">
+          <div className="sidebar-flyout-card">
+            <p className="border-b border-ink-100 px-3 py-2 text-xs font-semibold text-ink-800">{node.label}</p>
+            <ul className="max-h-[70vh] overflow-y-auto py-1.5">
+              {(node.children ?? []).map((child) => (
+                <FlyoutNode key={child.label} node={child} onNavigate={() => setHovered(false)} />
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
+    </li>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Sidebar shell                                                     */
+/* ------------------------------------------------------------------ */
+
+export default function Sidebar({ role, name }: { role: Role; name?: string }) {
   const pathname = usePathname();
 
   const items = useMemo(() => filterTreeForRole(dashboardTree, role), [role]);
 
-  const [open, setOpen] = useState<Set<string>>(() =>
-    defaultOpenGroups(items, pathname),
-  );
+  const [open, setOpen] = useState<Set<string>>(() => defaultOpenGroups(items, pathname));
+  const [collapsed, setCollapsed] = useState(false);
+
+  useEffect(() => {
+    if (window.localStorage.getItem(COLLAPSE_STORAGE_KEY) === "1") setCollapsed(true);
+  }, []);
+
+  function toggleCollapsed() {
+    setCollapsed((prev) => {
+      const next = !prev;
+      window.localStorage.setItem(COLLAPSE_STORAGE_KEY, next ? "1" : "0");
+      return next;
+    });
+  }
 
   const toggle = useCallback((key: string, parentKey: string | null) => {
     setOpen((prev) => {
@@ -197,40 +276,57 @@ export default function Sidebar({
   }, []);
 
   return (
-    <aside className="flex h-screen w-64 shrink-0 flex-col border-r border-slate-200 bg-white">
-      {/* Header */}
-      <div className="flex h-14 items-center gap-2.5 border-b border-slate-200 px-4">
-        <span className="flex h-8 w-8 items-center justify-center rounded-sm bg-indigo-600 text-white">
-          <GraduationCapIcon className="h-4 w-4" />
+    <aside
+      className={`sticky top-0 flex h-screen shrink-0 flex-col border-r border-ink-200 bg-white transition-[width] duration-200 ${
+        collapsed ? "w-19" : "w-72"
+      }`}
+    >
+      {/* Brand header */}
+      <div className="flex h-16 items-center gap-2.5 border-b border-ink-200 px-4">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-navy-900 text-gold-400 shadow-sm">
+          <GraduationCapIcon className="h-4.5 w-4.5" />
         </span>
-        <div className="flex flex-col">
-          <span className="text-sm font-bold text-slate-900">MHS</span>
-          <span className="text-[10px] text-slate-500">Dashboard</span>
-        </div>
+        {!collapsed && (
+          <div className="flex min-w-0 flex-col">
+            <span className="truncate text-sm font-bold text-ink-900">Model High School</span>
+            <span className="truncate text-[11px] font-medium text-ink-400">{roleLabels[role]} dashboard</span>
+          </div>
+        )}
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto py-3 px-3" aria-label="Dashboard navigation">
-        <ul className="sidebar-nav">
-          {items.map((node, i) => (
-            <TreeNode
-              key={nodeKey(node, null)}
-              node={node}
-              parentKey={null}
-              level={0}
-              open={open}
-              toggle={toggle}
-              isLast={i === items.length - 1}
-            />
-          ))}
-        </ul>
+      <nav className="sidebar-scroll flex-1 overflow-y-auto px-3 py-3" aria-label="Dashboard navigation">
+        {collapsed ? (
+          <ul className="flex flex-col items-center gap-1">
+            {items.map((node) => (
+              <RailItem key={nodeKey(node, null)} node={node} active={isNodeOrChildActive(node, pathname)} />
+            ))}
+          </ul>
+        ) : (
+          <ul className="sidebar-nav">
+            {items.map((node) => (
+              <TreeNode key={nodeKey(node, null)} node={node} parentKey={null} level={0} open={open} toggle={toggle} />
+            ))}
+          </ul>
+        )}
       </nav>
 
-      {/* User info footer */}
-      <div className="border-t border-slate-200 p-4">
-        <p className="text-[10px] uppercase tracking-wider text-slate-400">Signed in as</p>
-        <p className="mt-0.5 text-sm font-semibold text-slate-900">{name ?? roleLabels[role]}</p>
-        <p className="text-xs text-slate-500">{roleLabels[role]}</p>
+      {/* Signed-in user + collapse toggle */}
+      <div className="border-t border-ink-200 p-2">
+        {!collapsed && name && (
+          <p className="truncate px-2 pb-1.5 text-xs text-ink-400">
+            Signed in as <span className="font-semibold text-ink-600">{name}</span>
+          </p>
+        )}
+        <button
+          type="button"
+          onClick={toggleCollapsed}
+          className="flex w-full items-center justify-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold text-ink-500 transition-colors hover:bg-ink-50 hover:text-ink-800"
+          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+        >
+          {collapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
+          {!collapsed && <span>Collapse</span>}
+        </button>
       </div>
     </aside>
   );

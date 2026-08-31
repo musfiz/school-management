@@ -53,8 +53,20 @@ async function bootstrap() {
     .addTag('Users', 'User management endpoints')
     .build();
 
-  const document = SwaggerModule.createDocument(app, swaggerConfig);
-  SwaggerModule.setup('api/docs', app, document);
+  // NOTE: @nestjs/swagger@11.4.7 has a pre-existing bug where its circular-
+  // dependency detector can throw a false positive during schema generation
+  // (reproducible even with only Auth+Users modules, unrelated to any DTO
+  // shape in this codebase). Don't let broken API docs take down the whole
+  // API — log it and keep the app running.
+  try {
+    const document = SwaggerModule.createDocument(app, swaggerConfig);
+    SwaggerModule.setup('api/docs', app, document);
+  } catch (err) {
+    console.error(
+      '[swagger] Failed to generate API docs, continuing without them:',
+      err instanceof Error ? err.message : err,
+    );
+  }
 
   const port = config().port;
   await app.listen(port);

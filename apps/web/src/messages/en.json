@@ -1,0 +1,19 @@
+{
+  "common": {
+    "siteName": "School Management",
+    "onlineApply": "Online Apply",
+    "language": "Language"
+  },
+  "nav": {
+    "home": "Home",
+    "about": "About",
+    "information": "Information",
+    "academic": "Academic",
+    "admission": "Admission",
+    "student": "Student",
+    "facilities": "Facilities",
+    "results": "Results",
+    "others": "Others",
+    "contact": "Contact"
+  }
+}

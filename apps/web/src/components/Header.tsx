@@ -3,10 +3,12 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useLocale, useTranslations } from "next-intl";
 import { ChevronDown, Mail, Menu, Phone, X } from "lucide-react";
-import { mainNav } from "@/lib/navigation";
+import type { NavItem } from "@/lib/navigation";
 import { site } from "@/lib/site";
+import { LOCALE_COOKIE, type Locale } from "@/i18n/config";
 import { FacebookIcon, LinkedinIcon, XIconBrand, YoutubeIcon } from "./icons";
 
 const socials = [
@@ -16,14 +18,24 @@ const socials = [
   { label: "YouTube", href: site.youtube, Icon: YoutubeIcon },
 ];
 
-export default function Header() {
+export default function Header({ navItems }: { navItems: NavItem[] }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const locale = useLocale();
+  const t = useTranslations("common");
   const [mobileOpen, setMobileOpen] = useState(false);
   const [openAccordion, setOpenAccordion] = useState<string | null>(null);
-  const [lang, setLang] = useState<"en" | "bn">("en");
 
-  const isActive = (href: string) =>
-    href === "/" ? pathname === "/" : pathname.startsWith(href);
+  function setLocale(next: Locale) {
+    if (next === locale) return;
+    document.cookie = `${LOCALE_COOKIE}=${next}; path=/; max-age=31536000; samesite=lax`;
+    router.refresh();
+  }
+
+  const isActive = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
+
+  /** Bangla label when available and active, otherwise the default (English) label. */
+  const labelFor = (item: NavItem) => (locale === "bn" && item.labelBn ? item.labelBn : item.label);
 
   const noticeHref = "/others/notice";
 
@@ -86,14 +98,14 @@ export default function Header() {
             <div
               className="flex items-center rounded-sm border border-navy-700 p-0.5 text-[11px] font-semibold"
               role="group"
-              aria-label="Language"
+              aria-label={t("language")}
             >
               <button
                 type="button"
-                onClick={() => setLang("en")}
-                aria-pressed={lang === "en"}
+                onClick={() => setLocale("en")}
+                aria-pressed={locale === "en"}
                 className={`rounded-sm px-2 py-0.5 transition-colors ${
-                  lang === "en" ? "bg-white text-navy-900" : "text-navy-200 hover:text-white"
+                  locale === "en" ? "bg-white text-navy-900" : "text-navy-200 hover:text-white"
                 }`}
               >
                 EN
@@ -101,10 +113,10 @@ export default function Header() {
               <span className="px-0.5 text-navy-600">|</span>
               <button
                 type="button"
-                onClick={() => setLang("bn")}
-                aria-pressed={lang === "bn"}
+                onClick={() => setLocale("bn")}
+                aria-pressed={locale === "bn"}
                 className={`rounded-sm px-2 py-0.5 transition-colors ${
-                  lang === "bn" ? "bg-white text-navy-900" : "text-navy-200 hover:text-white"
+                  locale === "bn" ? "bg-white text-navy-900" : "text-navy-200 hover:text-white"
                 }`}
               >
                 বাং
@@ -115,7 +127,7 @@ export default function Header() {
               href="/admission/how-to-apply"
               className="rounded-sm bg-gold-500 px-3 py-1 text-xs font-semibold text-navy-900 transition-colors hover:bg-gold-400"
             >
-              Online Apply
+              {t("onlineApply")}
             </Link>
           </div>
         </div>
@@ -163,7 +175,7 @@ export default function Header() {
           {/* Desktop nav */}
           <nav className="hidden items-center lg:flex" aria-label="Primary">
             <ul className="flex items-center">
-              {mainNav.map((item) => (
+              {navItems.map((item) => (
                 <li key={item.href} className="group relative">
                   <Link
                     href={item.href}
@@ -174,7 +186,7 @@ export default function Header() {
                     }`}
                     aria-current={isActive(item.href) ? "page" : undefined}
                   >
-                    {item.label}
+                    {labelFor(item)}
                     {item.children && <ChevronDown className="h-3.5 w-3.5 opacity-60" />}
                   </Link>
 
@@ -192,7 +204,7 @@ export default function Header() {
                               }`}
                               aria-current={isActive(child.href) ? "page" : undefined}
                             >
-                              {child.label}
+                              {labelFor(child)}
                             </Link>
                           </li>
                         ))}
@@ -236,7 +248,7 @@ export default function Header() {
           <div className="max-h-[80vh] overflow-y-auto border-t border-navy-700 bg-navy-800 lg:hidden">
             <nav className="mx-auto max-w-7xl px-4 py-3 sm:px-6" aria-label="Mobile">
               <ul className="space-y-1">
-                {mainNav.map((item) => (
+                {navItems.map((item) => (
                   <li key={item.href}>
                     {item.children ? (
                       <div>
@@ -248,7 +260,7 @@ export default function Header() {
                           aria-expanded={openAccordion === item.label}
                           className="flex w-full items-center justify-between rounded-sm px-3 py-2.5 text-left text-sm font-medium text-navy-50 hover:bg-navy-700"
                         >
-                          {item.label}
+                          {labelFor(item)}
                           <ChevronDown
                             className={`h-4 w-4 transition-transform ${
                               openAccordion === item.label ? "rotate-180" : ""
@@ -268,7 +280,7 @@ export default function Header() {
                                       : "text-navy-100"
                                   }`}
                                 >
-                                  {child.label}
+                                  {labelFor(child)}
                                 </Link>
                               </li>
                             ))}
@@ -285,7 +297,7 @@ export default function Header() {
                             : "text-navy-50"
                         }`}
                       >
-                        {item.label}
+                        {labelFor(item)}
                       </Link>
                     )}
                   </li>

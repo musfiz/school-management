@@ -50,8 +50,9 @@
   --color-ink-800: #1e293b;
   --color-ink-900: #0f172a;
 
-  --font-display: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Anek Bangla", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Anek Bangla", ui-sans-serif, system-ui, sans-serif;
+  --font-bangla: "Anek Bangla", ui-sans-serif, system-ui, sans-serif;
 
   --radius-card: 1rem;
 
@@ -67,6 +68,7 @@
     opacity: 0;
     transform: translateY(16px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -77,6 +79,7 @@
   from {
     transform: translateX(0);
   }
+
   to {
     transform: translateX(-50%);
   }
@@ -129,8 +132,24 @@
 }
 
 /* ------------------------------------------------------------------ */
-/*  Dashboard Sidebar — clean nested menu styles                       */
+/*  Dashboard Sidebar — hierarchical tree + collapsed icon-rail flyouts */
 /* ------------------------------------------------------------------ */
+
+/* Thin, unobtrusive scrollbar for the nav column */
+.sidebar-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-ink-200) transparent;
+}
+
+.sidebar-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar-scroll::-webkit-scrollbar-thumb {
+  background-color: var(--color-ink-200);
+  border-radius: 999px;
+}
+
 /* Main nav container */
 .sidebar-nav {
   display: flex;
@@ -144,30 +163,45 @@
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  padding: 6px 12px;
-  font-size: 12px;
+  padding: 7px 8px;
+  font-size: 13px;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: #64748b;
+  color: var(--color-ink-600);
   background: transparent;
   border: none;
-  border-radius: 6px;
+  border-radius: 10px;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: background-color 0.15s ease, color 0.15s ease;
 }
 
 .sidebar-group-btn:hover {
-  background-color: #f1f5f9;
-  color: #334155;
+  background-color: var(--color-ink-50);
+  color: var(--color-ink-900);
 }
 
 .sidebar-group-btn.active {
-  color: #4f46e5;
-  background-color: #eef2ff;
+  color: var(--color-navy-800);
 }
 
-/* Children container (collapsible) */
+.sidebar-icon-chip {
+  display: flex;
+  height: 26px;
+  width: 26px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background-color: var(--color-ink-100);
+  color: var(--color-ink-500);
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.sidebar-group-btn.active .sidebar-icon-chip {
+  background-color: var(--color-brand-100);
+  color: var(--color-brand-700);
+}
+
+/* Children container (collapsible, animated height) */
 .sidebar-children {
   display: grid;
   grid-template-rows: 0fr;
@@ -179,73 +213,149 @@
   grid-template-rows: 1fr;
 }
 
-.sidebar-children>* {
+.sidebar-children > * {
   overflow: hidden;
   min-height: 0;
 }
 
-/* Children list */
+/* Children list — indent guide */
 .sidebar-children-list {
-  padding-left: 12px;
-  margin: 2px 0 0 12px;
-  border-left: 1.5px solid #e2e8f0;
+  position: relative;
+  margin: 2px 0 2px 23px;
+  padding-left: 14px;
+  border-left: 1.5px solid var(--color-ink-200);
   display: flex;
   flex-direction: column;
   gap: 1px;
 }
 
+.sidebar-children .sidebar-children .sidebar-children-list {
+  margin-left: 14px;
+}
+
 /* Leaf link */
 .sidebar-leaf-link {
-  display: block;
-  padding: 6px 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6.5px 10px;
   font-size: 13px;
   font-weight: 500;
-  color: #475569;
+  color: var(--color-ink-500);
   text-decoration: none;
-  border-radius: 6px;
-  transition: all 0.15s ease;
+  border-radius: 8px;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.sidebar-leaf-dot {
+  height: 5px;
+  width: 5px;
+  flex-shrink: 0;
+  border-radius: 999px;
+  background-color: var(--color-ink-300);
+  transition: background-color 0.15s ease;
 }
 
 .sidebar-leaf-link:hover {
-  background-color: #f1f5f9;
-  color: #1e293b;
+  background-color: var(--color-ink-50);
+  color: var(--color-ink-900);
+}
+
+.sidebar-leaf-link:hover .sidebar-leaf-dot {
+  background-color: var(--color-brand-500);
 }
 
 .sidebar-leaf-link.active {
-  background-color: #4f46e5;
+  background-color: var(--color-navy-800);
   color: #ffffff;
   font-weight: 600;
+  box-shadow: var(--shadow-soft);
 }
 
-/* Nested children indentation */
-.sidebar-children .sidebar-children-list {
-  margin-left: 20px;
-  padding-left: 12px;
+.sidebar-leaf-link.active .sidebar-leaf-dot {
+  background-color: var(--color-gold-400);
 }
 
-.sidebar-children .sidebar-children .sidebar-children-list {
-  margin-left: 12px;
-  padding-left: 12px;
+/* ---------------- Collapsed icon rail ---------------- */
+
+.sidebar-rail-btn {
+  display: flex;
+  height: 42px;
+  width: 42px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  border: none;
+  background: transparent;
+  color: var(--color-ink-500);
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
 }
 
-/* Level-based hover colors for nested items */
-.sidebar-leaf[data-level="1"] .sidebar-leaf-link:hover {
-  background-color: #eef2ff;
-  color: #4f46e5;
+.sidebar-rail-btn:hover {
+  background-color: var(--color-ink-50);
+  color: var(--color-navy-800);
 }
 
-.sidebar-leaf[data-level="2"] .sidebar-leaf-link:hover {
-  background-color: #f0fdf4;
-  color: #16a34a;
+.sidebar-rail-btn.active {
+  background-color: var(--color-navy-800);
+  color: #ffffff;
+  box-shadow: var(--shadow-soft);
 }
 
-/* Active state for nested items */
-.sidebar-leaf[data-level="1"] .sidebar-leaf-link.active {
-  background-color: #e0e7ff;
-  color: #4338ca;
+/* Tooltip for rail leaf items (CSS-only, hover-driven) */
+.sidebar-rail-tooltip {
+  position: absolute;
+  left: 100%;
+  top: 50%;
+  z-index: 40;
+  margin-left: 10px;
+  white-space: nowrap;
+  border-radius: 6px;
+  background-color: var(--color-ink-900);
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #fff;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-50%);
+  transition: opacity 0.12s ease;
 }
 
-.sidebar-leaf[data-level="2"] .sidebar-leaf-link.active {
-  background-color: #dcfce7;
-  color: #15803d;
+.group:hover > .sidebar-rail-tooltip {
+  opacity: 1;
+}
+
+/* Flyout panel for rail groups — an invisible padded hit-box so the pointer
+   never crosses a dead zone between the icon and the visible card, plus the
+   actual visible card as a nested element. */
+.sidebar-flyout {
+  position: absolute;
+  left: 100%;
+  top: -8px;
+  z-index: 50;
+  padding-left: 10px;
+  animation: sidebar-flyout-in 0.12s ease-out;
+}
+
+.sidebar-flyout-card {
+  min-width: 230px;
+  max-width: 280px;
+  border-radius: 12px;
+  border: 1px solid var(--color-ink-200);
+  background-color: #fff;
+  box-shadow: var(--shadow-card);
+}
+
+@keyframes sidebar-flyout-in {
+  from {
+    opacity: 0;
+    transform: translateX(-4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
