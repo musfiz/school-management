@@ -9,10 +9,15 @@ async function bootstrap() {
   const requiredEnv = ['JWT_SECRET', 'DB_HOST', 'DB_DATABASE'];
   const missing = requiredEnv.filter((key) => !process.env[key]);
   if (missing.length > 0) {
-    throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
+    throw new Error(
+      `Missing required environment variables: ${missing.join(', ')}`,
+    );
   }
 
   const app = await NestFactory.create(AppModule);
+
+  // Release the port immediately on Ctrl+C / SIGTERM instead of lingering
+  app.enableShutdownHooks();
 
   // Enable CORS — restrict to frontend origin in production
   const corsOrigin = process.env.CORS_ORIGIN || 'http://localhost:3030';

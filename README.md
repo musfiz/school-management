@@ -210,13 +210,18 @@ pnpm --filter shared-types clean
 
 All scripts run from the repo root and are powered by Turborepo.
 
-| Command          | What it does                                               |
-| ---------------- | ---------------------------------------------------------- |
-| `pnpm dev`       | Runs `dev` in every workspace **in parallel** (watch mode) |
-| `pnpm build`     | Builds every workspace in dependency order, with caching   |
-| `pnpm lint`      | Lints every workspace                                      |
-| `pnpm clean`     | Removes build artifacts (delegated to each workspace)      |
-| `pnpm typecheck` | Type-checks every workspace (if configured)                |
+| Command                      | What it does                                               |
+| ---------------------------- | ---------------------------------------------------------- |
+| `pnpm dev`                   | Runs `dev` in every workspace **in parallel** (watch mode) |
+| `pnpm build`                 | Builds every workspace in dependency order, with caching   |
+| `pnpm lint`                  | Lints every workspace                                      |
+| `pnpm clean`                 | Removes build artifacts (delegated to each workspace)      |
+| `pnpm typecheck`             | Type-checks every workspace (if configured)                |
+| `pnpm migration:make <name>` | Generates a migration with a `Y_m_d_His_name.ts` filename  |
+| `pnpm migration:run`         | Applies all pending database migrations                    |
+| `pnpm migration:revert`      | Reverts the last database migration                        |
+| `pnpm seed`                  | Seeds the database with initial data                       |
+| `pnpm ports:free [port…]`    | Force-frees stuck dev server ports (default `3030 3031`)   |
 
 Filter any of these with `--filter`:
 
@@ -225,6 +230,19 @@ pnpm dev --filter web
 pnpm build --filter api
 pnpm lint --filter shared-types
 ```
+
+## 🔌 Port Already In Use?
+
+If a dev server didn't shut down cleanly (common on Windows when Ctrl+C
+doesn't reach the underlying process) and `pnpm dev` fails with
+`EADDRINUSE`, free the stuck ports with:
+
+```sh
+pnpm ports:free
+```
+
+`apps/api` also calls `app.enableShutdownHooks()` so the NestJS server
+releases its port immediately on `SIGINT`/`SIGTERM` in normal shutdowns.
 
 ## 🗂️ Project Structure
 

@@ -15,7 +15,8 @@
     "migration:make": "node scripts/make-migration.mjs",
     "migration:run": "pnpm --filter api run migration:run",
     "migration:revert": "pnpm --filter api run migration:revert",
-    "seed": "pnpm --filter api run seed"
+    "seed": "pnpm --filter api run seed",
+    "ports:free": "node scripts/free-port.mjs"
   },
   "devDependencies": {
     "turbo": "latest"
