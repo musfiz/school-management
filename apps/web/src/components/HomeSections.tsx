@@ -1,23 +1,22 @@
 import Link from "next/link";
 import { notices } from "@/lib/content/collections";
+import type { PublicSiteSettings } from "@/lib/site-settings";
 import { Container, Section } from "./ui";
 import { ArrowRightIcon } from "./icons";
 
-export function AboutPreview() {
+export function AboutPreview({ settings }: { settings: PublicSiteSettings }) {
   return (
     <Section className="bg-white">
       <div className="grid items-center gap-12 lg:grid-cols-2">
         <div>
-          <p className="text-sm font-bold uppercase tracking-wider text-gold-600">
-            About us
-          </p>
+          <p className="text-sm font-bold uppercase tracking-wider text-gold-600">About us</p>
           <h2 className="mt-2 font-display text-3xl font-extrabold text-navy-900 sm:text-4xl">
             A half-century of shaping bright futures
           </h2>
           <p className="mt-4 text-lg leading-relaxed text-ink-600">
-            Since {new Date().getFullYear() - 54}, {`Model High School`} has been a
-            cornerstone of the community — combining academic excellence with the
-            values of discipline, curiosity and service.
+            {settings.established && `Since ${settings.established}, `}
+            {settings.siteName} has been a cornerstone of the community — combining academic
+            excellence with the values of discipline, curiosity and service.
           </p>
           <ul className="mt-6 space-y-3">
             {[
@@ -53,9 +52,7 @@ export function AboutPreview() {
               key={s.l}
               className="rounded-sm border border-ink-200 bg-ink-50 p-6 text-center shadow-soft"
             >
-              <p className="font-display text-3xl font-extrabold text-brand-600">
-                {s.v}
-              </p>
+              <p className="font-display text-3xl font-extrabold text-brand-600">{s.v}</p>
               <p className="mt-1 text-sm font-medium text-ink-500">{s.l}</p>
             </div>
           ))}

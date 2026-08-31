@@ -7,24 +7,34 @@ import { usePathname, useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { ChevronDown, Mail, Menu, Phone, X } from "lucide-react";
 import type { NavItem } from "@/lib/navigation";
-import { site } from "@/lib/site";
+import type { PublicSiteSettings } from "@/lib/site-settings";
+import { resolveImageUrl, isExternalImage } from "@/lib/media";
 import { LOCALE_COOKIE, type Locale } from "@/i18n/config";
 import { FacebookIcon, LinkedinIcon, XIconBrand, YoutubeIcon } from "./icons";
 
-const socials = [
-  { label: "Facebook", href: site.facebook, Icon: FacebookIcon },
-  { label: "X", href: site.twitter, Icon: XIconBrand },
-  { label: "LinkedIn", href: site.linkedin, Icon: LinkedinIcon },
-  { label: "YouTube", href: site.youtube, Icon: YoutubeIcon },
-];
-
-export default function Header({ navItems }: { navItems: NavItem[] }) {
+export default function Header({
+  navItems,
+  settings,
+}: {
+  navItems: NavItem[];
+  settings: PublicSiteSettings;
+}) {
   const pathname = usePathname();
   const router = useRouter();
   const locale = useLocale();
   const t = useTranslations("common");
   const [mobileOpen, setMobileOpen] = useState(false);
   const [openAccordion, setOpenAccordion] = useState<string | null>(null);
+
+  const socials = [
+    { label: "Facebook", href: settings.facebookUrl, Icon: FacebookIcon },
+    { label: "X", href: settings.twitterUrl, Icon: XIconBrand },
+    { label: "LinkedIn", href: settings.linkedinUrl, Icon: LinkedinIcon },
+    { label: "YouTube", href: settings.youtubeUrl, Icon: YoutubeIcon },
+  ];
+
+  const showLogo = settings.headerDisplay !== "info";
+  const showInfo = settings.headerDisplay !== "logo";
 
   function setLocale(next: Locale) {
     if (next === locale) return;
@@ -47,19 +57,19 @@ export default function Header({ navItems }: { navItems: NavItem[] }) {
           {/* contact info */}
           <div className="flex items-center gap-4">
             <a
-              href={`mailto:${site.email}`}
+              href={`mailto:${settings.email}`}
               className="flex items-center gap-1.5 transition-colors hover:text-white"
             >
               <Mail className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">{site.email}</span>
+              <span className="hidden sm:inline">{settings.email}</span>
               <span className="sm:hidden">Email</span>
             </a>
             <a
-              href={`tel:${site.phone.replace(/\s|-/g, "")}`}
+              href={`tel:${settings.phone.replace(/\s|-/g, "")}`}
               className="flex items-center gap-1.5 transition-colors hover:text-white"
             >
               <Phone className="h-3.5 w-3.5" />
-              <span>{site.phone}</span>
+              <span>{settings.phone}</span>
             </a>
           </div>
 
@@ -138,34 +148,43 @@ export default function Header({ navItems }: { navItems: NavItem[] }) {
         <div className="mx-auto flex max-w-7xl items-center gap-4 px-4 py-3 sm:px-6">
           {/* School logo — rendered as a rectangle, height-constrained so
               the natural aspect ratio of the image is preserved. */}
-          <Link href="/" aria-label={`${site.name} home`} className="shrink-0">
-            <Image
-              src="/logo.png"
-              alt={`${site.name} logo`}
-              width={160}
-              height={64}
-              priority
-              sizes="(max-width: 640px) 112px, 160px"
-              className="h-14 w-auto rounded-sm object-contain sm:h-12"
-            />
-          </Link>
+          {showLogo && (
+            <Link href="/" aria-label={`${settings.siteName} home`} className="shrink-0">
+              <Image
+                src={resolveImageUrl(settings.logoUrl)}
+                alt={`${settings.siteName} logo`}
+                width={160}
+                height={64}
+                priority
+                unoptimized={isExternalImage(settings.logoUrl)}
+                sizes="(max-width: 640px) 112px, 160px"
+                className="h-14 w-auto rounded-sm object-contain sm:h-12"
+              />
+            </Link>
+          )}
 
           {/* Name + EST. year + address rows */}
-          {/* <div className="min-w-0">
-            <Link href="/" className="block">
-              <h1 className="font-display text-xl font-extrabold leading-none text-navy-900 sm:text-2xl">
-                {site.name}
-              </h1>
-              <p className="mt-1 text-xs font-semibold uppercase tracking-wider text-gold-600 sm:text-sm">
-                Est. {site.established}
+          {showInfo && (
+            <div className="min-w-0">
+              <Link href="/" className="block">
+                <h1 className="font-display text-xl font-extrabold leading-none text-navy-900 sm:text-2xl">
+                  {settings.siteName}
+                </h1>
+                {settings.established && (
+                  <p className="mt-1 text-xs font-semibold uppercase tracking-wider text-gold-600 sm:text-sm">
+                    Est. {settings.established}
+                  </p>
+                )}
+                <p className="mt-1 text-sm leading-none text-navy-600 sm:text-base">
+                  {settings.tagline}
+                </p>
+              </Link>
+              <p className="mt-1.5 flex items-center gap-1.5 text-xs text-ink-500 sm:text-sm">
+                <Phone className="h-3.5 w-3.5 shrink-0 text-ink-400" />
+                <span className="truncate">{settings.address}</span>
               </p>
-              <p className="mt-1 text-sm leading-none text-navy-600 sm:text-base">{site.tagline}</p>
-            </Link>
-            <p className="mt-1.5 flex items-center gap-1.5 text-xs text-ink-500 sm:text-sm">
-              <Phone className="h-3.5 w-3.5 shrink-0 text-ink-400" />
-              <span className="truncate">{site.address}</span>
-            </p>
-          </div> */}
+            </div>
+          )}
         </div>
       </div>
 

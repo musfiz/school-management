@@ -1,8 +1,9 @@
 import Link from "next/link";
-import { site, footerStats, quickLinks } from "@/lib/site";
+import { footerStats, quickLinks } from "@/lib/site";
+import type { PublicSiteSettings } from "@/lib/site-settings";
 import { ArrowRightIcon, CalendarIcon, PhoneIcon } from "./icons";
 
-export default function Hero() {
+export default function Hero({ settings }: { settings: PublicSiteSettings }) {
   return (
     <section className="relative overflow-hidden">
       <div className="absolute inset-0 -z-10 bg-gradient-to-b from-navy-50 via-ink-50 to-ink-50" />
@@ -18,13 +19,11 @@ export default function Hero() {
           </span>
 
           <h1 className="mt-6 font-display text-4xl font-extrabold leading-[1.05] text-navy-900 sm:text-5xl lg:text-6xl">
-            Knowledge. Discipline.
-            <span className="block text-brand-600">Excellence.</span>
+            {settings.tagline}
           </h1>
 
           <p className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-ink-600">
-            {site.name} is a public secondary school where rigorous academics, caring
-            teachers and a vibrant community help every student thrive.
+            {settings.description}
           </p>
 
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
@@ -49,11 +48,11 @@ export default function Hero() {
               Open house: Sep 19 · 10am
             </span>
             <a
-              href={`tel:${site.phone}`}
+              href={`tel:${settings.phone}`}
               className="inline-flex items-center gap-2 hover:text-navy-700"
             >
               <PhoneIcon className="h-5 w-5 text-brand-600" />
-              {site.phone}
+              {settings.phone}
             </a>
           </div>
         </div>

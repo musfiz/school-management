@@ -223,8 +223,22 @@ export const dashboardTree: DashTreeNode[] = [
       },
       {
         kind: "leaf",
+        label: "Site Settings",
+        href: "/dashboard/website-management/site-settings",
+        roles: ["admin", "management"],
+        icon: "settings",
+      },
+      {
+        kind: "leaf",
         label: "About Us",
         href: "/dashboard/website-management/about-us",
+        roles: ROLES,
+        icon: "about",
+      },
+      {
+        kind: "leaf",
+        label: "History",
+        href: "/dashboard/website-management/history",
         roles: ROLES,
         icon: "about",
       },

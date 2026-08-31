@@ -1,10 +1,14 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import NoticeTicker from "@/components/NoticeTicker";
+import { getLocale } from "next-intl/server";
 import { getHeaderNav } from "@/lib/menus";
+import { getSiteSettings } from "@/lib/site-settings";
+import type { Locale } from "@/i18n/config";
 
 export default async function PublicLayout({ children }: { children: React.ReactNode }) {
-  const navItems = await getHeaderNav();
+  const locale = (await getLocale()) as Locale;
+  const [navItems, settings] = await Promise.all([getHeaderNav(), getSiteSettings(locale)]);
 
   return (
     <div className="flex min-h-screen flex-col font-sans antialiased">
@@ -14,12 +18,12 @@ export default async function PublicLayout({ children }: { children: React.React
       >
         Skip to content
       </a>
-      <Header navItems={navItems} />
+      <Header navItems={navItems} settings={settings} />
       <NoticeTicker />
       <main id="main" className="flex-1">
         {children}
       </main>
-      <Footer />
+      <Footer settings={settings} />
     </div>
   );
 }

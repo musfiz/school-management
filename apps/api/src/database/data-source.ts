@@ -2,6 +2,8 @@ import { DataSource, DataSourceOptions } from 'typeorm';
 import * as dotenv from 'dotenv';
 import { User } from './entities/user.entity';
 import { MenuItem } from './entities/menu-item.entity';
+import { SiteSetting } from './entities/site-setting.entity';
+import { Page } from './entities/page.entity';
 
 dotenv.config();
 
@@ -12,7 +14,7 @@ export const dataSourceOptions: DataSourceOptions = {
   username: process.env.DB_USERNAME || 'root',
   password: process.env.DB_PASSWORD || '',
   database: process.env.DB_DATABASE || 'school',
-  entities: [User, MenuItem],
+  entities: [User, MenuItem, SiteSetting, Page],
   migrations: ['src/database/migrations/*.ts'],
   synchronize: false,
   logging: process.env.NODE_ENV === 'development',

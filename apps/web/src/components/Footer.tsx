@@ -1,7 +1,8 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Mail, MapPin, Phone } from "lucide-react";
-import { site } from "@/lib/site";
+import type { PublicSiteSettings } from "@/lib/site-settings";
+import { resolveImageUrl, isExternalImage } from "@/lib/media";
 import { FacebookIcon, LinkedinIcon, XIconBrand, YoutubeIcon } from "./icons";
 
 const quickLinks = [
@@ -13,15 +14,15 @@ const quickLinks = [
   { label: "Contact", href: "/contact" },
 ];
 
-const socials = [
-  { label: "Facebook", href: site.facebook, Icon: FacebookIcon },
-  { label: "X", href: site.twitter, Icon: XIconBrand },
-  { label: "LinkedIn", href: site.linkedin, Icon: LinkedinIcon },
-  { label: "YouTube", href: site.youtube, Icon: YoutubeIcon },
-];
-
-export default function Footer() {
+export default function Footer({ settings }: { settings: PublicSiteSettings }) {
   const year = new Date().getFullYear();
+
+  const socials = [
+    { label: "Facebook", href: settings.facebookUrl, Icon: FacebookIcon },
+    { label: "X", href: settings.twitterUrl, Icon: XIconBrand },
+    { label: "LinkedIn", href: settings.linkedinUrl, Icon: LinkedinIcon },
+    { label: "YouTube", href: settings.youtubeUrl, Icon: YoutubeIcon },
+  ];
 
   return (
     <footer className="mt-auto border-t border-ink-200 bg-navy-900 text-ink-200">
@@ -30,18 +31,19 @@ export default function Footer() {
         <div>
           <Link href="/" className="flex items-center gap-3">
             <Image
-              src="/logo.svg"
-              alt={`${site.name} logo`}
+              src={resolveImageUrl(settings.logoUrl)}
+              alt={`${settings.siteName} logo`}
               width={48}
               height={48}
+              unoptimized={isExternalImage(settings.logoUrl)}
               className="h-12 w-12 rounded-sm"
             />
             <span className="font-display text-base font-extrabold text-white">
-              {site.name}
+              {settings.siteName}
             </span>
           </Link>
           <p className="mt-4 max-w-xs text-sm leading-relaxed text-ink-300">
-            {site.description}
+            {settings.description}
           </p>
           <ul className="mt-5 flex items-center gap-3">
             {socials.map(({ label, href, Icon }) => (
@@ -87,22 +89,22 @@ export default function Footer() {
           <ul className="mt-4 space-y-3 text-sm text-ink-300">
             <li className="flex items-start gap-2">
               <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-gold-300" />
-              <span>{site.address}</span>
+              <span>{settings.address}</span>
             </li>
             <li className="flex items-center gap-2">
               <Phone className="h-4 w-4 shrink-0 text-gold-300" />
-              <a href={`tel:${site.phone}`} className="hover:text-gold-300">
-                {site.phone}
+              <a href={`tel:${settings.phone}`} className="hover:text-gold-300">
+                {settings.phone}
               </a>
             </li>
             <li className="flex items-center gap-2">
               <Mail className="h-4 w-4 shrink-0 text-gold-300" />
-              <a href={`mailto:${site.email}`} className="hover:text-gold-300">
-                {site.email}
+              <a href={`mailto:${settings.email}`} className="hover:text-gold-300">
+                {settings.email}
               </a>
             </li>
             <li className="text-xs text-ink-400">
-              EIIN: {site.eiin} · Est. {site.established}
+              EIIN: {settings.eiin} · Est. {settings.established}
             </li>
           </ul>
         </div>
@@ -111,9 +113,7 @@ export default function Footer() {
       {/* Bottom bar */}
       <div className="border-t border-white/10">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-2 px-4 py-5 text-xs text-ink-400 sm:flex-row sm:px-6">
-          <p>
-            © {year} {site.name}. All rights reserved.
-          </p>
+          <p>{settings.copyrightText || `© ${year} ${settings.siteName}. All rights reserved.`}</p>
           <p>Built with Next.js &amp; Tailwind CSS.</p>
         </div>
       </div>
