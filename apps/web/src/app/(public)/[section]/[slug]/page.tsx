@@ -9,6 +9,7 @@ import { getGoverningBody } from "@/lib/governing-body";
 import { resolveImageUrl, isExternalImage } from "@/lib/media";
 import { breadcrumbJsonLd } from "@/lib/jsonld";
 import { Breadcrumbs, JsonLd, PageHeader, Section } from "@/components/ui";
+import { ContentNotFound } from "@/components/ContentNotFound";
 import ContentRenderer from "@/components/ContentRenderer";
 
 export function generateStaticParams() {
@@ -56,6 +57,7 @@ export default async function SubPage({
     }
   }
   const home = tNav("home");
+  const tContent = await getTranslations("content");
 
   // Governing body roster is dashboard-managed (name/designation/photo list)
   // rather than a single bilingual document, so it gets its own branch.
@@ -125,6 +127,7 @@ export default async function SubPage({
     const locale = await getLocale();
     const title = (locale === "bn" && cms.titleBn) || cms.titleEn;
     const content = (locale === "bn" && cms.contentBn) || cms.contentEn;
+    const hasContent = !!(content && content.trim());
     const parentLabel =
       (locale === "bn" && parent && translateSection(parent.section)) || parent?.label;
     const crumbs = [
@@ -148,17 +151,22 @@ export default async function SubPage({
               width={400}
               height={400}
               unoptimized={isExternalImage(cms.imageUrl)}
-              className="mb-4 h-auto w-full max-w-[400px] rounded-md object-cover sm:float-left sm:mr-8"
+              className="mb-4 h-auto w-full max-w-100 rounded-md object-cover sm:float-left sm:mr-8"
             />
           )}
-          {content && (
-            <div className="prose max-w-none break-words">
-              {content.split(/\n{2,}/).map((para, i) => (
+          {hasContent ? (
+            <div className="prose max-w-100 wrap-break-word">
+              {content!.split(/\n{2,}/).map((para, i) => (
                 <p key={i} className="mb-4 text-justify leading-relaxed text-ink-700">
                   {para}
                 </p>
               ))}
             </div>
+          ) : (
+            <ContentNotFound
+              tNotFound={tContent.notFound}
+              tNotFoundDescription={tContent.notFoundDescription}
+            />
           )}
           <div className="clear-both" />
         </Section>
@@ -166,23 +174,28 @@ export default async function SubPage({
     );
   }
 
-  const doc = getPage(section, slug);
+  // No CMS data — don't fall back to sample/placeholder text; show that
+  // there's no real content yet so admins know to publish it from the
+  // dashboard.
+  const title = nav?.label || slug || section;
   const parentLabel = translateSection(section) || parent?.label;
   const crumbs = [
     { name: home, href: "/" },
     ...(parent ? [{ name: parentLabel!, href: `/${section}` }] : []),
-    { name: doc.title, href: `/${section}/${slug}` },
+    { name: title, href: `/${section}/${slug}` },
   ];
 
   return (
     <>
       <JsonLd data={breadcrumbJsonLd(crumbs)} />
-      <PageHeader eyebrow={parent?.label} title={doc.title} description={doc.description} />
+      <PageHeader eyebrow={parent?.label} title={title} />
       <Breadcrumbs items={crumbs} />
       <Section>
-        <ContentRenderer blocks={doc.blocks} />
+        <ContentNotFound
+          tNotFound={tContent.notFound}
+          tNotFoundDescription={tContent.notFoundDescription}
+        />
       </Section>
     </>
   );
 }
-

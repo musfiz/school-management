@@ -27,7 +27,7 @@ export default function DashboardShell({
         <Sidebar role={session.role} name={session.name} />
         <div className="flex min-h-screen flex-1 flex-col">
           <Topbar name={session.name} email={session.email} role={session.role} />
-          <main className="flex-1 px-4 py-6 sm:px-6 lg:py-8">{children}</main>
+          <main className="flex-1 px-2 py-1 sm:px-2 lg:py-0">{children}</main>
         </div>
       </div>
     </RoleProvider>

@@ -15,5 +15,9 @@
     "results": "Results",
     "others": "Others",
     "contact": "Contact"
+  },
+  "content": {
+    "notFound": "Content not found",
+    "notFoundDescription": "This page has not been published yet. Content will be available once added through the dashboard."
   }
 }
