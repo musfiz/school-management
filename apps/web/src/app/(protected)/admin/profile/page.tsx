@@ -1,13 +1,13 @@
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
-import NoticesView from "./NoticesView";
+import ProfileView from "./ProfileView";
 
 export const dynamic = "force-dynamic";
 
-export default async function DashboardNoticesPage() {
+export default async function DashboardProfilePage() {
   const session = await getSession();
   if (!session) {
-    redirect("/login?returnTo=/dashboard/notices");
+    redirect("/login?returnTo=/admin/profile");
   }
-  return <NoticesView />;
+  return <ProfileView />;
 }

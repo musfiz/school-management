@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 export default async function DashboardSettingsPage() {
   const session = await getSession();
   if (!session) {
-    redirect("/login?returnTo=/dashboard/settings");
+    redirect("/login?returnTo=/admin/settings");
   }
   return <SettingsView />;
 }

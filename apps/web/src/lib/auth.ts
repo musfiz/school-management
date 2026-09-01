@@ -142,8 +142,8 @@ export async function clearSessionCookie(): Promise<void> {
 
 /** True if the supplied path is safe to use as a `returnTo`. */
 export function safeReturnTo(value: string | undefined | null): string {
-  if (!value) return "/dashboard";
-  if (!value.startsWith("/")) return "/dashboard";
-  if (value.startsWith("//")) return "/dashboard";
+  if (!value) return "/admin";
+  if (!value.startsWith("/")) return "/admin";
+  if (value.startsWith("//")) return "/admin";
   return value;
 }

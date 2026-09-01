@@ -102,7 +102,7 @@ export default function DashboardErrorPage({
         <div className="flex flex-wrap items-center justify-center gap-3">
           {showHome && (
             <Link
-              href="/dashboard"
+              href="/admin"
               className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-indigo-700 hover:shadow-md"
             >
               <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

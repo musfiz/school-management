@@ -61,7 +61,7 @@ function iconFor(name: string) {
 
 function isLeafActive(leaf: DashTreeNode, pathname: string): boolean {
   if (!leaf.href) return false;
-  return leaf.href === "/dashboard" ? pathname === "/dashboard" : pathname.startsWith(leaf.href);
+  return leaf.href === "/admin" ? pathname === "/admin" : pathname.startsWith(leaf.href);
 }
 
 const COLLAPSE_STORAGE_KEY = "dashboard:sidebar-collapsed";

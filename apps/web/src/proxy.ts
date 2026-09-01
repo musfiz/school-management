@@ -30,8 +30,8 @@ export function proxy(req: NextRequest) {
     return NextResponse.next();
   }
 
-  // 2. Protect all /dashboard routes.
-  if (pathname.startsWith("/dashboard")) {
+  // 2. Protect all /admin routes.
+  if (pathname.startsWith("/admin")) {
     const hasSession = req.cookies.has(SESSION_COOKIE);
     if (!hasSession) {
       const loginUrl = req.nextUrl.clone();

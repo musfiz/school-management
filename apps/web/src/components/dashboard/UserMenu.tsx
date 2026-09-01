@@ -141,7 +141,7 @@ export default function UserMenu({
             <li>
               <Link
                 role="menuitem"
-                href="/dashboard/profile"
+                href="/admin/profile"
                 onClick={() => setOpen(false)}
                 className="flex items-center gap-3 px-4 py-2 text-sm text-ink-700 hover:bg-ink-100 hover:text-navy-800"
               >
@@ -152,7 +152,7 @@ export default function UserMenu({
             <li>
               <Link
                 role="menuitem"
-                href="/dashboard/settings"
+                href="/admin/settings"
                 onClick={() => setOpen(false)}
                 className="flex items-center gap-3 px-4 py-2 text-sm text-ink-700 hover:bg-ink-100 hover:text-navy-800"
               >

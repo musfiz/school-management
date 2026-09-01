@@ -16,7 +16,7 @@ export default async function DashboardLayout({
   if (!session) {
     // Layout-level fallback. Each leaf page also re-checks so the returnTo
     // matches the URL the visitor actually requested.
-    redirect("/login?returnTo=/dashboard");
+    redirect("/login?returnTo=/admin");
   }
   return (
     <DashboardShell session={session} className="dashboard-font">

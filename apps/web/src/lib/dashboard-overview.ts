@@ -34,10 +34,10 @@ export const overviewByRole: Record<Role, RoleOverview> = {
       { value: "12", label: "Open notices" },
     ],
     quickActions: [
-      { label: "Manage users", href: "/dashboard/teachers" },
-      { label: "Publish notice", href: "/dashboard/notices" },
-      { label: "Review results", href: "/dashboard/results" },
-      { label: "School settings", href: "/dashboard/settings" },
+      { label: "Manage users", href: "/admin/teachers" },
+      { label: "Publish notice", href: "/admin/notices" },
+      { label: "Review results", href: "/admin/results" },
+      { label: "School settings", href: "/admin/settings" },
     ],
   },
   management: {
@@ -50,9 +50,9 @@ export const overviewByRole: Record<Role, RoleOverview> = {
       { value: "5", label: "Pending reports" },
     ],
     quickActions: [
-      { label: "Teacher roster", href: "/dashboard/teachers" },
-      { label: "Results review", href: "/dashboard/results" },
-      { label: "Notices", href: "/dashboard/notices" },
+      { label: "Teacher roster", href: "/admin/teachers" },
+      { label: "Results review", href: "/admin/results" },
+      { label: "Notices", href: "/admin/notices" },
     ],
   },
   teacher: {
@@ -65,9 +65,9 @@ export const overviewByRole: Record<Role, RoleOverview> = {
       { value: "3", label: "Results to enter" },
     ],
     quickActions: [
-      { label: "My students", href: "/dashboard/students" },
-      { label: "Enter results", href: "/dashboard/results" },
-      { label: "Post notice", href: "/dashboard/notices" },
+      { label: "My students", href: "/admin/students" },
+      { label: "Enter results", href: "/admin/results" },
+      { label: "Post notice", href: "/admin/notices" },
     ],
   },
   student: {
@@ -80,9 +80,9 @@ export const overviewByRole: Record<Role, RoleOverview> = {
       { value: "7", label: "New notices" },
     ],
     quickActions: [
-      { label: "View results", href: "/dashboard/results" },
-      { label: "Notices", href: "/dashboard/notices" },
-      { label: "My profile", href: "/dashboard/profile" },
+      { label: "View results", href: "/admin/results" },
+      { label: "Notices", href: "/admin/notices" },
+      { label: "My profile", href: "/admin/profile" },
     ],
   },
   guardian: {
@@ -95,9 +95,9 @@ export const overviewByRole: Record<Role, RoleOverview> = {
       { value: "2", label: "New notices" },
     ],
     quickActions: [
-      { label: "Child's results", href: "/dashboard/results" },
-      { label: "Notices", href: "/dashboard/notices" },
-      { label: "Profile", href: "/dashboard/profile" },
+      { label: "Child's results", href: "/admin/results" },
+      { label: "Notices", href: "/admin/notices" },
+      { label: "Profile", href: "/admin/profile" },
     ],
   },
 };

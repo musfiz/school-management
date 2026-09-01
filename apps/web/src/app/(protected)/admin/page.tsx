@@ -3,11 +3,7 @@ import Link from "next/link";
 import { getSession } from "@/lib/auth";
 import { overviewByRole } from "@/lib/dashboard-overview";
 import { roleLabels } from "@/lib/dashboard-nav";
-import {
-  DashCard,
-  DashPageHeader,
-  StatGrid,
-} from "@/components/dashboard/DashPage";
+import { DashCard, DashPageHeader, StatGrid } from "@/components/dashboard/DashPage";
 import { ArrowRightIcon } from "@/components/icons";
 
 export const dynamic = "force-dynamic";
@@ -17,13 +13,13 @@ export default async function DashboardOverview() {
   // component never renders with a null session.
   const session = await getSession();
   if (!session) {
-    redirect("/login?returnTo=/dashboard");
+    redirect("/login?returnTo=/admin");
   }
 
   const data = overviewByRole[session.role];
 
   return (
-    <div>
+    <div className="p-5">
       <DashPageHeader
         title={`Welcome, ${session.name}`}
         description={`${data.subtitle} Signed in as ${roleLabels[session.role]}.`}

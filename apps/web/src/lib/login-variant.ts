@@ -5,7 +5,7 @@
  * the same form component, the same API, and the same session cookie. The
  * "soft" split is purely about branding, copy and the cross-link. Both pages
  * accept any of the 5 roles; the role decides what the user sees once they
- * land on /dashboard.
+ * land on /admin.
  */
 
 export type LoginVariant = "staff" | "public";

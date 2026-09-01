@@ -1,13 +1,13 @@
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
-import ResultsView from "./ResultsView";
+import TeachersView from "./TeachersView";
 
 export const dynamic = "force-dynamic";
 
-export default async function DashboardResultsPage() {
+export default async function DashboardTeachersPage() {
   const session = await getSession();
   if (!session) {
-    redirect("/login?returnTo=/dashboard/results");
+    redirect("/login?returnTo=/admin/teachers");
   }
-  return <ResultsView />;
+  return <TeachersView />;
 }
