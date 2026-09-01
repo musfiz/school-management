@@ -403,3 +403,130 @@ html.lang-en {
     transform: translateX(0);
   }
 }
+
+/* Rendered CMS page content (sanitized rich text: headings, lists, links,
+   blockquotes, images) so admin-authored HTML matches the site design. */
+.cms-rich {
+  text-align: justify;
+  overflow-wrap: break-word;
+  color: var(--color-ink-700);
+}
+
+.cms-rich p {
+  margin-bottom: 1rem;
+  line-height: 1.625;
+}
+
+.cms-rich h1,
+.cms-rich h2,
+.cms-rich h3,
+.cms-rich h4,
+.cms-rich h5,
+.cms-rich h6 {
+  margin: 1.5rem 0 0.75rem;
+  font-family: var(--font-display, inherit);
+  font-weight: 700;
+  color: var(--color-navy-900);
+  line-height: 1.2;
+  text-align: left;
+}
+
+.cms-rich h1 {
+  font-size: 1.75rem;
+}
+.cms-rich h2 {
+  font-size: 1.5rem;
+}
+.cms-rich h3 {
+  font-size: 1.25rem;
+}
+.cms-rich h4 {
+  font-size: 1.125rem;
+}
+
+.cms-rich ul,
+.cms-rich ol {
+  margin: 0 0 1rem;
+  padding-left: 1.5rem;
+  text-align: left;
+}
+.cms-rich ul {
+  list-style: disc;
+}
+.cms-rich ol {
+  list-style: decimal;
+}
+.cms-rich li {
+  margin-bottom: 0.35rem;
+}
+
+.cms-rich a {
+  color: var(--color-brand-600);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.cms-rich a:hover {
+  color: var(--color-brand-700);
+}
+
+.cms-rich blockquote {
+  margin: 0 0 1rem;
+  border-left: 3px solid var(--color-gold-500);
+  padding: 0.5rem 0 0.5rem 1rem;
+  font-style: italic;
+  color: var(--color-ink-600);
+}
+
+.cms-rich img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 6px;
+  margin: 0 0 1rem;
+}
+
+.cms-rich pre,
+.cms-rich code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+.cms-rich pre {
+  background: var(--color-ink-50);
+  border: 1px solid var(--color-ink-200);
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+  overflow-x: auto;
+  margin-bottom: 1rem;
+  text-align: left;
+}
+.cms-rich code {
+  background: var(--color-ink-50);
+  padding: 0.1rem 0.3rem;
+  border-radius: 4px;
+  font-size: 0.9em;
+}
+.cms-rich pre code {
+  background: transparent;
+  padding: 0;
+}
+
+.cms-rich table {
+  width: 100%;
+  margin-bottom: 1rem;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+.cms-rich th,
+.cms-rich td {
+  border: 1px solid var(--color-ink-200);
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+}
+.cms-rich th {
+  background: var(--color-ink-50);
+  font-weight: 600;
+}
+
+.cms-rich hr {
+  border: 0;
+  border-top: 1px solid var(--color-ink-200);
+  margin: 1.5rem 0;
+}

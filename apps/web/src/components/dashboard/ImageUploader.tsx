@@ -12,17 +12,22 @@ const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/svg+xml"
  * Image upload control supporting click-to-browse, drag-and-drop, and
  * paste-from-clipboard (Ctrl+V an image while it's focused). Backed by the
  * shared `/api/uploads` proxy — used for any image field across the dashboard.
+ * Pass `endpoint` to send files to a folder-specific upload route.
  */
 export default function ImageUploader({
   value,
   onChange,
   emptyLabel = "No image uploaded",
   previewClassName = "h-40 w-full",
+  endpoint = "/api/uploads",
 }: {
   value: string;
   onChange: (url: string) => void;
   emptyLabel?: string;
   previewClassName?: string;
+  /** Upload proxy route — lets callers send to a folder-specific endpoint
+   *  (e.g. `/api/uploads/hero-slider`) so assets land in a dedicated folder. */
+  endpoint?: string;
 }) {
   const [uploading, setUploading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
@@ -37,7 +42,7 @@ export default function ImageUploader({
     try {
       const form = new FormData();
       form.append("file", file);
-      const res = await fetch("/api/uploads", { method: "POST", body: form });
+      const res = await fetch(endpoint, { method: "POST", body: form });
       if (!res.ok) throw new Error();
       const json = (await res.json()) as { url: string };
       onChange(json.url);

@@ -14,7 +14,19 @@
     "facilities": "সুযোগ-সুবিধা",
     "results": "ফলাফল",
     "others": "অন্যান্য",
-    "contact": "যোগাযোগ"
+    "contact": "যোগাযোগ",
+    "aboutUs": "আমাদের সম্পর্কে",
+    "history": "ইতিহাস",
+    "donorList": "দাতাদের তালিকা",
+    "missionVision": "লক্ষ্য ও দৃষ্টিভঙ্গি",
+    "campusTour": "ক্যাম্পাস সফর",
+    "achievements": "অর্জনসমূহ",
+    "chairmanSpeech": "সভাপতির বক্তব্য",
+    "governingBody": "পরিচালনা পরিষদ",
+    "principalSpeech": "অধ্যক্ষের বক্তব্য",
+    "exPrincipals": "সাবেক অধ্যক্ষবৃন্দ",
+    "staffInformation": "স্টাফ তথ্য",
+    "administrators": "প্রশাসকবৃন্দ"
   },
   "content": {
     "notFound": "বিষয়বস্তু পাওয়া যায়নি",

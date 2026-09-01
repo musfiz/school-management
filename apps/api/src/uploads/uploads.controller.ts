@@ -11,9 +11,35 @@ import { UserRole } from '../database/entities/user-role.enum';
 const ALLOWED_MIME = ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'];
 const MAX_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
 
+/** Multer disk-storage config for a given destination folder. The returned
+ *  public URL (`/uploads/<folder>/<uuid>.<ext>`) is resolved to an absolute
+ *  URL on the web side by `resolveImageUrl`, so the folder lives under the
+ *  API's static `./uploads` root. */
+function imageStorage(destination: string) {
+  return diskStorage({
+    destination,
+    filename: (_req, file, cb) => {
+      cb(null, `${randomUUID()}${extname(file.originalname).toLowerCase()}`);
+    },
+  });
+}
+
+// Shared interceptor options (limits + file-type gate) for every upload route.
+const interceptorOptions = {
+  limits: { fileSize: MAX_SIZE_BYTES },
+  fileFilter: (_req: unknown, file: Express.Multer.File, cb: (err: Error | null, ok: boolean) => void) => {
+    if (!ALLOWED_MIME.includes(file.mimetype)) {
+      cb(new BadRequestException('Only JPEG, PNG, WebP or SVG images are allowed'), false);
+      return;
+    }
+    cb(null, true);
+  },
+};
+
 @ApiTags('Uploads')
 @Controller('uploads')
 export class UploadsController {
+  /** Generic image upload → `/uploads/<uuid>.<ext>`. */
   @Post()
   @UseGuards(RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.MANAGEMENT)
@@ -21,25 +47,28 @@ export class UploadsController {
   @ApiConsumes('multipart/form-data')
   @ApiOperation({ summary: 'Upload an image, returns its public /uploads URL' })
   @UseInterceptors(
-    FileInterceptor('file', {
-      storage: diskStorage({
-        destination: './uploads',
-        filename: (_req, file, cb) => {
-          cb(null, `${randomUUID()}${extname(file.originalname).toLowerCase()}`);
-        },
-      }),
-      limits: { fileSize: MAX_SIZE_BYTES },
-      fileFilter: (_req, file, cb) => {
-        if (!ALLOWED_MIME.includes(file.mimetype)) {
-          cb(new BadRequestException('Only JPEG, PNG, WebP or SVG images are allowed'), false);
-          return;
-        }
-        cb(null, true);
-      },
-    }),
+    FileInterceptor('file', { ...interceptorOptions, storage: imageStorage('./uploads') }),
   )
   upload(@UploadedFile() file: Express.Multer.File) {
     if (!file) throw new BadRequestException('No file uploaded');
     return { url: `/uploads/${file.filename}` };
+  }
+
+  /** Home slider image upload → `/uploads/hero-slider/<uuid>.<ext>`. */
+  @Post('hero-slider')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.MANAGEMENT)
+  @ApiBearerAuth()
+  @ApiConsumes('multipart/form-data')
+  @ApiOperation({ summary: 'Upload a hero slider image, returns its public /uploads/hero-slider URL' })
+  @UseInterceptors(
+    FileInterceptor('file', {
+      ...interceptorOptions,
+      storage: imageStorage('./uploads/hero-slider'),
+    }),
+  )
+  uploadHeroSlider(@UploadedFile() file: Express.Multer.File) {
+    if (!file) throw new BadRequestException('No file uploaded');
+    return { url: `/uploads/hero-slider/${file.filename}` };
   }
 }

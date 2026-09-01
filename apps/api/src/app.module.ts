@@ -10,6 +10,9 @@ import { SiteSettingsModule } from './site-settings/site-settings.module';
 import { PagesModule } from './pages/pages.module';
 import { UploadsModule } from './uploads/uploads.module';
 import { GoverningBodyModule } from './governing-body/governing-body.module';
+import { ExPrincipalsModule } from './ex-principals/ex-principals.module';
+import { SlidersModule } from './sliders/sliders.module';
+import { StaffModule } from './staff/staff.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { DatabaseService } from './database/database.service';
@@ -26,6 +29,9 @@ import { JwtAuthGuard } from './auth/jwt-auth.guard';
     PagesModule,
     UploadsModule,
     GoverningBodyModule,
+    ExPrincipalsModule,
+    SlidersModule,
+    StaffModule,
   ],
   controllers: [AppController],
   providers: [

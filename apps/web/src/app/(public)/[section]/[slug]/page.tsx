@@ -6,11 +6,13 @@ import { findNav, mainNav } from "@/lib/navigation";
 import { getPage } from "@/lib/content/pages";
 import { getCmsPage } from "@/lib/cms-pages";
 import { getGoverningBody } from "@/lib/governing-body";
+import { getExPrincipals } from "@/lib/ex-principals";
+import { getStaffMembers } from "@/lib/staff";
 import { resolveImageUrl, isExternalImage } from "@/lib/media";
 import { breadcrumbJsonLd } from "@/lib/jsonld";
+import { sanitizeHtml } from "@/lib/sanitize-html";
 import { Breadcrumbs, JsonLd, PageHeader, Section } from "@/components/ui";
 import { ContentNotFound } from "@/components/ContentNotFound";
-import ContentRenderer from "@/components/ContentRenderer";
 
 export function generateStaticParams() {
   // Pre-render every registered second-level page.
@@ -51,7 +53,23 @@ export default async function SubPage({
   const tNav = await getTranslations("nav");
   function translateSection(sectionKey: string): string | undefined {
     try {
-      return tNav(sectionKey === "result" ? "results" : sectionKey);
+      const key = sectionKey === "result" ? "results" : sectionKey;
+      return tNav(key as Parameters<typeof tNav>[0]);
+    } catch {
+      return undefined;
+    }
+  }
+  /** Translate a leaf (sub-page) label by mapping its kebab-case slug to a
+   *  camelCase `nav` message key (e.g. "about-us" → nav.aboutUs). Returns
+   *  undefined when no key exists for this slug so callers fall back to the
+   *  static label. */
+  function translateLeaf(slug: string): string | undefined {
+    try {
+      const key = slug
+        .split("-")
+        .map((w, i) => (i === 0 ? w : w.charAt(0).toUpperCase() + w.slice(1)))
+        .join("");
+      return tNav(key as Parameters<typeof tNav>[0]);
     } catch {
       return undefined;
     }
@@ -73,7 +91,11 @@ export default async function SubPage({
       displayDesignation: (locale === "bn" && m.designationBn) || m.designation,
     }));
     const parentLabel = (parent && translateSection(parent.section)) || parent?.label;
-    const title = nav?.label || "Governing Body";
+    const title =
+      translateLeaf(slug) ||
+      (locale === "bn" && nav?.labelBn) ||
+      nav?.label ||
+      "Governing Body";
     const crumbs = [
       { name: home, href: "/" },
       ...(parent ? [{ name: parentLabel!, href: `/${section}` }] : []),
@@ -87,7 +109,10 @@ export default async function SubPage({
         <Breadcrumbs items={crumbs} />
         <Section>
           {localized.length === 0 ? (
-            <p className="text-ink-500">No governing body members published yet.</p>
+            <ContentNotFound
+              tNotFound={tContent("notFound")}
+              tNotFoundDescription={tContent("notFoundDescription")}
+            />
           ) : (
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {localized.map((m) => (
@@ -120,6 +145,142 @@ export default async function SubPage({
     );
   }
 
+  // Former principals roster is dashboard-managed (name/photo/tenure list)
+  // rather than a single bilingual document, so it gets its own branch —
+  // mirroring the governing-body branch but without a designation column.
+  if (slug === "ex-principals") {
+    const principals = await getExPrincipals();
+    const locale = await getLocale();
+    // Each row picks the Bangla text when the locale is bn and a translation
+    // was provided; otherwise falls back to the English value so untranslated
+    // rows still render correctly under a Bangla session.
+    const localized = principals.map((p) => ({
+      ...p,
+      displayName: (locale === "bn" && p.nameBn) || p.name,
+    }));
+    const parentLabel = (parent && translateSection(parent.section)) || parent?.label;
+    const title =
+      translateLeaf(slug) ||
+      (locale === "bn" && nav?.labelBn) ||
+      nav?.label ||
+      "Ex-Principals";
+    const crumbs = [
+      { name: home, href: "/" },
+      ...(parent ? [{ name: parentLabel!, href: `/${section}` }] : []),
+      { name: title, href: `/${section}/${slug}` },
+    ];
+
+    return (
+      <>
+        <JsonLd data={breadcrumbJsonLd(crumbs)} />
+        <PageHeader eyebrow={parentLabel} title={title} />
+        <Breadcrumbs items={crumbs} />
+        <Section>
+          {localized.length === 0 ? (
+            <ContentNotFound
+              tNotFound={tContent("notFound")}
+              tNotFoundDescription={tContent("notFoundDescription")}
+            />
+          ) : (
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {localized.map((p) => (
+                <div
+                  key={p.id}
+                  className="flex flex-col items-center rounded-md border border-ink-200 bg-white p-6 text-center shadow-soft"
+                >
+                  {p.imageUrl ? (
+                    <Image
+                      src={resolveImageUrl(p.imageUrl)}
+                      alt={p.displayName}
+                      width={112}
+                      height={112}
+                      unoptimized={isExternalImage(p.imageUrl)}
+                      className="h-28 w-28 rounded-full object-cover"
+                    />
+                  ) : (
+                    <span className="flex h-28 w-28 items-center justify-center rounded-full bg-ink-100 text-2xl font-semibold text-ink-400">
+                      {p.displayName.slice(0, 1).toUpperCase()}
+                    </span>
+                  )}
+                  <p className="mt-4 font-display text-lg font-bold text-navy-900">{p.displayName}</p>
+                  {p.tenure && <p className="mt-1 text-sm text-ink-500">{p.tenure}</p>}
+                </div>
+              ))}
+            </div>
+          )}
+        </Section>
+      </>
+    );
+  }
+
+  // Staff roster is dashboard-managed (name/designation/photo list) rather
+  // than a single bilingual document, so it gets its own branch — the same
+  // card-grid pattern as the governing-body branch.
+  if (slug === "staff-information") {
+    const staff = await getStaffMembers();
+    const locale = await getLocale();
+    // Each row picks the Bangla text when the locale is bn and a translation
+    // was provided; otherwise falls back to the English value.
+    const localized = staff.map((s) => ({
+      ...s,
+      displayName: (locale === "bn" && s.nameBn) || s.name,
+      displayDesignation: (locale === "bn" && s.designationBn) || s.designation,
+    }));
+    const parentLabel = (parent && translateSection(parent.section)) || parent?.label;
+    const title =
+      translateLeaf(slug) ||
+      (locale === "bn" && nav?.labelBn) ||
+      nav?.label ||
+      "Staff Information";
+    const crumbs = [
+      { name: home, href: "/" },
+      ...(parent ? [{ name: parentLabel!, href: `/${section}` }] : []),
+      { name: title, href: `/${section}/${slug}` },
+    ];
+
+    return (
+      <>
+        <JsonLd data={breadcrumbJsonLd(crumbs)} />
+        <PageHeader eyebrow={parentLabel} title={title} />
+        <Breadcrumbs items={crumbs} />
+        <Section>
+          {localized.length === 0 ? (
+            <ContentNotFound
+              tNotFound={tContent("notFound")}
+              tNotFoundDescription={tContent("notFoundDescription")}
+            />
+          ) : (
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {localized.map((s) => (
+                <div
+                  key={s.id}
+                  className="flex flex-col items-center rounded-md border border-ink-200 bg-white p-6 text-center shadow-soft"
+                >
+                  {s.imageUrl ? (
+                    <Image
+                      src={resolveImageUrl(s.imageUrl)}
+                      alt={s.displayName}
+                      width={112}
+                      height={112}
+                      unoptimized={isExternalImage(s.imageUrl)}
+                      className="h-28 w-28 rounded-full object-cover"
+                    />
+                  ) : (
+                    <span className="flex h-28 w-28 items-center justify-center rounded-full bg-ink-100 text-2xl font-semibold text-ink-400">
+                      {s.displayName.slice(0, 1).toUpperCase()}
+                    </span>
+                  )}
+                  <p className="mt-4 font-display text-lg font-bold text-navy-900">{s.displayName}</p>
+                  <p className="mt-1 text-sm text-ink-500">{s.displayDesignation}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </Section>
+      </>
+    );
+  }
+
   // Dashboard-managed content (bilingual + image) takes priority over the
   // hand-authored static blocks below, once an admin has saved this slug.
   const cms = await getCmsPage(slug);
@@ -142,42 +303,56 @@ export default async function SubPage({
         <PageHeader eyebrow={parentLabel} title={title} />
         <Breadcrumbs items={crumbs} />
         <Section>
-          {/* Image floats left (newspaper-style) so the body text wraps
-              around it on larger screens; stacks full-width on mobile. */}
-          {cms.imageUrl && (
-            <Image
-              src={resolveImageUrl(cms.imageUrl)}
-              alt={title}
-              width={400}
-              height={400}
-              unoptimized={isExternalImage(cms.imageUrl)}
-              className="mb-4 h-auto w-full max-w-100 rounded-md object-cover sm:float-left sm:mr-8"
-            />
-          )}
-          {hasContent ? (
-            <div className="prose max-w-100 wrap-break-word">
-              {content!.split(/\n{2,}/).map((para, i) => (
-                <p key={i} className="mb-4 text-justify leading-relaxed text-ink-700">
-                  {para}
-                </p>
-              ))}
-            </div>
-          ) : (
-            <ContentNotFound
-              tNotFound={tContent.notFound}
-              tNotFoundDescription={tContent.notFoundDescription}
-            />
-          )}
-          <div className="clear-both" />
+          {/* Newspaper-style: the image is a fixed left column and the text
+              flows to its right; once the text runs past the image's height it
+              continues full-width below the image. Stacks full-width on mobile.
+              Uses flexbox (not float) so the text reliably wraps beside the
+              image regardless of the `prose` block wrapper. */}
+          <div className="flex flex-col items-start gap-6 sm:flex-row sm:gap-8">
+            {cms.imageUrl && (
+              <Image
+                src={resolveImageUrl(cms.imageUrl)}
+                alt={title}
+                width={400}
+                height={400}
+                unoptimized={isExternalImage(cms.imageUrl)}
+                className="aspect-square w-full shrink-0 rounded-md object-cover sm:h-100 sm:w-100"
+              />
+            )}
+            {hasContent ? (
+              <div
+                // Render the admin-authored rich text (headings, lists, links,
+                // etc.) as HTML. sanitizeHtml strips anything outside a strict
+                // allowlist, so no <script>/event handlers survive.
+                className="cms-rich min-w-0 flex-1 wrap-break-word"
+                dangerouslySetInnerHTML={{ __html: sanitizeHtml(content) }}
+              />
+            ) : (
+              <div className="min-w-0 flex-1">
+                <ContentNotFound
+                  tNotFound={tContent("notFound")}
+                  tNotFoundDescription={tContent("notFoundDescription")}
+                />
+              </div>
+            )}
+          </div>
         </Section>
       </>
     );
   }
 
-  // No CMS data — don't fall back to sample/placeholder text; show that
-  // there's no real content yet so admins know to publish it from the
-  // dashboard.
-  const title = nav?.label || slug || section;
+  // No CMS-managed page saved for this slug — show the friendly "content not
+  // found" empty state instead of sample/placeholder text, so admins know to
+  // publish real content from the dashboard. The page title and parent label
+  // are localized (active locale) so the empty-state message and surrounding
+  // chrome read consistently in either language.
+  const locale = await getLocale();
+  const title =
+    translateLeaf(slug) ||
+    (locale === "bn" && nav?.labelBn) ||
+    nav?.label ||
+    slug ||
+    section;
   const parentLabel = translateSection(section) || parent?.label;
   const crumbs = [
     { name: home, href: "/" },
@@ -188,12 +363,12 @@ export default async function SubPage({
   return (
     <>
       <JsonLd data={breadcrumbJsonLd(crumbs)} />
-      <PageHeader eyebrow={parent?.label} title={title} />
+      <PageHeader eyebrow={parentLabel} title={title} />
       <Breadcrumbs items={crumbs} />
       <Section>
         <ContentNotFound
-          tNotFound={tContent.notFound}
-          tNotFoundDescription={tContent.notFoundDescription}
+          tNotFound={tContent("notFound")}
+          tNotFoundDescription={tContent("notFoundDescription")}
         />
       </Section>
     </>

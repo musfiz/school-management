@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
 import { AppModule } from './app.module';
 import { config } from './config';
@@ -14,6 +15,13 @@ async function bootstrap() {
     throw new Error(
       `Missing required environment variables: ${missing.join(', ')}`,
     );
+  }
+
+  // Ensure upload folders exist before any Multer disk-storage write, since
+  // each upload route stores into a dedicated folder (e.g. /uploads/hero-slider).
+  const uploadRoot = join(process.cwd(), 'uploads');
+  for (const folder of [uploadRoot, join(uploadRoot, 'hero-slider')]) {
+    if (!existsSync(folder)) mkdirSync(folder, { recursive: true });
   }
 
   const app = await NestFactory.create<NestExpressApplication>(AppModule);

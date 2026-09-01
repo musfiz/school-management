@@ -4,9 +4,16 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { site } from "@/lib/site";
+import { isExternalImage } from "@/lib/media";
 
-export default function HeroSlider() {
-  const slides = site.heroImages;
+export interface HeroSlide {
+  src: string;
+  alt: string;
+  caption: string;
+}
+
+export default function HeroSlider({ slides: slidesProp }: { slides?: HeroSlide[] }) {
+  const slides = slidesProp && slidesProp.length > 0 ? slidesProp : site.heroImages;
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
   const timer = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -48,6 +55,7 @@ export default function HeroSlider() {
                 alt={slide.alt}
                 fill
                 priority={i === 0}
+                unoptimized={isExternalImage(slide.src)}
                 sizes="(max-width: 1280px) 100vw, 1280px"
                 className="object-cover"
               />

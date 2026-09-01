@@ -14,7 +14,19 @@
     "facilities": "Facilities",
     "results": "Results",
     "others": "Others",
-    "contact": "Contact"
+    "contact": "Contact",
+    "aboutUs": "About Us",
+    "history": "History",
+    "donorList": "Donor List",
+    "missionVision": "Mission & Vision",
+    "campusTour": "Campus Tour",
+    "achievements": "Achievements",
+    "chairmanSpeech": "Chairman Speech",
+    "governingBody": "Governing Body",
+    "principalSpeech": "Principal Speech",
+    "exPrincipals": "Ex-Principals",
+    "staffInformation": "Staff Information",
+    "administrators": "Administrators"
   },
   "content": {
     "notFound": "Content not found",
