@@ -7,10 +7,7 @@ export default function TeachersView() {
   const current = teachers.filter((t) => t.status === "current");
   return (
     <div>
-      <DashPageHeader
-        title="Teachers"
-        description="Manage faculty records (admin / management)."
-      />
+      <DashPageHeader title="Teachers" />
       <DashCard title={`Faculty (${current.length})`}>
         <ul className="divide-y divide-ink-200">
           {current.map((t) => (

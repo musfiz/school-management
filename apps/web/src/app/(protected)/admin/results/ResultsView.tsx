@@ -5,10 +5,7 @@ import { DashCard, DashPageHeader } from "@/components/dashboard/DashPage";
 export default function ResultsView() {
   return (
     <div>
-      <DashPageHeader
-        title="Results"
-        description="View and manage examination results."
-      />
+      <DashPageHeader title="Results" />
       <DashCard title="Result lookup">
         <p className="text-sm text-ink-500">
           Enter a class and roll to look up a result. The same lookup used on the

@@ -8,11 +8,11 @@ export function DashPageHeader({
   description?: string;
 }) {
   return (
-    <div className="mb-6">
-      <h1 className="font-display text-2xl font-extrabold text-navy-900 sm:text-3xl">
+    <div className="mb-4">
+      <h1 className="font-display text-xl font-extrabold text-navy-900 sm:text-2xl">
         {title}
       </h1>
-      {description && <p className="mt-1 text-ink-600">{description}</p>}
+      {description && <p className="mt-1 text-sm text-ink-600">{description}</p>}
     </div>
   );
 }
@@ -27,9 +27,9 @@ export function DashCard({
   className?: string;
 }) {
   return (
-    <div className={`rounded-sm border border-ink-200 bg-white p-6 shadow-soft ${className}`}>
+    <div className={`rounded-sm border border-ink-200 bg-white p-4 shadow-soft ${className}`}>
       {title && (
-        <h2 className="mb-4 font-display text-lg font-bold text-navy-900">{title}</h2>
+        <h2 className="mb-3 font-display text-base font-bold text-navy-900">{title}</h2>
       )}
       {children}
     </div>
@@ -42,7 +42,7 @@ export function StatGrid({ items }: { items: { value: string; label: string }[] 
       {items.map((s) => (
         <div
           key={s.label}
-          className="rounded-sm border border-ink-200 bg-white p-5 shadow-soft"
+          className="rounded-sm border border-ink-200 bg-white p-4 shadow-soft"
         >
           <p className="font-display text-2xl font-extrabold text-navy-800">
             {s.value}

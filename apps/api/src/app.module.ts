@@ -14,6 +14,8 @@ import { ExPrincipalsModule } from './ex-principals/ex-principals.module';
 import { SlidersModule } from './sliders/sliders.module';
 import { StaffModule } from './staff/staff.module';
 import { TeachersModule } from './teachers/teachers.module';
+import { PermissionsModule } from './permissions/permissions.module';
+import { ModulesModule } from './modules/modules.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { DatabaseService } from './database/database.service';
@@ -34,6 +36,8 @@ import { JwtAuthGuard } from './auth/jwt-auth.guard';
     SlidersModule,
     StaffModule,
     TeachersModule,
+    PermissionsModule,
+    ModulesModule,
   ],
   controllers: [AppController],
   providers: [

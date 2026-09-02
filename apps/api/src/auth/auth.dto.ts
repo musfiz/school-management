@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsEmail, IsString, MinLength } from 'class-validator';
 
 export class LoginDto {
@@ -40,6 +40,9 @@ export class AuthUserDto {
 
   @ApiProperty()
   role!: string;
+
+  @ApiPropertyOptional({ description: 'Directly assigned permissions' })
+  permissions?: string[];
 }
 
 export class AuthResponseDto {

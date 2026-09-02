@@ -34,6 +34,19 @@ export async function generateMetadata({
   if (!nav) return {};
   const cms = await getCmsPage(slug);
   if (cms) return { title: cms.titleEn };
+
+  // Use the locale-aware title so the browser tab shows the translated
+  // label (e.g. "শিক্ষকবৃন্দ" in Bangla) instead of the raw English slug.
+  const locale = await getLocale();
+  const messages = locale === "bn" ? bnMessages : enMessages;
+  const navMessages = messages.nav as Record<string, string>;
+  const key = slug
+    .split("-")
+    .map((w, i) => (i === 0 ? w : w.charAt(0).toUpperCase() + w.slice(1)))
+    .join("");
+  const translatedTitle = navMessages[key];
+  if (translatedTitle) return { title: translatedTitle };
+
   const doc = getPage(section, slug);
   return { title: doc.title, description: doc.description };
 }
@@ -418,7 +431,7 @@ export default async function SubPage({
     translateLeaf(slug) ||
     (locale === "bn" && nav?.labelBn) ||
     nav?.label ||
-    slug ||
+    slug.split("-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ") ||
     section;
   const parentLabel = translateSection(section) || parent?.label;
   const crumbs = [

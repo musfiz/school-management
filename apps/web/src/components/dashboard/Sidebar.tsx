@@ -89,11 +89,14 @@ function TreeNode({
 
   // Leaf node (actual link)
   const active = isLeafActive(node, pathname);
+  const LeafIcon = iconFor(node.icon);
 
   return (
     <li className="sidebar-leaf" data-level={level}>
       <Link href={node.href ?? "/"} aria-current={active ? "page" : undefined} className={`sidebar-leaf-link ${active ? "active" : ""}`}>
-        <span className="sidebar-leaf-dot" aria-hidden />
+        <span className="sidebar-icon-chip">
+          <LeafIcon className="h-4 w-4 shrink-0" />
+        </span>
         <span className="truncate">{node.label}</span>
       </Link>
     </li>

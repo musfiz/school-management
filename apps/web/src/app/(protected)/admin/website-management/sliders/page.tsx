@@ -244,14 +244,10 @@ export default function SlidersPage() {
   );
 
   return (
-    <section className="p-6">
+    <section className="p-4">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-ink-900">Slider</h1>
-          <p className="mt-1 text-sm text-ink-500">
-            Manage the slides shown in the home page slider. Active slides appear on the public
-            site in order.
-          </p>
+          <h1 className="text-xl font-bold text-ink-900">Slider</h1>
         </div>
         {!formOpen && (
           <button

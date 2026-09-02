@@ -11,7 +11,7 @@ export default function ProfileView() {
 
   return (
     <div>
-      <DashPageHeader title="Profile" description="Your account details." />
+      <DashPageHeader title="Profile" />
       <DashCard title="Account">
         <dl className="grid gap-4 sm:grid-cols-2">
           <div>

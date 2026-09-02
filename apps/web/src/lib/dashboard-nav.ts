@@ -24,6 +24,9 @@ import {
   RiImageLine,
   RiDownloadCloudLine,
   RiInformationLine,
+  RiShieldKeyholeLine,
+  RiKey2Line,
+  RiUserSettingsLine as RiUserPermissionLine,
 } from "react-icons/ri";
 
 export type Role = "admin" | "management" | "teacher" | "student" | "guardian";
@@ -642,6 +645,36 @@ export const dashboardTree: DashTreeNode[] = [
         href: "/admin/settings",
         roles: ["admin", "management"],
         icon: RiSettings3Line,
+      },
+    ],
+  },
+
+  // ── Permission Management ────────────────────────────────────
+  {
+    kind: "group",
+    label: "Permission Management",
+    icon: RiShieldKeyholeLine,
+    children: [
+      {
+        kind: "leaf",
+        label: "Add Permission",
+        href: "/admin/permission-management/add-permission",
+        roles: ["admin"],
+        icon: RiKey2Line,
+      },
+      {
+        kind: "leaf",
+        label: "Modules",
+        href: "/admin/permission-management/modules",
+        roles: ["admin"],
+        icon: RiBuildingLine,
+      },
+      {
+        kind: "leaf",
+        label: "User Permissions",
+        href: "/admin/permission-management/user-permissions",
+        roles: ["admin"],
+        icon: RiUserPermissionLine,
       },
     ],
   },

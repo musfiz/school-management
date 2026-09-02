@@ -196,20 +196,17 @@ export default function SiteSettingsPage() {
 
   if (loading) {
     return (
-      <section className="p-6">
+      <section className="p-4">
         <AdminPageLoader />
       </section>
     );
   }
 
   return (
-    <section className="p-6">
+    <section className="p-4">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-ink-900">Site Settings</h1>
-          <p className="mt-1 text-sm text-ink-500">
-            Controls the public site&apos;s header (logo/info) and footer content.
-          </p>
+          <h1 className="text-xl font-bold text-ink-900">Site Settings</h1>
         </div>
         <div className="flex items-center gap-2">
           {savedAt && <span className="text-xs text-ink-500">Saved at {savedAt}</span>}

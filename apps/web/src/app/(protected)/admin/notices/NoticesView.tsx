@@ -7,10 +7,7 @@ export default function NoticesView() {
   const sorted = [...notices].sort((a, b) => b.date.localeCompare(a.date));
   return (
     <div>
-      <DashPageHeader
-        title="Notices"
-        description="Publish and manage notices for students and parents."
-      />
+      <DashPageHeader title="Notices" />
       <DashCard title={`Recent notices (${sorted.length})`}>
         <ul className="space-y-3">
           {sorted.map((n) => (
