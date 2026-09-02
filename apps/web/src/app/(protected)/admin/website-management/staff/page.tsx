@@ -209,13 +209,10 @@ export default function StaffPage() {
   );
 
   return (
-    <section className="p-6">
+    <section className="p-4">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-ink-900">Staff Information</h1>
-          <p className="mt-1 text-sm text-ink-500">
-            Manage the staff members shown on the public Staff Information page.
-          </p>
+          <h1 className="text-xl font-bold text-ink-900">Staff Information</h1>
         </div>
         {!formOpen && (
           <button

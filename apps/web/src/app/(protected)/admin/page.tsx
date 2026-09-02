@@ -22,7 +22,6 @@ export default async function DashboardOverview() {
     <div className="p-5">
       <DashPageHeader
         title={`Welcome, ${session.name}`}
-        description={`${data.subtitle} Signed in as ${roleLabels[session.role]}.`}
       />
       <StatGrid items={data.stats} />
       <div className="mt-6 grid gap-4 lg:grid-cols-2">

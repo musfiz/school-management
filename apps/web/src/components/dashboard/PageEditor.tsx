@@ -96,20 +96,17 @@ export default function PageEditor({
 
   if (loading) {
     return (
-      <section className="p-6">
+      <section className="p-4">
         <p className="text-sm text-ink-500">Loading…</p>
       </section>
     );
   }
 
   return (
-    <section className="p-6">
+    <section className="p-4">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-ink-900">{heading}</h1>
-          <p className="mt-1 text-sm text-ink-500">
-            Bilingual title, content and a banner image for this page.
-          </p>
+          <h1 className="text-xl font-bold text-ink-900">{heading}</h1>
         </div>
         <div className="flex items-center gap-2">
           {savedAt && <span className="text-xs text-ink-500">Saved at {savedAt}</span>}

@@ -5,10 +5,7 @@ import { DashCard, DashPageHeader } from "@/components/dashboard/DashPage";
 export default function SettingsView() {
   return (
     <div>
-      <DashPageHeader
-        title="Settings"
-        description="Portal configuration (admin / management)."
-      />
+      <DashPageHeader title="Settings" />
       <DashCard title="Preferences">
         <p className="text-sm text-ink-500">
           Theme, notifications and access controls will be configured here once

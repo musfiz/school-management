@@ -6,10 +6,7 @@ import { teachers } from "@/lib/content/collections";
 export default function StudentsView() {
   return (
     <div>
-      <DashPageHeader
-        title="Students"
-        description="Browse and manage student records (admin / management / teacher)."
-      />
+      <DashPageHeader title="Students" />
       <DashCard title="Student directory">
         <p className="text-sm text-ink-500">
           A searchable student list will render here. Sample faculty shown for
