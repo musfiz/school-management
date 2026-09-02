@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ChevronDown, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import {
   dashboardTree,
   filterTreeForRole,
@@ -14,49 +13,11 @@ import {
   type DashTreeNode,
   type Role,
 } from "@/lib/dashboard-nav";
-import {
-  BookIcon,
-  CalendarIcon,
-  CalendarSmallIcon,
-  GraduationCapIcon,
-  MailIcon,
-  PinIcon,
-  SettingsIcon,
-  UsersIcon,
-  BookSmallIcon,
-  GlobeIcon,
-  SparkIcon,
-  FlaskIcon,
-  PaletteIcon,
-  ArrowDownIcon,
-} from "@/components/icons";
+import { RiGraduationCapLine, RiArrowDownSLine, RiSidebarFoldLine, RiSidebarUnfoldLine } from "react-icons/ri";
+import type { IconType } from "react-icons";
 
-const iconMap = {
-  home: GraduationCapIcon,
-  users: UsersIcon,
-  teacher: BookIcon,
-  result: CalendarIcon,
-  notice: MailIcon,
-  profile: PinIcon,
-  settings: SettingsIcon,
-  calendar: CalendarSmallIcon,
-  book: BookSmallIcon,
-  info: GlobeIcon,
-  admission: GraduationCapIcon,
-  student: UsersIcon,
-  facilities: SparkIcon,
-  others: GlobeIcon,
-  about: GlobeIcon,
-  library: BookIcon,
-  lab: FlaskIcon,
-  fees: CalendarIcon,
-  exam: CalendarIcon,
-  gallery: PaletteIcon,
-  download: ArrowDownIcon,
-} as const;
-
-function iconFor(name: string) {
-  return iconMap[name as keyof typeof iconMap] ?? GraduationCapIcon;
+function iconFor(icon: IconType | undefined): IconType {
+  return icon ?? RiGraduationCapLine;
 }
 
 function isLeafActive(leaf: DashTreeNode, pathname: string): boolean {
@@ -86,7 +47,7 @@ function TreeNode({
   const pathname = usePathname();
   const key = nodeKey(node, parentKey);
   const isOpen = open.has(key);
-  const Icon = iconFor(node.icon ?? "home");
+  const Icon = iconFor(node.icon);
   const isGroup = node.kind === "group";
 
   // Group header (collapsible section)
@@ -108,7 +69,7 @@ function TreeNode({
             </span>
             <span className="flex-1 truncate text-left">{node.label}</span>
           </span>
-          <ChevronDown
+          <RiArrowDownSLine
             className={`h-3.5 w-3.5 shrink-0 text-ink-400 transition-transform duration-200 ${
               isOpen ? "rotate-0" : "-rotate-90"
             }`}
@@ -180,7 +141,7 @@ function FlyoutNode({ node, onNavigate }: { node: DashTreeNode; onNavigate: () =
 function RailItem({ node, active }: { node: DashTreeNode; active: boolean }) {
   const [hovered, setHovered] = useState(false);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const Icon = iconFor(node.icon ?? "home");
+  const Icon = iconFor(node.icon);
 
   function open() {
     if (closeTimer.current) clearTimeout(closeTimer.current);
@@ -284,7 +245,7 @@ export default function Sidebar({ role, name }: { role: Role; name?: string }) {
       {/* Brand header */}
       <div className="flex h-16 items-center gap-2.5 border-b border-ink-200 px-4">
         <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-navy-900 text-gold-400 shadow-sm">
-          <GraduationCapIcon className="h-4.5 w-4.5" />
+          <RiGraduationCapLine className="h-4.5 w-4.5" />
         </span>
         {!collapsed && (
           <div className="flex min-w-0 flex-col">
@@ -324,7 +285,7 @@ export default function Sidebar({ role, name }: { role: Role; name?: string }) {
           className="flex w-full items-center justify-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold text-ink-500 transition-colors hover:bg-ink-50 hover:text-ink-800"
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
-          {collapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
+          {collapsed ? <RiSidebarUnfoldLine className="h-4 w-4" /> : <RiSidebarFoldLine className="h-4 w-4" />}
           {!collapsed && <span>Collapse</span>}
         </button>
       </div>

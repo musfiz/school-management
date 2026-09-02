@@ -5,6 +5,27 @@
    later and this file stays the same.
 ---------------------------------------------------------------------------- */
 
+import type { IconType } from "react-icons";
+import {
+  RiDashboardLine,
+  RiUserLine,
+  RiGraduationCapLine,
+  RiClipboardLine,
+  RiMailLine,
+  RiUserSettingsLine,
+  RiSettings3Line,
+  RiCalendarEventLine,
+  RiBookOpenLine,
+  RiGlobalLine,
+  RiBuildingLine,
+  RiSparklingLine,
+  RiFlaskLine,
+  RiMoneyDollarCircleLine,
+  RiImageLine,
+  RiDownloadCloudLine,
+  RiInformationLine,
+} from "react-icons/ri";
+
 export type Role = "admin" | "management" | "teacher" | "student" | "guardian";
 
 export const ROLES: Role[] = ["admin", "management", "teacher", "student", "guardian"];
@@ -25,29 +46,6 @@ export const roleDescriptions: Record<Role, string> = {
   guardian: "Track your child's progress, fees and notices.",
 };
 
-export type DashIconName =
-  | "home"
-  | "users"
-  | "teacher"
-  | "result"
-  | "notice"
-  | "profile"
-  | "settings"
-  | "calendar"
-  | "book"
-  | "info"
-  | "admission"
-  | "student"
-  | "facilities"
-  | "others"
-  | "about"
-  | "library"
-  | "lab"
-  | "fees"
-  | "exam"
-  | "gallery"
-  | "download";
-
 /** A leaf nav item: a real link. */
 export interface DashLeaf {
   kind: "leaf";
@@ -55,7 +53,7 @@ export interface DashLeaf {
   href: string;
   /** Which roles can see this leaf. */
   roles: Role[];
-  icon: DashIconName;
+  icon: IconType;
 }
 
 /** A node inside a treeview — either a real link or a collapsible group. */
@@ -65,7 +63,7 @@ export interface DashTreeNode {
   href?: string;
   /** Which roles can see this node (leaves only; groups inherit from children). */
   roles?: Role[];
-  icon?: DashIconName;
+  icon?: IconType;
   children?: DashTreeNode[];
 }
 
@@ -75,61 +73,11 @@ export interface DashTreeNode {
 export interface DashGroup {
   kind: "group";
   label: string;
-  icon?: DashIconName;
+  icon?: IconType;
   children: DashLeaf[];
 }
 
 export type DashNavItem = DashLeaf | DashGroup;
-
-export const dashboardNav: DashNavItem[] = [
-  // Standalone top-level item.
-  { kind: "leaf", label: "Overview", href: "/admin", roles: ROLES, icon: "home" },
-
-  {
-    kind: "group",
-    label: "Academics",
-    children: [
-      {
-        kind: "leaf",
-        label: "Students",
-        href: "/admin/students",
-        roles: ["admin", "management", "teacher"],
-        icon: "users",
-      },
-      {
-        kind: "leaf",
-        label: "Teachers",
-        href: "/admin/teachers",
-        roles: ["admin", "management"],
-        icon: "teacher",
-      },
-    ],
-  },
-
-  {
-    kind: "group",
-    label: "Reports",
-    children: [
-      { kind: "leaf", label: "Results", href: "/admin/results", roles: ROLES, icon: "result" },
-      { kind: "leaf", label: "Notices", href: "/admin/notices", roles: ROLES, icon: "notice" },
-    ],
-  },
-
-  {
-    kind: "group",
-    label: "Account",
-    children: [
-      { kind: "leaf", label: "Profile", href: "/admin/profile", roles: ROLES, icon: "profile" },
-      {
-        kind: "leaf",
-        label: "Settings",
-        href: "/admin/settings",
-        roles: ["admin", "management"],
-        icon: "settings",
-      },
-    ],
-  },
-];
 
 /** Returns a copy of `items` filtered for the given role.
  *  - Leaves are kept iff `role ∈ leaf.roles`.
@@ -207,146 +155,96 @@ export function filterTreeForRole(nodes: DashTreeNode[], role: Role): DashTreeNo
  */
 export const dashboardTree: DashTreeNode[] = [
   // ── Overview (standalone leaf) ─────────────────────────────────
-  { kind: "leaf", label: "Overview", href: "/admin", roles: ROLES, icon: "home" },
+  { kind: "leaf", label: "Dashboard", href: "/admin", roles: ROLES, icon: RiDashboardLine },
   // ── Website Management ───────────────────────────────────────
   {
     kind: "group",
     label: "Website Management",
-    icon: "info",
+    icon: RiGlobalLine,
     children: [
       {
         kind: "leaf",
         label: "Navigation Menu",
         href: "/admin/website-management/navigation-menu",
         roles: ["admin", "management"],
-        icon: "settings",
+        icon: RiSettings3Line,
       },
       {
         kind: "leaf",
         label: "Site Settings",
         href: "/admin/website-management/site-settings",
         roles: ["admin", "management"],
-        icon: "settings",
+        icon: RiSettings3Line,
       },
       {
         kind: "leaf",
         label: "Slider",
         href: "/admin/website-management/sliders",
         roles: ROLES,
-        icon: "about",
+        icon: RiImageLine,
       },
       {
-        kind: "leaf",
-        label: "About Us",
-        href: "/admin/website-management/about-us",
-        roles: ROLES,
-        icon: "about",
-      },
-      {
-        kind: "leaf",
-        label: "History",
-        href: "/admin/website-management/history",
-        roles: ROLES,
-        icon: "about",
-      },
-      {
-        kind: "leaf",
-        label: "Chairman Speech",
-        href: "/admin/website-management/chairman-speech",
-        roles: ROLES,
-        icon: "about",
-      },
-      {
-        kind: "leaf",
-        label: "Principal Speech",
-        href: "/admin/website-management/principal-speech",
-        roles: ROLES,
-        icon: "about",
-      },
-      {
-        kind: "leaf",
-        label: "Governing Body",
-        href: "/admin/website-management/governing-body",
-        roles: ROLES,
-        icon: "about",
-      },
-      {
-        kind: "leaf",
-        label: "Ex-Principals",
-        href: "/admin/website-management/ex-principals",
-        roles: ROLES,
-        icon: "about",
-      },
-      {
-        kind: "leaf",
-        label: "Staff Information",
-        href: "/admin/website-management/staff",
-        roles: ROLES,
-        icon: "about",
-      },
-    ],
-  },
-  // ── About ─────────────────────────────────────────────────────
-  {
-    kind: "group",
-    label: "About",
-    icon: "about",
-    children: [
-      {
-        kind: "leaf",
-        label: "About Us",
-        href: "/admin/about/about-us",
-        roles: ROLES,
-        icon: "about",
-      },
-      {
-        kind: "leaf",
-        label: "History",
-        href: "/admin/about/history",
-        roles: ROLES,
-        icon: "about",
-      },
-      {
-        kind: "leaf",
-        label: "Donor List",
-        href: "/admin/about/donor-list",
-        roles: ROLES,
-        icon: "about",
-      },
-      {
-        kind: "leaf",
-        label: "Mission & Vision",
-        href: "/admin/about/mission-vision",
-        roles: ROLES,
-        icon: "about",
-      },
-      {
-        kind: "leaf",
-        label: "Campus Tour",
-        href: "/admin/about/campus-tour",
-        roles: ROLES,
-        icon: "about",
-      },
-      {
-        kind: "leaf",
-        label: "Achievements",
-        href: "/admin/about/achievements",
-        roles: ROLES,
-        icon: "about",
-      },
-      {
-        kind: "leaf",
-        label: "Governing Body",
-        href: "/admin/about/governing-body",
-        roles: ROLES,
-        icon: "about",
-      },
-      {
-        kind: "leaf",
-        label: "Administrators",
-        href: "/admin/about/administrators",
-        roles: ROLES,
-        icon: "about",
+        kind: "group",
+        label: "About",
+        icon: RiInformationLine,
+        children: [
+          {
+            kind: "leaf",
+            label: "About Us",
+            href: "/admin/website-management/about-us",
+            roles: ROLES,
+            icon: RiInformationLine,
+          },
+          {
+            kind: "leaf",
+            label: "History",
+            href: "/admin/website-management/history",
+            roles: ROLES,
+            icon: RiBookOpenLine,
+          },
+          {
+            kind: "leaf",
+            label: "Chairman Speech",
+            href: "/admin/website-management/chairman-speech",
+            roles: ROLES,
+            icon: RiGraduationCapLine,
+          },
+          {
+            kind: "leaf",
+            label: "Principal Speech",
+            href: "/admin/website-management/principal-speech",
+            roles: ROLES,
+            icon: RiGraduationCapLine,
+          },
+          {
+            kind: "leaf",
+            label: "Governing Body",
+            href: "/admin/website-management/governing-body",
+            roles: ROLES,
+            icon: RiUserLine,
+          },
+          {
+            kind: "leaf",
+            label: "Ex-Principals",
+            href: "/admin/website-management/ex-principals",
+            roles: ROLES,
+            icon: RiUserLine,
+          },
+          {
+            kind: "leaf",
+            label: "Teachers",
+            href: "/admin/website-management/teachers",
+            roles: ROLES,
+            icon: RiGraduationCapLine,
+          },
+          {
+            kind: "leaf",
+            label: "Staff Information",
+            href: "/admin/website-management/staff",
+            roles: ROLES,
+            icon: RiClipboardLine,
+          },
+        ],
       },
     ],
   },
@@ -355,35 +253,35 @@ export const dashboardTree: DashTreeNode[] = [
   {
     kind: "group",
     label: "Information",
-    icon: "info",
+    icon: RiInformationLine,
     children: [
       {
         kind: "leaf",
         label: "Permission & Recognition",
         href: "/admin/information/permission-recognition-letter",
         roles: ROLES,
-        icon: "info",
+        icon: RiInformationLine,
       },
       {
         kind: "leaf",
         label: "Nationalization",
         href: "/admin/information/nationalization",
         roles: ROLES,
-        icon: "info",
+        icon: RiInformationLine,
       },
       {
         kind: "leaf",
         label: "Statistics Report",
         href: "/admin/information/statistics-report",
         roles: ROLES,
-        icon: "info",
+        icon: RiClipboardLine,
       },
       {
         kind: "leaf",
         label: "Govt. Approval Letter",
         href: "/admin/information/govt-approval-letter",
         roles: ROLES,
-        icon: "info",
+        icon: RiInformationLine,
       },
     ],
   },
@@ -392,56 +290,56 @@ export const dashboardTree: DashTreeNode[] = [
   {
     kind: "group",
     label: "Academics",
-    icon: "teacher",
+    icon: RiGraduationCapLine,
     children: [
       {
         kind: "leaf",
         label: "Class Schedule",
         href: "/admin/academic/class-schedule",
         roles: ROLES,
-        icon: "calendar",
+        icon: RiCalendarEventLine,
       },
       {
         kind: "leaf",
         label: "Teachers",
         href: "/admin/teachers",
         roles: ["admin", "management"],
-        icon: "teacher",
+        icon: RiGraduationCapLine,
       },
       {
         kind: "leaf",
         label: "Staffs",
         href: "/admin/academic/staffs",
         roles: ROLES,
-        icon: "users",
+        icon: RiUserLine,
       },
       {
         kind: "leaf",
         label: "Academic Rules",
         href: "/admin/academic/academic-rules",
         roles: ROLES,
-        icon: "book",
+        icon: RiBookOpenLine,
       },
       {
         kind: "leaf",
         label: "Calendar",
         href: "/admin/academic/calendar",
         roles: ROLES,
-        icon: "calendar",
+        icon: RiCalendarEventLine,
       },
       {
         kind: "leaf",
         label: "Attendance",
         href: "/admin/academic/attendance",
         roles: ROLES,
-        icon: "book",
+        icon: RiClipboardLine,
       },
       {
         kind: "leaf",
         label: "Leave Info",
         href: "/admin/academic/leave-info",
         roles: ROLES,
-        icon: "book",
+        icon: RiBookOpenLine,
       },
     ],
   },
@@ -450,42 +348,42 @@ export const dashboardTree: DashTreeNode[] = [
   {
     kind: "group",
     label: "Admission",
-    icon: "admission",
+    icon: RiBuildingLine,
     children: [
       {
         kind: "leaf",
         label: "Why Study Here",
         href: "/admin/admission/why-study",
         roles: ROLES,
-        icon: "admission",
+        icon: RiInformationLine,
       },
       {
         kind: "leaf",
         label: "How to Apply",
         href: "/admin/admission/how-to-apply",
         roles: ROLES,
-        icon: "admission",
+        icon: RiBookOpenLine,
       },
       {
         kind: "leaf",
         label: "Admission Test",
         href: "/admin/admission/admission-test",
         roles: ROLES,
-        icon: "admission",
+        icon: RiClipboardLine,
       },
       {
         kind: "leaf",
         label: "Policy",
         href: "/admin/admission/policy",
         roles: ROLES,
-        icon: "admission",
+        icon: RiBookOpenLine,
       },
       {
         kind: "leaf",
         label: "Registration System",
         href: "/admin/admission/registration-system",
         roles: ROLES,
-        icon: "admission",
+        icon: RiSettings3Line,
       },
     ],
   },
@@ -494,63 +392,63 @@ export const dashboardTree: DashTreeNode[] = [
   {
     kind: "group",
     label: "Student",
-    icon: "student",
+    icon: RiUserLine,
     children: [
       {
         kind: "leaf",
         label: "Student List",
         href: "/admin/students",
         roles: ["admin", "management", "teacher"],
-        icon: "users",
+        icon: RiUserLine,
       },
       {
         kind: "leaf",
         label: "Tuition Fees",
         href: "/admin/student/tuition-fees",
         roles: ROLES,
-        icon: "fees",
+        icon: RiMoneyDollarCircleLine,
       },
       {
         kind: "leaf",
         label: "Mobile Banking",
         href: "/admin/student/mobile-banking",
         roles: ROLES,
-        icon: "fees",
+        icon: RiMoneyDollarCircleLine,
       },
       {
         kind: "leaf",
         label: "Daily Activities",
         href: "/admin/student/daily-activities",
         roles: ROLES,
-        icon: "student",
+        icon: RiCalendarEventLine,
       },
       {
         kind: "leaf",
         label: "Exam Schedule",
         href: "/admin/student/exam-schedule",
         roles: ROLES,
-        icon: "exam",
+        icon: RiCalendarEventLine,
       },
       {
         kind: "leaf",
         label: "Uniform",
         href: "/admin/student/uniform",
         roles: ROLES,
-        icon: "student",
+        icon: RiSparklingLine,
       },
       {
         kind: "leaf",
         label: "Exam System",
         href: "/admin/student/exam-system",
         roles: ROLES,
-        icon: "exam",
+        icon: RiClipboardLine,
       },
       {
         kind: "leaf",
         label: "Rules",
         href: "/admin/student/rules",
         roles: ROLES,
-        icon: "book",
+        icon: RiBookOpenLine,
       },
     ],
   },
@@ -559,56 +457,56 @@ export const dashboardTree: DashTreeNode[] = [
   {
     kind: "group",
     label: "Facilities",
-    icon: "facilities",
+    icon: RiSparklingLine,
     children: [
       {
         kind: "leaf",
         label: "Library",
         href: "/admin/facilities/library",
         roles: ROLES,
-        icon: "library",
+        icon: RiBookOpenLine,
       },
       {
         kind: "leaf",
         label: "Playground",
         href: "/admin/facilities/playground",
         roles: ROLES,
-        icon: "facilities",
+        icon: RiSparklingLine,
       },
       {
         kind: "leaf",
         label: "Physics Lab",
         href: "/admin/facilities/physics-lab",
         roles: ROLES,
-        icon: "lab",
+        icon: RiFlaskLine,
       },
       {
         kind: "leaf",
         label: "Biology Lab",
         href: "/admin/facilities/biology-lab",
         roles: ROLES,
-        icon: "lab",
+        icon: RiFlaskLine,
       },
       {
         kind: "leaf",
         label: "ICT Lab",
         href: "/admin/facilities/ict-lab",
         roles: ROLES,
-        icon: "lab",
+        icon: RiFlaskLine,
       },
       {
         kind: "leaf",
         label: "Chemistry Lab",
         href: "/admin/facilities/chemistry-lab",
         roles: ROLES,
-        icon: "lab",
+        icon: RiFlaskLine,
       },
       {
         kind: "leaf",
         label: "Extra Activities",
         href: "/admin/facilities/extra-activities",
         roles: ROLES,
-        icon: "facilities",
+        icon: RiSparklingLine,
       },
     ],
   },
@@ -617,35 +515,35 @@ export const dashboardTree: DashTreeNode[] = [
   {
     kind: "group",
     label: "Results",
-    icon: "result",
+    icon: RiClipboardLine,
     children: [
       {
         kind: "leaf",
         label: "Exam Results",
         href: "/admin/results",
         roles: ROLES,
-        icon: "result",
+        icon: RiClipboardLine,
       },
       {
         kind: "leaf",
         label: "Academic Results",
         href: "/admin/results/academic-result",
         roles: ROLES,
-        icon: "result",
+        icon: RiClipboardLine,
       },
       {
         kind: "leaf",
         label: "Evaluation Results",
         href: "/admin/results/evaluation-result",
         roles: ROLES,
-        icon: "result",
+        icon: RiClipboardLine,
       },
       {
         kind: "leaf",
         label: "Board Exam Results",
         href: "/admin/results/board-exam-result",
         roles: ROLES,
-        icon: "result",
+        icon: RiClipboardLine,
       },
     ],
   },
@@ -654,43 +552,43 @@ export const dashboardTree: DashTreeNode[] = [
   {
     kind: "group",
     label: "Others",
-    icon: "others",
+    icon: RiGlobalLine,
     children: [
       {
         kind: "leaf",
         label: "Notice Board",
         href: "/admin/notices",
         roles: ROLES,
-        icon: "notice",
+        icon: RiMailLine,
       },
-      { kind: "leaf", label: "News", href: "/admin/others/news", roles: ROLES, icon: "others" },
+      { kind: "leaf", label: "News", href: "/admin/others/news", roles: ROLES, icon: RiGlobalLine },
       {
         kind: "leaf",
         label: "Gallery",
         href: "/admin/others/gallery",
         roles: ROLES,
-        icon: "gallery",
+        icon: RiImageLine,
       },
       {
         kind: "leaf",
         label: "Events",
         href: "/admin/others/event",
         roles: ROLES,
-        icon: "others",
+        icon: RiCalendarEventLine,
       },
       {
         kind: "leaf",
         label: "Routine",
         href: "/admin/others/routine",
         roles: ROLES,
-        icon: "calendar",
+        icon: RiCalendarEventLine,
       },
       {
         kind: "leaf",
         label: "Downloads",
         href: "/admin/others/download",
         roles: ROLES,
-        icon: "download",
+        icon: RiDownloadCloudLine,
       },
     ],
   },
@@ -699,35 +597,35 @@ export const dashboardTree: DashTreeNode[] = [
   {
     kind: "group",
     label: "Fees",
-    icon: "fees",
+    icon: RiMoneyDollarCircleLine,
     children: [
       {
         kind: "leaf",
         label: "Fee Collection",
         href: "/admin/fees/collection",
         roles: ["admin", "management"],
-        icon: "fees",
+        icon: RiMoneyDollarCircleLine,
       },
       {
         kind: "leaf",
         label: "Fee Reports",
         href: "/admin/fees/reports",
         roles: ["admin", "management"],
-        icon: "fees",
+        icon: RiMoneyDollarCircleLine,
       },
       {
         kind: "leaf",
         label: "Tuition Fees",
         href: "/admin/student/tuition-fees",
         roles: ROLES,
-        icon: "fees",
+        icon: RiMoneyDollarCircleLine,
       },
       {
         kind: "leaf",
         label: "Mobile Banking",
         href: "/admin/student/mobile-banking",
         roles: ROLES,
-        icon: "fees",
+        icon: RiMoneyDollarCircleLine,
       },
     ],
   },
@@ -737,13 +635,13 @@ export const dashboardTree: DashTreeNode[] = [
     kind: "group",
     label: "Account",
     children: [
-      { kind: "leaf", label: "Profile", href: "/admin/profile", roles: ROLES, icon: "profile" },
+      { kind: "leaf", label: "Profile", href: "/admin/profile", roles: ROLES, icon: RiUserSettingsLine },
       {
         kind: "leaf",
         label: "Settings",
         href: "/admin/settings",
         roles: ["admin", "management"],
-        icon: "settings",
+        icon: RiSettings3Line,
       },
     ],
   },

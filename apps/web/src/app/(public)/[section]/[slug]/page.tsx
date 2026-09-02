@@ -8,6 +8,7 @@ import { getCmsPage } from "@/lib/cms-pages";
 import { getGoverningBody } from "@/lib/governing-body";
 import { getExPrincipals } from "@/lib/ex-principals";
 import { getStaffMembers } from "@/lib/staff";
+import { getTeachers } from "@/lib/teachers";
 import { resolveImageUrl, isExternalImage } from "@/lib/media";
 import { breadcrumbJsonLd } from "@/lib/jsonld";
 import { sanitizeHtml } from "@/lib/sanitize-html";
@@ -204,6 +205,83 @@ export default async function SubPage({
                   )}
                   <p className="mt-4 font-display text-lg font-bold text-navy-900">{p.displayName}</p>
                   {p.tenure && <p className="mt-1 text-sm text-ink-500">{p.tenure}</p>}
+                </div>
+              ))}
+            </div>
+          )}
+        </Section>
+      </>
+    );
+  }
+
+  // Teachers roster is dashboard-managed (name/designation/department/photo/
+  // join-date list) rather than a single bilingual document, so it gets its
+  // own branch — the same card-grid pattern as the governing-body branch.
+  if (slug === "teachers") {
+    const teachers = await getTeachers();
+    const locale = await getLocale();
+    // Each row picks the Bangla text when the locale is bn and a translation
+    // was provided; otherwise falls back to the English value.
+    const localized = teachers.map((t) => ({
+      ...t,
+      displayName: (locale === "bn" && t.nameBn) || t.name,
+      displayDesignation: (locale === "bn" && t.designationBn) || t.designation,
+      displayDepartment: (locale === "bn" && t.departmentBn) || t.department,
+    }));
+    const parentLabel = (parent && translateSection(parent.section)) || parent?.label;
+    const title =
+      translateLeaf(slug) ||
+      (locale === "bn" && nav?.labelBn) ||
+      nav?.label ||
+      "Teachers";
+    const crumbs = [
+      { name: home, href: "/" },
+      ...(parent ? [{ name: parentLabel!, href: `/${section}` }] : []),
+      { name: title, href: `/${section}/${slug}` },
+    ];
+
+    return (
+      <>
+        <JsonLd data={breadcrumbJsonLd(crumbs)} />
+        <PageHeader eyebrow={parentLabel} title={title} />
+        <Breadcrumbs items={crumbs} />
+        <Section>
+          {localized.length === 0 ? (
+            <ContentNotFound
+              tNotFound={tContent("notFound")}
+              tNotFoundDescription={tContent("notFoundDescription")}
+            />
+          ) : (
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {localized.map((t) => (
+                <div
+                  key={t.id}
+                  className="flex flex-col items-center rounded-md border border-ink-200 bg-white p-6 text-center shadow-soft"
+                >
+                  {t.imageUrl ? (
+                    <Image
+                      src={resolveImageUrl(t.imageUrl)}
+                      alt={t.displayName}
+                      width={112}
+                      height={112}
+                      unoptimized={isExternalImage(t.imageUrl)}
+                      className="h-28 w-28 rounded-full object-cover"
+                    />
+                  ) : (
+                    <span className="flex h-28 w-28 items-center justify-center rounded-full bg-ink-100 text-2xl font-semibold text-ink-400">
+                      {t.displayName.slice(0, 1).toUpperCase()}
+                    </span>
+                  )}
+                  <p className="mt-4 font-display text-lg font-bold text-navy-900">{t.displayName}</p>
+                  <p className="mt-1 text-sm text-ink-500">{t.displayDesignation}</p>
+                  {t.displayDepartment && (
+                    <p className="mt-0.5 text-sm text-brand-600">{t.displayDepartment}</p>
+                  )}
+                  {t.jointDate && (
+                    <p className="mt-1 text-xs text-ink-400">
+                      Joined: {new Date(t.jointDate).toLocaleDateString()}
+                    </p>
+                  )}
                 </div>
               ))}
             </div>

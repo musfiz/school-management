@@ -58,6 +58,12 @@ export const mainNav: NavItem[] = [
         slug: "ex-principals",
       },
       {
+        label: "Teachers",
+        href: "/about/teachers",
+        section: "about",
+        slug: "teachers",
+      },
+      {
         label: "Staff Information",
         href: "/about/staff-information",
         section: "about",
