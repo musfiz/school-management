@@ -7,6 +7,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 import DataTable from "@/components/dashboard/DataTable";
 import { DashCard } from "@/components/dashboard/DashPage";
 import ImageUploader from "@/components/dashboard/ImageUploader";
+import AdminPageLoader from "@/components/dashboard/AdminPageLoader";
 import { resolveImageUrl, isExternalImage } from "@/lib/media";
 import { confirmDialog, toast } from "@/lib/swal";
 import type { StaffMember } from "@/lib/staff";
@@ -336,7 +337,7 @@ export default function StaffPage() {
       )}
 
       {loading ? (
-        <p className="text-sm text-ink-500">Loading…</p>
+        <AdminPageLoader />
       ) : (
         <DataTable
           columns={columns}

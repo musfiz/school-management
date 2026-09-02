@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { mainNav, type NavItem } from "@/lib/navigation";
 import { confirmDialog, toast } from "@/lib/swal";
+import AdminPageLoader from "@/components/dashboard/AdminPageLoader";
 
 interface MenuNode {
   id: string;
@@ -341,7 +342,7 @@ export default function NavigationMenuPage() {
       {error && <p className="mb-3 text-sm text-red-600">{error}</p>}
 
       {loading ? (
-        <p className="text-sm text-ink-500">Loading…</p>
+        <AdminPageLoader />
       ) : tree.length === 0 ? (
         <div className="rounded-md border border-dashed border-ink-300 p-6 text-center">
           <p className="mb-3 text-sm text-ink-500">No menu saved yet for this location.</p>

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Loader2, Save } from "lucide-react";
 import { DashCard } from "@/components/dashboard/DashPage";
 import ImageUploader from "@/components/dashboard/ImageUploader";
+import AdminPageLoader from "@/components/dashboard/AdminPageLoader";
 import { toast } from "@/lib/swal";
 import type { HeaderDisplayMode, SiteSettings } from "@/lib/site-settings";
 
@@ -196,7 +197,7 @@ export default function SiteSettingsPage() {
   if (loading) {
     return (
       <section className="p-6">
-        <p className="text-sm text-ink-500">Loading…</p>
+        <AdminPageLoader />
       </section>
     );
   }

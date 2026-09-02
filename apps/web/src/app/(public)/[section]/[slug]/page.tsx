@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Image from "next/image";
-import { getLocale, getTranslations } from "next-intl/server";
+import { getLocale } from "next-intl/server";
+import enMessages from "@/messages/en.json";
+import bnMessages from "@/messages/bn.json";
 import { findNav, mainNav } from "@/lib/navigation";
 import { getPage } from "@/lib/content/pages";
 import { getCmsPage } from "@/lib/cms-pages";
@@ -48,41 +50,33 @@ export default async function SubPage({
   // Unknown route segment → 404. Known nav entry (or registered pattern) → render.
   if (!nav && !parent) notFound();
 
-  // `nav.json` keys the results section as "results" (plural) while
-  // `mainNav` uses "result" — translate defensively, falling back to the
-  // static English label for any section without a message key.
-  const tNav = await getTranslations("nav");
+  // Pick messages for the active locale — direct import avoids any
+  // getMessages() ambiguity and guarantees the right locale's translations.
+  const locale = await getLocale();
+  const messages = locale === "bn" ? bnMessages : enMessages;
+  const navMessages = messages.nav as Record<string, string>;
+  const contentMessages = messages.content as Record<string, string>;
   function translateSection(sectionKey: string): string | undefined {
-    try {
-      const key = sectionKey === "result" ? "results" : sectionKey;
-      return tNav(key as Parameters<typeof tNav>[0]);
-    } catch {
-      return undefined;
-    }
+    const key = sectionKey === "result" ? "results" : sectionKey;
+    return navMessages[key] || undefined;
   }
   /** Translate a leaf (sub-page) label by mapping its kebab-case slug to a
    *  camelCase `nav` message key (e.g. "about-us" → nav.aboutUs). Returns
    *  undefined when no key exists for this slug so callers fall back to the
    *  static label. */
   function translateLeaf(slug: string): string | undefined {
-    try {
-      const key = slug
-        .split("-")
-        .map((w, i) => (i === 0 ? w : w.charAt(0).toUpperCase() + w.slice(1)))
-        .join("");
-      return tNav(key as Parameters<typeof tNav>[0]);
-    } catch {
-      return undefined;
-    }
+    const key = slug
+      .split("-")
+      .map((w, i) => (i === 0 ? w : w.charAt(0).toUpperCase() + w.slice(1)))
+      .join("");
+    return navMessages[key] || undefined;
   }
-  const home = tNav("home");
-  const tContent = await getTranslations("content");
+  const home = navMessages["home"] ?? "Home";
 
   // Governing body roster is dashboard-managed (name/designation/photo list)
   // rather than a single bilingual document, so it gets its own branch.
   if (slug === "governing-body") {
     const members = await getGoverningBody();
-    const locale = await getLocale();
     // Each row picks the Bangla text when the locale is bn and a translation
     // was provided; otherwise falls back to the English value so untranslated
     // rows still render correctly under a Bangla session.
@@ -111,8 +105,8 @@ export default async function SubPage({
         <Section>
           {localized.length === 0 ? (
             <ContentNotFound
-              tNotFound={tContent("notFound")}
-              tNotFoundDescription={tContent("notFoundDescription")}
+              tNotFound={contentMessages["notFound"]}
+              tNotFoundDescription={contentMessages["notFoundDescription"]}
             />
           ) : (
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -151,7 +145,6 @@ export default async function SubPage({
   // mirroring the governing-body branch but without a designation column.
   if (slug === "ex-principals") {
     const principals = await getExPrincipals();
-    const locale = await getLocale();
     // Each row picks the Bangla text when the locale is bn and a translation
     // was provided; otherwise falls back to the English value so untranslated
     // rows still render correctly under a Bangla session.
@@ -179,8 +172,8 @@ export default async function SubPage({
         <Section>
           {localized.length === 0 ? (
             <ContentNotFound
-              tNotFound={tContent("notFound")}
-              tNotFoundDescription={tContent("notFoundDescription")}
+              tNotFound={contentMessages["notFound"]}
+              tNotFoundDescription={contentMessages["notFoundDescription"]}
             />
           ) : (
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -219,7 +212,6 @@ export default async function SubPage({
   // own branch — the same card-grid pattern as the governing-body branch.
   if (slug === "teachers") {
     const teachers = await getTeachers();
-    const locale = await getLocale();
     // Each row picks the Bangla text when the locale is bn and a translation
     // was provided; otherwise falls back to the English value.
     const localized = teachers.map((t) => ({
@@ -248,8 +240,8 @@ export default async function SubPage({
         <Section>
           {localized.length === 0 ? (
             <ContentNotFound
-              tNotFound={tContent("notFound")}
-              tNotFoundDescription={tContent("notFoundDescription")}
+              tNotFound={contentMessages["notFound"]}
+              tNotFoundDescription={contentMessages["notFoundDescription"]}
             />
           ) : (
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -296,7 +288,6 @@ export default async function SubPage({
   // card-grid pattern as the governing-body branch.
   if (slug === "staff-information") {
     const staff = await getStaffMembers();
-    const locale = await getLocale();
     // Each row picks the Bangla text when the locale is bn and a translation
     // was provided; otherwise falls back to the English value.
     const localized = staff.map((s) => ({
@@ -324,8 +315,8 @@ export default async function SubPage({
         <Section>
           {localized.length === 0 ? (
             <ContentNotFound
-              tNotFound={tContent("notFound")}
-              tNotFoundDescription={tContent("notFoundDescription")}
+              tNotFound={contentMessages["notFound"]}
+              tNotFoundDescription={contentMessages["notFoundDescription"]}
             />
           ) : (
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -363,7 +354,6 @@ export default async function SubPage({
   // hand-authored static blocks below, once an admin has saved this slug.
   const cms = await getCmsPage(slug);
   if (cms) {
-    const locale = await getLocale();
     const title = (locale === "bn" && cms.titleBn) || cms.titleEn;
     const content = (locale === "bn" && cms.contentBn) || cms.contentEn;
     const hasContent = !!(content && content.trim());
@@ -408,8 +398,8 @@ export default async function SubPage({
             ) : (
               <div className="min-w-0 flex-1">
                 <ContentNotFound
-                  tNotFound={tContent("notFound")}
-                  tNotFoundDescription={tContent("notFoundDescription")}
+                  tNotFound={contentMessages["notFound"]}
+                  tNotFoundDescription={contentMessages["notFoundDescription"]}
                 />
               </div>
             )}
@@ -424,7 +414,6 @@ export default async function SubPage({
   // publish real content from the dashboard. The page title and parent label
   // are localized (active locale) so the empty-state message and surrounding
   // chrome read consistently in either language.
-  const locale = await getLocale();
   const title =
     translateLeaf(slug) ||
     (locale === "bn" && nav?.labelBn) ||
@@ -445,8 +434,8 @@ export default async function SubPage({
       <Breadcrumbs items={crumbs} />
       <Section>
         <ContentNotFound
-          tNotFound={tContent("notFound")}
-          tNotFoundDescription={tContent("notFoundDescription")}
+          tNotFound={contentMessages["notFound"]}
+          tNotFoundDescription={contentMessages["notFoundDescription"]}
         />
       </Section>
     </>

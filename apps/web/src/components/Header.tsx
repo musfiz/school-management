@@ -23,6 +23,7 @@ export default function Header({
   const router = useRouter();
   const locale = useLocale();
   const t = useTranslations("common");
+  const tNav = useTranslations("nav");
   const [mobileOpen, setMobileOpen] = useState(false);
   const [openAccordion, setOpenAccordion] = useState<string | null>(null);
 
@@ -44,8 +45,21 @@ export default function Header({
 
   const isActive = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
 
-  /** Bangla label when available and active, otherwise the default (English) label. */
-  const labelFor = (item: NavItem) => (locale === "bn" && item.labelBn ? item.labelBn : item.label);
+  /** Translate a nav label: use the JSON translation (nav.{key}) when available,
+   *  otherwise fall back to the static English label. Maps each item to its
+   *  camelCase message key (e.g. "about-us" → nav.aboutUs, "teachers" → nav.teachers). */
+  const labelFor = (item: NavItem) => {
+    if (item.slug) {
+      const key = item.slug
+        .split("-")
+        .map((w, i) => (i === 0 ? w : w.charAt(0).toUpperCase() + w.slice(1)))
+        .join("");
+      const translated = tNav(key as Parameters<typeof tNav>[0]);
+      // next-intl returns the key with a "." prefix when missing — fall back to static label.
+      if (!translated.includes(".")) return translated;
+    }
+    return item.labelBn && locale === "bn" ? item.labelBn : item.label;
+  };
 
   const noticeHref = "/others/notice";
 
