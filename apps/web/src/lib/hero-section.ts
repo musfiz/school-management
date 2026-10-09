@@ -83,7 +83,7 @@ function merge(data: Partial<HeroSectionSettings> | null, locale: Locale): Publi
 
 export async function getHeroSection(locale: Locale): Promise<PublicHeroSection> {
   try {
-    const res = await fetch(`${API_BASE}/hero-section`, { next: { revalidate: 60 } });
+    const res = await fetch(`${API_BASE}/hero-section`, { cache: "no-store" });
     if (!res.ok) return defaultHeroSettings;
     const data = (await res.json()) as Partial<HeroSectionSettings>;
     return merge(data, locale);

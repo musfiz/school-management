@@ -1,5 +1,5 @@
 import { ApiPropertyOptional, ApiProperty } from '@nestjs/swagger';
-import { IsOptional, IsString, MaxLength } from 'class-validator';
+import { IsBoolean, IsOptional, IsString, MaxLength } from 'class-validator';
 
 /** Upserts a CMS page's bilingual content. The slug comes from the route
  *  param, not the body — it identifies which fixed page is being edited. */
@@ -30,4 +30,10 @@ export class UpsertPageDto {
   @IsString()
   @MaxLength(255)
   imageUrl?: string;
+
+  @ApiPropertyOptional({ example: true, description: 'Whether to show in homepage if linked' })
+  @IsOptional()
+  @IsBoolean()
+  showInHomepage?: boolean;
 }
+

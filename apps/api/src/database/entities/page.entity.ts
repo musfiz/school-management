@@ -22,6 +22,9 @@ export class Page {
   @Column({ name: 'image_url', type: 'varchar', length: 255, nullable: true })
   imageUrl?: string | null;
 
+  @Column({ name: 'show_in_homepage', type: 'boolean', default: true })
+  showInHomepage!: boolean;
+
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   created_at!: Date;
 

@@ -6,6 +6,7 @@ export default function PrincipalSpeechPage() {
       slug="principal-speech"
       publicPath="/about/principal-speech"
       heading="Principal Speech"
+      allowHomepageToggle
     />
   );
 }

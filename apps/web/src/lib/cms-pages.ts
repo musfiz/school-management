@@ -7,6 +7,7 @@ export interface CmsPage {
   contentEn?: string | null;
   contentBn?: string | null;
   imageUrl?: string | null;
+  showInHomepage?: boolean;
 }
 
 /**
@@ -16,7 +17,7 @@ export interface CmsPage {
  */
 export async function getCmsPage(slug: string): Promise<CmsPage | null> {
   try {
-    const res = await fetch(`${API_BASE}/pages/${slug}`, { next: { revalidate: 60 } });
+    const res = await fetch(`${API_BASE}/pages/${slug}`, { cache: "no-store" });
     if (!res.ok) return null;
     return (await res.json()) as CmsPage;
   } catch {

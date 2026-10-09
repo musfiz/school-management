@@ -35,7 +35,11 @@ export default function ImageUploader({
 
   async function uploadFile(file: File) {
     if (!ACCEPTED_TYPES.includes(file.type)) {
-      toast("Only JPEG, PNG, WebP or SVG images are allowed.", "error");
+      toast({
+        title: "Validation Error",
+        text: "Only JPEG, PNG, WebP or SVG images are allowed.",
+        icon: "error",
+      });
       return;
     }
     setUploading(true);
@@ -46,9 +50,17 @@ export default function ImageUploader({
       if (!res.ok) throw new Error();
       const json = (await res.json()) as { url: string };
       onChange(json.url);
-      toast("Image uploaded.");
+      toast({
+        title: "Success",
+        text: "Image uploaded successfully.",
+        icon: "success",
+      });
     } catch {
-      toast("Image upload failed.", "error");
+      toast({
+        title: "Error",
+        text: "Image upload failed. Please try again.",
+        icon: "error",
+      });
     } finally {
       setUploading(false);
     }

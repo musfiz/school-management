@@ -176,16 +176,24 @@ export default function HeroSectionSettingsPage() {
         const detail = Array.isArray(err?.message) ? err.message.join(" ") : err?.message;
         throw new Error(detail || "Failed to save hero section settings");
       }
-      toast("Hero section settings saved successfully.");
+      toast({
+        title: "Success",
+        text: "Hero section modified successfully.",
+        icon: "success",
+      });
     } catch (err: any) {
-      toast(err instanceof Error ? err.message : "Failed to save settings.", "error");
+      toast({
+        title: "Error",
+        text: err instanceof Error ? err.message : "Failed to save settings.",
+        icon: "error",
+      });
     } finally {
       setSaving(false);
     }
   };
 
   if (loading) {
-    return <AdminPageLoader message="Loading Hero Section settings..." />;
+    return <AdminPageLoader />;
   }
 
   return (

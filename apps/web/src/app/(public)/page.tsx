@@ -4,15 +4,18 @@ import Hero from "@/components/Hero";
 import { AboutPreview, NoticeBoard } from "@/components/HomeSections";
 import { getSiteSettings } from "@/lib/site-settings";
 import { getHeroSection } from "@/lib/hero-section";
+import { getCmsPage } from "@/lib/cms-pages";
 import { getSliders } from "@/lib/sliders";
 import { resolveImageUrl } from "@/lib/media";
 import type { Locale } from "@/i18n/config";
 
 export default async function Home() {
   const locale = (await getLocale()) as Locale;
-  const [settings, hero] = await Promise.all([
+  const [settings, hero, principalSpeech, aboutUs] = await Promise.all([
     getSiteSettings(locale),
     getHeroSection(locale),
+    getCmsPage("principal-speech"),
+    getCmsPage("about-us"),
   ]);
 
   // Dashboard-managed home slides (image + bilingual title). Map the API
@@ -32,7 +35,12 @@ export default async function Home() {
     <>
       <HeroSlider slides={heroSlides} />
       {hero.isVisible && <Hero hero={hero} />}
-      <AboutPreview settings={settings} />
+      <AboutPreview
+        settings={settings}
+        principalSpeech={principalSpeech}
+        aboutUs={aboutUs}
+        locale={locale}
+      />
       <NoticeBoard />
     </>
   );
