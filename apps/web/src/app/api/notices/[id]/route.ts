@@ -10,8 +10,12 @@ async function authHeaders(): Promise<Record<string, string>> {
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
-export async function GET() {
-  const res = await fetch(`${API_BASE}/notices/all`, {
+export async function GET(
+  _req: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const { id } = await params;
+  const res = await fetch(`${API_BASE}/notices/${id}`, {
     headers: await authHeaders(),
     cache: "no-store",
   });
@@ -19,12 +23,29 @@ export async function GET() {
   return NextResponse.json(data, { status: res.status });
 }
 
-export async function POST(req: Request) {
+export async function PATCH(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const { id } = await params;
   const body = await req.text();
-  const res = await fetch(`${API_BASE}/notices`, {
-    method: "POST",
+  const res = await fetch(`${API_BASE}/notices/${id}`, {
+    method: "PATCH",
     headers: { "Content-Type": "application/json", ...(await authHeaders()) },
     body,
+  });
+  const data = await res.json().catch(() => null);
+  return NextResponse.json(data, { status: res.status });
+}
+
+export async function DELETE(
+  _req: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const { id } = await params;
+  const res = await fetch(`${API_BASE}/notices/${id}`, {
+    method: "DELETE",
+    headers: await authHeaders(),
   });
   const data = await res.json().catch(() => null);
   return NextResponse.json(data, { status: res.status });

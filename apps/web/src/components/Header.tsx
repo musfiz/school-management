@@ -230,6 +230,9 @@ export default function Header({
                           <li key={child.href}>
                             <Link
                               href={child.href}
+                              onClick={(e) => {
+                                (e.currentTarget as HTMLElement).blur();
+                              }}
                               className={`block rounded-sm px-3 py-2 text-sm transition-colors ${
                                 isActive(child.href)
                                   ? "bg-navy-50 font-semibold text-navy-800"

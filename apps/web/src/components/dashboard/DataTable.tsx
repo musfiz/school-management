@@ -33,7 +33,7 @@ export default function DataTable<TData>({
   });
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-ink-200 shadow-soft">
+    <div className="scroll-slim overflow-x-auto rounded-lg border border-ink-200 shadow-soft">
       <table className="w-full border-collapse text-sm">
         <thead className="bg-ink-50">
           {table.getHeaderGroups().map((headerGroup) => (

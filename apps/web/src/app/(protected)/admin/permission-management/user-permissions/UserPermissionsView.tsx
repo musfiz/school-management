@@ -527,7 +527,7 @@ export default function UserPermissionsView() {
 
               {grouped.map(([module, pages]) => (
                 <DashCard key={module} title={module}>
-                  <div className="overflow-x-auto rounded-lg border border-ink-200">
+                  <div className="scroll-slim overflow-x-auto rounded-lg border border-ink-200">
                     <table className="w-full min-w-175 border-collapse text-sm">
                       <thead>
                         <tr className="bg-ink-50">

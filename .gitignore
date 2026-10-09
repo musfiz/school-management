@@ -40,6 +40,10 @@ build/
 # Vercel
 .vercel
 
+.claude
+.github
+.vscode
+
 # =====================================================
 # User-uploaded files (local disk storage)
 # =====================================================

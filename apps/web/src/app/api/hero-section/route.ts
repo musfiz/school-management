@@ -11,7 +11,7 @@ async function authHeaders(): Promise<Record<string, string>> {
 }
 
 export async function GET() {
-  const res = await fetch(`${API_BASE}/notices/all`, {
+  const res = await fetch(`${API_BASE}/hero-section`, {
     headers: await authHeaders(),
     cache: "no-store",
   });
@@ -19,10 +19,10 @@ export async function GET() {
   return NextResponse.json(data, { status: res.status });
 }
 
-export async function POST(req: Request) {
+export async function PUT(req: Request) {
   const body = await req.text();
-  const res = await fetch(`${API_BASE}/notices`, {
-    method: "POST",
+  const res = await fetch(`${API_BASE}/hero-section`, {
+    method: "PUT",
     headers: { "Content-Type": "application/json", ...(await authHeaders()) },
     body,
   });

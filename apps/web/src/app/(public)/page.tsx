@@ -3,13 +3,35 @@ import HeroSlider, { type HeroSlide } from "@/components/HeroSlider";
 import Hero from "@/components/Hero";
 import { AboutPreview, NoticeBoard } from "@/components/HomeSections";
 import { getSiteSettings } from "@/lib/site-settings";
+import { getHeroSection } from "@/lib/hero-section";
+import { getCmsPage } from "@/lib/cms-pages";
 import { getSliders } from "@/lib/sliders";
+import type { NoticeItem } from "@/lib/notices";
 import { resolveImageUrl } from "@/lib/media";
 import type { Locale } from "@/i18n/config";
 
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3031";
+
+async function getHomeNotices(): Promise<NoticeItem[]> {
+  try {
+    const res = await fetch(`${API_BASE}/notices`, { cache: "no-store" });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return Array.isArray(data) ? data : [];
+  } catch {
+    return [];
+  }
+}
+
 export default async function Home() {
   const locale = (await getLocale()) as Locale;
-  const settings = await getSiteSettings(locale);
+  const [settings, hero, principalSpeech, aboutUs, notices] = await Promise.all([
+    getSiteSettings(locale),
+    getHeroSection(locale),
+    getCmsPage("principal-speech"),
+    getCmsPage("about-us"),
+    getHomeNotices(),
+  ]);
 
   // Dashboard-managed home slides (image + bilingual title). Map the API
   // rows to the hero slide shape — the caption uses the active-locale title
@@ -27,9 +49,14 @@ export default async function Home() {
   return (
     <>
       <HeroSlider slides={heroSlides} />
-      <Hero settings={settings} />
-      <AboutPreview settings={settings} />
-      <NoticeBoard />
+      {hero.isVisible && <Hero hero={hero} />}
+      <AboutPreview
+        settings={settings}
+        principalSpeech={principalSpeech}
+        aboutUs={aboutUs}
+        locale={locale}
+      />
+      <NoticeBoard notices={notices} locale={locale} />
     </>
   );
 }
