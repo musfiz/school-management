@@ -8,14 +8,16 @@ import { Roles } from '../common/decorators/roles.decorator';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { UserRole } from '../database/entities/user-role.enum';
 
-const ALLOWED_MIME = ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'];
-const MAX_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
+const ALLOWED_IMAGE_MIME = ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'];
+const ALLOWED_DOC_MIME = ['application/pdf'];
+const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
+const MAX_DOC_SIZE_BYTES = 15 * 1024 * 1024; // 15 MB
 
 /** Multer disk-storage config for a given destination folder. The returned
  *  public URL (`/uploads/<folder>/<uuid>.<ext>`) is resolved to an absolute
  *  URL on the web side by `resolveImageUrl`, so the folder lives under the
  *  API's static `./uploads` root. */
-function imageStorage(destination: string) {
+function uploadStorage(destination: string) {
   return diskStorage({
     destination,
     filename: (_req, file, cb) => {
@@ -24,12 +26,24 @@ function imageStorage(destination: string) {
   });
 }
 
-// Shared interceptor options (limits + file-type gate) for every upload route.
-const interceptorOptions = {
-  limits: { fileSize: MAX_SIZE_BYTES },
+// Shared interceptor options for images
+const imageInterceptorOptions = {
+  limits: { fileSize: MAX_IMAGE_SIZE_BYTES },
   fileFilter: (_req: unknown, file: Express.Multer.File, cb: (err: Error | null, ok: boolean) => void) => {
-    if (!ALLOWED_MIME.includes(file.mimetype)) {
+    if (!ALLOWED_IMAGE_MIME.includes(file.mimetype)) {
       cb(new BadRequestException('Only JPEG, PNG, WebP or SVG images are allowed'), false);
+      return;
+    }
+    cb(null, true);
+  },
+};
+
+// Document interceptor options (PDFs)
+const docInterceptorOptions = {
+  limits: { fileSize: MAX_DOC_SIZE_BYTES },
+  fileFilter: (_req: unknown, file: Express.Multer.File, cb: (err: Error | null, ok: boolean) => void) => {
+    if (!ALLOWED_DOC_MIME.includes(file.mimetype)) {
+      cb(new BadRequestException('Only PDF documents are allowed'), false);
       return;
     }
     cb(null, true);
@@ -47,11 +61,29 @@ export class UploadsController {
   @ApiConsumes('multipart/form-data')
   @ApiOperation({ summary: 'Upload an image, returns its public /uploads URL' })
   @UseInterceptors(
-    FileInterceptor('file', { ...interceptorOptions, storage: imageStorage('./uploads') }),
+    FileInterceptor('file', { ...imageInterceptorOptions, storage: uploadStorage('./uploads') }),
   )
   upload(@UploadedFile() file: Express.Multer.File) {
     if (!file) throw new BadRequestException('No file uploaded');
     return { url: `/uploads/${file.filename}` };
+  }
+
+  /** Notice & general document upload (PDF) → `/uploads/documents/<uuid>.<ext>`. */
+  @Post('document')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.MANAGEMENT)
+  @ApiBearerAuth()
+  @ApiConsumes('multipart/form-data')
+  @ApiOperation({ summary: 'Upload a PDF document, returns its public /uploads/documents URL' })
+  @UseInterceptors(
+    FileInterceptor('file', {
+      ...docInterceptorOptions,
+      storage: uploadStorage('./uploads/documents'),
+    }),
+  )
+  uploadDocument(@UploadedFile() file: Express.Multer.File) {
+    if (!file) throw new BadRequestException('No file uploaded');
+    return { url: `/uploads/documents/${file.filename}` };
   }
 
   /** Home slider image upload → `/uploads/hero-slider/<uuid>.<ext>`. */
@@ -63,8 +95,8 @@ export class UploadsController {
   @ApiOperation({ summary: 'Upload a hero slider image, returns its public /uploads/hero-slider URL' })
   @UseInterceptors(
     FileInterceptor('file', {
-      ...interceptorOptions,
-      storage: imageStorage('./uploads/hero-slider'),
+      ...imageInterceptorOptions,
+      storage: uploadStorage('./uploads/hero-slider'),
     }),
   )
   uploadHeroSlider(@UploadedFile() file: Express.Multer.File) {

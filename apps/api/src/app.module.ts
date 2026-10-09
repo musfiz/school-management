@@ -17,6 +17,7 @@ import { TeachersModule } from './teachers/teachers.module';
 import { PermissionsModule } from './permissions/permissions.module';
 import { ModulesModule } from './modules/modules.module';
 import { HeroSectionModule } from './hero-section/hero-section.module';
+import { NoticesModule } from './notices/notices.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { DatabaseService } from './database/database.service';
@@ -40,6 +41,7 @@ import { JwtAuthGuard } from './auth/jwt-auth.guard';
     PermissionsModule,
     ModulesModule,
     HeroSectionModule,
+    NoticesModule,
   ],
   controllers: [AppController],
   providers: [

@@ -1,8 +1,9 @@
 import Link from "next/link";
 import Image from "next/image";
-import { notices } from "@/lib/content/collections";
+import { notices as staticNotices } from "@/lib/content/collections";
 import type { PublicSiteSettings } from "@/lib/site-settings";
 import type { CmsPage } from "@/lib/cms-pages";
+import type { NoticeItem } from "@/lib/notices";
 import { resolveImageUrl, isExternalImage } from "@/lib/media";
 import { sanitizeHtml } from "@/lib/sanitize-html";
 import { Section } from "./ui";
@@ -229,8 +230,18 @@ export function AboutPreview({
   );
 }
 
-export function NoticeBoard() {
-  const latest = [...notices].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 4);
+export function NoticeBoard({
+  notices: dynamicNotices,
+  locale = "en",
+}: {
+  notices?: NoticeItem[];
+  locale?: string;
+} = {}) {
+  const items =
+    dynamicNotices && dynamicNotices.length > 0
+      ? dynamicNotices.slice(0, 4)
+      : staticNotices.slice(0, 4);
+
   return (
     <Section className="bg-ink-50">
       <div className="flex flex-wrap items-end justify-between gap-4">
@@ -250,30 +261,45 @@ export function NoticeBoard() {
       </div>
 
       <ul className="mt-8 divide-y divide-ink-200 overflow-hidden rounded-sm border border-ink-200 bg-white shadow-soft">
-        {latest.map((n) => (
-          <li
-            key={n.id}
-            className="flex flex-col gap-1 px-6 py-4 sm:flex-row sm:items-center sm:gap-4"
-          >
-            <span className="w-24 shrink-0 text-sm font-semibold text-brand-600">
-              {new Date(n.date).toLocaleDateString("en-GB", {
-                day: "2-digit",
-                month: "short",
-                year: "numeric",
-              })}
-            </span>
-            <span className="hidden shrink-0 rounded-sm bg-navy-50 px-2.5 py-1 text-xs font-semibold text-navy-700 sm:inline">
-              {n.category}
-            </span>
-            <Link
-              href="/others/notice"
-              className="flex-1 text-ink-800 transition-colors hover:text-navy-700"
+        {items.map((n) => {
+          const isDynamic = "createdAt" in n || "publishDate" in n;
+          const rawDate = isDynamic
+            ? (n as NoticeItem).publishDate || (n as NoticeItem).createdAt
+            : (n as (typeof staticNotices)[0]).date;
+          const title = isDynamic
+            ? (locale === "bn" && (n as NoticeItem).titleBn) || (n as NoticeItem).title
+            : (n as (typeof staticNotices)[0]).title;
+          const isPinned = isDynamic
+            ? (n as NoticeItem).isPinned
+            : (n as (typeof staticNotices)[0]).pinned;
+
+          return (
+            <li
+              key={n.id}
+              className="flex flex-col gap-1 px-6 py-4 sm:flex-row sm:items-center sm:gap-4"
             >
-              {n.title}
-            </Link>
-            {n.pinned && <span className="shrink-0 text-xs font-bold text-gold-600">Pinned</span>}
-          </li>
-        ))}
+              <span className="w-24 shrink-0 text-sm font-semibold text-brand-600">
+                {rawDate
+                  ? new Date(rawDate).toLocaleDateString("en-GB", {
+                      day: "2-digit",
+                      month: "short",
+                      year: "numeric",
+                    })
+                  : "—"}
+              </span>
+              <span className="hidden shrink-0 rounded-sm bg-navy-50 px-2.5 py-1 text-xs font-semibold text-navy-700 sm:inline">
+                {n.category}
+              </span>
+              <Link
+                href="/others/notice"
+                className="flex-1 text-ink-800 transition-colors hover:text-navy-700"
+              >
+                {title}
+              </Link>
+              {isPinned && <span className="shrink-0 text-xs font-bold text-gold-600">Pinned</span>}
+            </li>
+          );
+        })}
       </ul>
     </Section>
   );
