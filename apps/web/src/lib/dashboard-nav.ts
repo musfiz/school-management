@@ -181,6 +181,13 @@ export const dashboardTree: DashTreeNode[] = [
       },
       {
         kind: "leaf",
+        label: "Hero Section",
+        href: "/admin/website-management/hero-section",
+        roles: ["admin", "management"],
+        icon: RiSparklingLine,
+      },
+      {
+        kind: "leaf",
         label: "Slider",
         href: "/admin/website-management/sliders",
         roles: ROLES,

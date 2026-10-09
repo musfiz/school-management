@@ -3,13 +3,17 @@ import HeroSlider, { type HeroSlide } from "@/components/HeroSlider";
 import Hero from "@/components/Hero";
 import { AboutPreview, NoticeBoard } from "@/components/HomeSections";
 import { getSiteSettings } from "@/lib/site-settings";
+import { getHeroSection } from "@/lib/hero-section";
 import { getSliders } from "@/lib/sliders";
 import { resolveImageUrl } from "@/lib/media";
 import type { Locale } from "@/i18n/config";
 
 export default async function Home() {
   const locale = (await getLocale()) as Locale;
-  const settings = await getSiteSettings(locale);
+  const [settings, hero] = await Promise.all([
+    getSiteSettings(locale),
+    getHeroSection(locale),
+  ]);
 
   // Dashboard-managed home slides (image + bilingual title). Map the API
   // rows to the hero slide shape — the caption uses the active-locale title
@@ -27,7 +31,7 @@ export default async function Home() {
   return (
     <>
       <HeroSlider slides={heroSlides} />
-      <Hero settings={settings} />
+      {hero.isVisible && <Hero hero={hero} />}
       <AboutPreview settings={settings} />
       <NoticeBoard />
     </>

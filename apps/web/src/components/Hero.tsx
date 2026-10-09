@@ -1,60 +1,90 @@
 import Link from "next/link";
 import { footerStats, quickLinks } from "@/lib/site";
-import type { PublicSiteSettings } from "@/lib/site-settings";
+import type { PublicHeroSection } from "@/lib/hero-section";
 import { ArrowRightIcon, CalendarIcon, PhoneIcon } from "./icons";
 
-export default function Hero({ settings }: { settings: PublicSiteSettings }) {
+export default function Hero({ hero }: { hero: PublicHeroSection }) {
+  if (!hero.isVisible) {
+    return null;
+  }
+
+  // Combine available taglines into display items
+  const taglines = [hero.tagline1, hero.tagline2, hero.tagline3].filter(Boolean);
+
   return (
     <section className="relative overflow-hidden">
-      <div className="absolute inset-0 -z-10 bg-gradient-to-b from-navy-50 via-ink-50 to-ink-50" />
-      <div className="absolute inset-0 -z-10 bg-grid [mask-image:radial-gradient(ellipse_at_top,black,transparent_75%)]" />
+      <div className="absolute inset-0 -z-10 bg-linear-to-b from-navy-50 via-ink-50 to-ink-50" />
+      <div className="absolute inset-0 -z-10 bg-grid mask-[radial-gradient(ellipse_at_top,black,transparent_75%)]" />
       <div className="absolute -right-24 -top-24 -z-10 h-80 w-80 rounded-sm bg-brand-300/40 blur-3xl" />
       <div className="absolute -left-24 top-40 -z-10 h-72 w-72 rounded-sm bg-gold-300/30 blur-3xl" />
 
       <div className="mx-auto max-w-7xl px-4 pb-14 pt-14 sm:px-6 sm:pt-20 lg:pb-20 lg:pt-24">
         <div className="mx-auto max-w-3xl text-center">
-          <span className="inline-flex items-center gap-2 rounded-sm border border-navy-200 bg-white/70 px-3 py-1 text-sm font-semibold text-navy-700 shadow-soft">
-            <span className="flex h-2 w-2 rounded-sm bg-gold-500" />
-            Admission open for {new Date().getFullYear()}–{new Date().getFullYear() + 1}
-          </span>
-
-          <h1 className="mt-6 font-display text-4xl font-extrabold leading-[1.05] text-navy-900 sm:text-5xl lg:text-6xl">
-            {settings.tagline}
-          </h1>
-
-          <p className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-ink-600">
-            {settings.description}
-          </p>
-
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-            <Link
-              href="/admission/how-to-apply"
-              className="inline-flex items-center gap-2 rounded-sm bg-navy-800 px-6 py-3.5 text-sm font-semibold text-white shadow-card transition-colors hover:bg-navy-900"
-            >
-              Apply for admission
-              <ArrowRightIcon className="h-4 w-4" />
-            </Link>
-            <Link
-              href="/result/exam-result"
-              className="inline-flex items-center gap-2 rounded-sm border border-navy-200 bg-white px-6 py-3.5 text-sm font-semibold text-navy-800 shadow-soft transition-colors hover:border-navy-300 hover:bg-navy-50"
-            >
-              Check result
-            </Link>
-          </div>
-
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-4 text-sm text-ink-500">
-            <span className="inline-flex items-center gap-2">
-              <CalendarIcon className="h-5 w-5 text-brand-600" />
-              Open house: Sep 19 · 10am
+          {hero.admissionYear && (
+            <span className="inline-flex items-center gap-2 rounded-sm border border-navy-200 bg-white/70 px-3 py-1 text-sm font-semibold text-navy-700 shadow-soft">
+              <span className="flex h-2 w-2 rounded-sm bg-gold-500" />
+              Admission open for {hero.admissionYear}
             </span>
-            <a
-              href={`tel:${settings.phone}`}
-              className="inline-flex items-center gap-2 hover:text-navy-700"
-            >
-              <PhoneIcon className="h-5 w-5 text-brand-600" />
-              {settings.phone}
-            </a>
+          )}
+
+          <div className="mt-6 space-y-2">
+            {taglines.length > 0 ? (
+              taglines.map((tagline, idx) => (
+                <h1
+                  key={idx}
+                  className={`font-display font-extrabold leading-[1.08] text-navy-900 ${
+                    idx === 0
+                      ? "text-4xl sm:text-5xl lg:text-6xl"
+                      : "text-2xl sm:text-3xl lg:text-4xl text-navy-800"
+                  }`}
+                >
+                  {tagline}
+                </h1>
+              ))
+            ) : (
+              <h1 className="font-display text-4xl font-extrabold leading-[1.05] text-navy-900 sm:text-5xl lg:text-6xl">
+                Building Tomorrow’s Leaders
+              </h1>
+            )}
           </div>
+
+          {hero.shortDescription && (
+            <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-ink-600">
+              {hero.shortDescription}
+            </p>
+          )}
+
+          {hero.showApplyButton && (
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+              <Link
+                href="/admission/how-to-apply"
+                className="inline-flex items-center gap-2 rounded-sm bg-navy-800 px-6 py-3.5 text-sm font-semibold text-white shadow-card transition-colors hover:bg-navy-900"
+              >
+                Apply for admission
+                <ArrowRightIcon className="h-4 w-4" />
+              </Link>
+            </div>
+          )}
+
+          {(hero.instituteOpenInfo || hero.phone) && (
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-4 text-sm text-ink-500">
+              {hero.instituteOpenInfo && (
+                <span className="inline-flex items-center gap-2">
+                  <CalendarIcon className="h-5 w-5 text-brand-600" />
+                  {hero.instituteOpenInfo}
+                </span>
+              )}
+              {hero.phone && (
+                <a
+                  href={`tel:${hero.phone}`}
+                  className="inline-flex items-center gap-2 hover:text-navy-700"
+                >
+                  <PhoneIcon className="h-5 w-5 text-brand-600" />
+                  {hero.phone}
+                </a>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Stats */}
