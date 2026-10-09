@@ -1,7 +1,9 @@
 import { getLocale } from "next-intl/server";
 import HeroSlider, { type HeroSlide } from "@/components/HeroSlider";
 import Hero from "@/components/Hero";
-import { AboutPreview, NoticeBoard } from "@/components/HomeSections";
+import { NoticeBoard } from "@/components/HomeSections";
+import HomepageSections from "@/components/homepage/HomepageSections";
+import { getHomepageSections } from "@/lib/homepage";
 import { getSiteSettings } from "@/lib/site-settings";
 import { getSliders } from "@/lib/sliders";
 import { resolveImageUrl } from "@/lib/media";
@@ -24,11 +26,16 @@ export default async function Home() {
       caption: (locale === "bn" && s.titleBn) || s.titleEn || "",
     }));
 
+  // Dashboard-managed sections (values band, about school, …) in the order and
+  // visibility the admin set. Returns [] when the API is down or nothing is
+  // published, in which case the built-in sections below still render.
+  const sections = await getHomepageSections();
+
   return (
     <>
       <HeroSlider slides={heroSlides} />
       <Hero settings={settings} />
-      <AboutPreview settings={settings} />
+      <HomepageSections sections={sections} locale={locale} settings={settings} />
       <NoticeBoard />
     </>
   );

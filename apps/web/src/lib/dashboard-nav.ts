@@ -14,6 +14,7 @@ import {
   RiMailLine,
   RiUserSettingsLine,
   RiSettings3Line,
+  RiHomeLine,
   RiCalendarEventLine,
   RiBookOpenLine,
   RiGlobalLine,
@@ -167,6 +168,13 @@ export const dashboardTree: DashTreeNode[] = [
     children: [
       {
         kind: "leaf",
+        label: "Homepage",
+        href: "/admin/website-management/homepage",
+        roles: ["admin", "management"],
+        icon: RiHomeLine,
+      },
+      {
+        kind: "leaf",
         label: "Navigation Menu",
         href: "/admin/website-management/navigation-menu",
         roles: ["admin", "management"],
@@ -181,9 +189,9 @@ export const dashboardTree: DashTreeNode[] = [
       },
       {
         kind: "leaf",
-        label: "Slider",
+        label: "Hero Slider",
         href: "/admin/website-management/sliders",
-        roles: ROLES,
+        roles: ["admin", "management"],
         icon: RiImageLine,
       },
       {

@@ -16,6 +16,7 @@ import { StaffModule } from './staff/staff.module';
 import { TeachersModule } from './teachers/teachers.module';
 import { PermissionsModule } from './permissions/permissions.module';
 import { ModulesModule } from './modules/modules.module';
+import { HomepageModule } from './homepage/homepage.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { DatabaseService } from './database/database.service';
@@ -38,6 +39,7 @@ import { JwtAuthGuard } from './auth/jwt-auth.guard';
     TeachersModule,
     PermissionsModule,
     ModulesModule,
+    HomepageModule,
   ],
   controllers: [AppController],
   providers: [

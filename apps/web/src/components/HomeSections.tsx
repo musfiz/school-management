@@ -1,67 +1,10 @@
 import Link from "next/link";
 import { notices } from "@/lib/content/collections";
-import type { PublicSiteSettings } from "@/lib/site-settings";
-import { Container, Section } from "./ui";
+import { Section } from "./ui";
 import { ArrowRightIcon } from "./icons";
 
-export function AboutPreview({ settings }: { settings: PublicSiteSettings }) {
-  return (
-    <Section className="bg-white">
-      <div className="grid items-center gap-12 lg:grid-cols-2">
-        <div>
-          <p className="text-sm font-bold uppercase tracking-wider text-gold-600">About us</p>
-          <h2 className="mt-2 font-display text-3xl font-extrabold text-navy-900 sm:text-4xl">
-            A half-century of shaping bright futures
-          </h2>
-          <p className="mt-4 text-lg leading-relaxed text-ink-600">
-            {settings.established && `Since ${settings.established}, `}
-            {settings.siteName} has been a cornerstone of the community — combining academic
-            excellence with the values of discipline, curiosity and service.
-          </p>
-          <ul className="mt-6 space-y-3">
-            {[
-              "Caring, experienced faculty for every subject",
-              "Modern labs, library and a safe campus",
-              "Free tuition with support for those who need it",
-            ].map((item) => (
-              <li key={item} className="flex items-start gap-3 text-ink-700">
-                <span className="mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-sm bg-gold-500 text-navy-900">
-                  <ArrowRightIcon className="h-3 w-3" />
-                </span>
-                {item}
-              </li>
-            ))}
-          </ul>
-          <Link
-            href="/about/about-us"
-            className="mt-8 inline-flex items-center gap-2 rounded-sm bg-navy-800 px-6 py-3.5 text-sm font-semibold text-white shadow-soft transition-colors hover:bg-navy-900"
-          >
-            Learn our story
-            <ArrowRightIcon className="h-4 w-4" />
-          </Link>
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          {[
-            { v: "2,400+", l: "Students" },
-            { v: "96", l: "Teachers" },
-            { v: "12k+", l: "Library books" },
-            { v: "98%", l: "Pass rate" },
-          ].map((s) => (
-            <div
-              key={s.l}
-              className="rounded-sm border border-ink-200 bg-ink-50 p-6 text-center shadow-soft"
-            >
-              <p className="font-display text-3xl font-extrabold text-brand-600">{s.v}</p>
-              <p className="mt-1 text-sm font-medium text-ink-500">{s.l}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-    </Section>
-  );
-}
-
+/** Latest notices teaser. Still driven by the static `notices` sample data —
+ *  a real `Notice` entity is separate work (see docs/feature-roadmap.md). */
 export function NoticeBoard() {
   const latest = [...notices]
     .sort((a, b) => b.date.localeCompare(a.date))
