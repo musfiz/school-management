@@ -18,6 +18,7 @@ import AdminPageLoader from "@/components/dashboard/AdminPageLoader";
 import { apiFetch } from "@/lib/api";
 import { toast } from "@/lib/swal";
 import { printElement, downloadReportPdf } from "@/lib/print";
+import DatePickerField from "@/components/ui/DatePicker";
 import SearchSelect from "@/components/ui/SearchSelect";
 import type { ChartOfAccount, CostCenter, Fund } from "@/lib/accounting";
 import {
@@ -29,9 +30,6 @@ import {
   type ReceiptsPaymentsReport,
   type TrialBalanceReport,
 } from "@/lib/reports";
-
-const INPUT =
-  "w-full rounded-xs cursor-pointer border border-ink-200 bg-white px-2.5 py-1 text-sm outline-none transition-colors focus:border-brand-400";
 
 const TABS = [
   { id: "trial-balance", label: "Trial Balance", icon: Scale },
@@ -414,6 +412,24 @@ export default function ReportsView() {
     [accounts],
   );
 
+  const fundOptions = useMemo(
+    () =>
+      funds.map((f) => ({
+        value: f.id,
+        label: `${f.fundCode} — ${f.fundName}${f.isRestricted ? " (Restricted)" : ""}`,
+      })),
+    [funds],
+  );
+
+  const centerOptions = useMemo(
+    () =>
+      costCenters.map((c) => ({
+        value: c.id,
+        label: `${c.centerCode} — ${c.centerName}`,
+      })),
+    [costCenters],
+  );
+
   return (
     <div className="space-y-4">
       <DashPageHeader
@@ -431,7 +447,7 @@ export default function ReportsView() {
               key={tab.id}
               type="button"
               onClick={() => setActiveTab(tab.id)}
-              className={`flex cursor-pointer items-center gap-1.5 rounded-xs px-3 py-1.5 text-xs font-medium transition-colors ${
+              className={`flex cursor-pointer items-center gap-1.5 rounded-xs border border-transparent px-3 py-1.5 text-xs font-medium transition-colors ${
                 isActive
                   ? "bg-brand-600 text-white"
                   : "bg-ink-100 text-ink-700 hover:bg-ink-200"
@@ -448,59 +464,43 @@ export default function ReportsView() {
       <DashCard title="Filter & Period Selection">
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-6 items-end">
           {activeTab !== "balance-sheet" && (
-            <div>
-              <label className="mb-1 block text-xs font-medium text-ink-700">From Date</label>
-              <input
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className={INPUT}
-              />
-            </div>
+            <DatePickerField
+              label="From Date"
+              value={startDate}
+              onChange={setStartDate}
+              placeholder="From date"
+              maxDate={endDate || undefined}
+            />
           )}
 
+          <DatePickerField
+            label={activeTab === "balance-sheet" ? "As of Date" : "To Date"}
+            value={endDate}
+            onChange={setEndDate}
+            placeholder={activeTab === "balance-sheet" ? "As of date" : "To date"}
+            minDate={activeTab === "balance-sheet" ? undefined : startDate || undefined}
+          />
+
           <div>
-            <label className="mb-1 block text-xs font-medium text-ink-700">
-              {activeTab === "balance-sheet" ? "As of Date" : "To Date"}
-            </label>
-            <input
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              className={INPUT}
+            <label className="mb-1 block text-xs font-medium text-ink-700">Fund</label>
+            <SearchSelect
+              options={fundOptions}
+              value={selectedFund}
+              onChange={(val) => setSelectedFund(val || "")}
+              placeholder="All Funds (Consolidated)"
+              ariaLabel="Fund"
             />
           </div>
 
           <div>
-            <label className="mb-1 block text-xs font-medium text-ink-700">Fund</label>
-            <select
-              value={selectedFund}
-              onChange={(e) => setSelectedFund(e.target.value)}
-              className={INPUT}
-            >
-              <option value="">All Funds (Consolidated)</option>
-              {funds.map((f) => (
-                <option key={f.id} value={f.id}>
-                  {f.fundCode} — {f.fundName} {f.isRestricted ? "(Restricted)" : ""}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
             <label className="mb-1 block text-xs font-medium text-ink-700">Cost Center / Dept</label>
-            <select
+            <SearchSelect
+              options={centerOptions}
               value={selectedCostCenter}
-              onChange={(e) => setSelectedCostCenter(e.target.value)}
-              className={INPUT}
-            >
-              <option value="">All Cost Centers</option>
-              {costCenters.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.centerCode} — {c.centerName}
-                </option>
-              ))}
-            </select>
+              onChange={(val) => setSelectedCostCenter(val || "")}
+              placeholder="All Cost Centers"
+              ariaLabel="Cost Center"
+            />
           </div>
 
           {activeTab === "general-ledger" && (
@@ -519,14 +519,14 @@ export default function ReportsView() {
             <button
               type="button"
               onClick={() => fetchReport()}
-              className="cursor-pointer rounded-xs bg-brand-500 px-3 py-1 text-xs font-medium text-white hover:bg-brand-600"
+              className="cursor-pointer rounded-xs border border-brand-500 bg-brand-500 px-3 py-1.5 text-xs font-medium text-white hover:bg-brand-600"
             >
               Run Report
             </button>
             <button
               type="button"
               onClick={handleExportCsv}
-              className="flex cursor-pointer items-center gap-1 rounded-xs border border-ink-200 bg-white px-2.5 py-1 text-xs font-medium text-ink-700 hover:bg-ink-50"
+              className="flex cursor-pointer items-center gap-1 rounded-xs border border-ink-200 bg-white px-2.5 py-1.5 text-xs font-medium text-ink-700 hover:bg-ink-50"
             >
               <Download className="h-3 w-3" />
               <span>CSV</span>
@@ -540,7 +540,7 @@ export default function ReportsView() {
                   toast(e instanceof Error ? e.message : "Print failed", "error");
                 }
               }}
-              className="flex cursor-pointer items-center gap-1 rounded-xs border border-ink-200 bg-white px-2.5 py-1 text-xs font-medium text-ink-700 hover:bg-ink-50"
+              className="flex cursor-pointer items-center gap-1 rounded-xs border border-ink-200 bg-white px-2.5 py-1.5 text-xs font-medium text-ink-700 hover:bg-ink-50"
             >
               <Printer className="h-3 w-3" />
               <span>Print</span>
@@ -548,7 +548,7 @@ export default function ReportsView() {
             <button
               type="button"
               onClick={() => void handleDownloadPdf()}
-              className="flex cursor-pointer items-center gap-1 rounded-xs border border-ink-200 bg-white px-2.5 py-1 text-xs font-medium text-ink-700 hover:bg-ink-50"
+              className="flex cursor-pointer items-center gap-1 rounded-xs border border-ink-200 bg-white px-2.5 py-1.5 text-xs font-medium text-ink-700 hover:bg-ink-50"
             >
               <FileSpreadsheet className="h-3 w-3" />
               <span>PDF (A4)</span>
@@ -562,28 +562,28 @@ export default function ReportsView() {
           <button
             type="button"
             onClick={() => applyPreset("this-month")}
-            className="cursor-pointer rounded-xs bg-ink-100 px-2 py-0.5 text-ink-700 hover:bg-ink-200"
+            className="cursor-pointer rounded-xs border border-ink-200 bg-white px-2.5 py-1.5 text-xs font-medium text-ink-700 hover:bg-ink-50"
           >
             This Month
           </button>
           <button
             type="button"
             onClick={() => applyPreset("this-fy")}
-            className="cursor-pointer rounded-xs bg-ink-100 px-2 py-0.5 text-ink-700 hover:bg-ink-200"
+            className="cursor-pointer rounded-xs border border-ink-200 bg-white px-2.5 py-1.5 text-xs font-medium text-ink-700 hover:bg-ink-50"
           >
             This Fiscal Year (July-June)
           </button>
           <button
             type="button"
             onClick={() => applyPreset("last-fy")}
-            className="cursor-pointer rounded-xs bg-ink-100 px-2 py-0.5 text-ink-700 hover:bg-ink-200"
+            className="cursor-pointer rounded-xs border border-ink-200 bg-white px-2.5 py-1.5 text-xs font-medium text-ink-700 hover:bg-ink-50"
           >
             Last Fiscal Year
           </button>
           <button
             type="button"
             onClick={() => applyPreset("ytd")}
-            className="cursor-pointer rounded-xs bg-ink-100 px-2 py-0.5 text-ink-700 hover:bg-ink-200"
+            className="cursor-pointer rounded-xs border border-ink-200 bg-white px-2.5 py-1.5 text-xs font-medium text-ink-700 hover:bg-ink-50"
           >
             Year to Date
           </button>

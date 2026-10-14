@@ -20,7 +20,7 @@ interface SearchSelectProps {
 const styles: StylesConfig<SearchOption, false> = {
   control: (base, state) => ({
     ...base,
-    minHeight: 32,
+    minHeight: 30,
     fontSize: 14,
     cursor: "pointer",
     borderColor: state.isFocused ? "var(--color-brand-400, #38bdf8)" : "#e2e8f0",
@@ -32,6 +32,11 @@ const styles: StylesConfig<SearchOption, false> = {
     },
   }),
   valueContainer: (base) => ({ ...base, padding: "2px 8px" }),
+  /* Compact indicators: react-select's default 8px icon padding stretches
+     the control to ~36px regardless of minHeight — keep it at 30px. */
+  dropdownIndicator: (base) => ({ ...base, padding: "2px 6px" }),
+  clearIndicator: (base) => ({ ...base, padding: "2px 6px" }),
+  indicatorSeparator: (base) => ({ ...base, margin: "4px 0" }),
   input: (base) => ({ ...base, margin: 0, padding: 0, fontSize: 14 }),
   placeholder: (base) => ({ ...base, fontSize: 14, color: "#94a3b8" }),
   singleValue: (base) => ({ ...base, fontSize: 14, color: "#0f172a" }),

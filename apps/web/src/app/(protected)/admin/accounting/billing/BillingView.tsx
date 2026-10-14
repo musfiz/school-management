@@ -22,7 +22,7 @@ import {
 } from "@/lib/billing";
 
 const INPUT =
-  "w-full rounded-xs cursor-pointer border border-ink-200 bg-white px-3 py-1 text-sm outline-none transition-colors focus:border-brand-400";
+  "w-full rounded-xs cursor-pointer border border-ink-200 bg-white px-2.5 py-1 text-sm outline-none transition-colors focus:border-brand-400";
 
 const STATUS_BADGE: Record<string, string> = {
   UNPAID: "bg-slate-200 text-slate-700",
