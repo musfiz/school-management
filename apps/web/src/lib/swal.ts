@@ -92,6 +92,8 @@ export async function confirmDialog(options: {
     showCancelButton: true,
     confirmButtonText: options.confirmText ?? "Yes, continue",
     cancelButtonText: "Cancel",
+    reverseButtons: true,
+    focusCancel: true,
     customClass: {
       confirmButton: options.danger
         ? "rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700"
@@ -102,6 +104,73 @@ export async function confirmDialog(options: {
     },
   });
   return result.isConfirmed;
+}
+
+/**
+ * Styled input dialog (replaces native `window.prompt`).
+ * Resolves the trimmed input string, or `null` when the user cancels.
+ * Supports required / minLength / numeric-min / custom validation with
+ * inline error messages instead of silent failure.
+ */
+export async function promptDialog(options: {
+  title: string;
+  text?: string;
+  input?: "text" | "textarea" | "number" | "url";
+  inputValue?: string;
+  placeholder?: string;
+  confirmText?: string;
+  icon?: SweetAlertIcon;
+  required?: boolean;
+  minLength?: number;
+  min?: number;
+  danger?: boolean;
+  validator?: (value: string) => string | null;
+}): Promise<string | null> {
+  const result = await swal.fire({
+    title: options.title,
+    text: options.text,
+    icon: options.icon ?? "question",
+    input: options.input ?? "text",
+    inputValue: options.inputValue ?? "",
+    inputPlaceholder: options.placeholder,
+    showCancelButton: true,
+    confirmButtonText: options.confirmText ?? "Confirm",
+    cancelButtonText: "Cancel",
+    reverseButtons: true,
+    inputValidator: (value: string) => {
+      const v = String(value ?? "").trim();
+      if (options.required !== false && v.length === 0) {
+        return "This field is required.";
+      }
+      if (options.minLength && v.length < options.minLength) {
+        return `Enter at least ${options.minLength} characters.`;
+      }
+      if (options.input === "number") {
+        const n = Number(v);
+        if (!Number.isFinite(n) || n <= 0) {
+          return "Enter a valid amount greater than 0.";
+        }
+        if (options.min !== undefined && n < options.min) {
+          return `Amount must be at least ${options.min}.`;
+        }
+      }
+      if (options.validator) {
+        return options.validator(v);
+      }
+      return undefined;
+    },
+    customClass: {
+      confirmButton: options.danger
+        ? "rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700"
+        : "rounded-md bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700",
+      cancelButton:
+        "rounded-md border border-ink-200 px-4 py-2 text-sm font-semibold text-ink-700 hover:bg-ink-50",
+      actions: "gap-2",
+      input: "rounded-md border border-ink-200 px-3 py-2 text-sm focus:border-brand-400 focus:outline-none",
+    },
+  });
+  if (!result.isConfirmed || result.value === undefined) return null;
+  return String(result.value).trim();
 }
 
 export default swal;

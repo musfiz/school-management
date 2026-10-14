@@ -20,6 +20,7 @@ import {
   Unlink,
 } from "lucide-react";
 import { useEffect } from "react";
+import { promptDialog } from "@/lib/swal";
 
 interface RichTextEditorProps {
   value: string;
@@ -72,10 +73,19 @@ export default function RichTextEditor({
     return null;
   }
 
-  function setLink() {
+  async function setLink() {
     if (!editor) return;
     const previousUrl = editor.getAttributes("link").href;
-    const url = window.prompt("Enter URL:", previousUrl);
+    const url = await promptDialog({
+      title: "Insert link",
+      text: "Leave empty and confirm to remove the link.",
+      input: "url",
+      inputValue: previousUrl ?? "",
+      placeholder: "https://example.com",
+      confirmText: "Apply link",
+      icon: "question",
+      required: false,
+    });
 
     if (url === null) return;
     if (url === "") {

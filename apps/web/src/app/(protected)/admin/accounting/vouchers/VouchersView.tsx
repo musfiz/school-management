@@ -5,7 +5,7 @@ import { Plus, Trash2, ChevronDown, ChevronRight, Search, Undo2, CheckCheck, Sta
 import { DashCard, DashPageHeader } from "@/components/dashboard/DashPage";
 import AdminPageLoader from "@/components/dashboard/AdminPageLoader";
 import { apiFetch } from "@/lib/api";
-import { confirmDialog, toast } from "@/lib/swal";
+import { confirmDialog, promptDialog, toast } from "@/lib/swal";
 import DatePickerField from "@/components/ui/DatePicker";
 import {
   VOUCHER_TYPES,
@@ -186,16 +186,29 @@ export default function VouchersView() {
 
   async function act(id: string, action: "verify" | "approve" | "reverse" | "delete", voucherNo: string) {
     if (action === "delete") {
-      if (!(await confirmDialog({ title: `Delete draft ${voucherNo}?`, text: "This cannot be undone.", icon: "warning" }))) return;
+      const ok = await confirmDialog({
+        title: `Delete draft ${voucherNo}?`,
+        text: "The draft and its lines will be permanently removed. Approved vouchers can never be deleted — they need a reversal instead.",
+        confirmText: "Yes, delete draft",
+        icon: "warning",
+        danger: true,
+      });
+      if (!ok) return;
     }
     let body: string | undefined;
     if (action === "reverse") {
-      const reason = window.prompt(`Reversal reason for ${voucherNo} (min 3 chars):`, "");
-      if (!reason || reason.trim().length < 3) {
-        toast("Reversal needs a reason (min 3 characters).", "warning");
-        return;
-      }
-      body = JSON.stringify({ reason: reason.trim() });
+      const reason = await promptDialog({
+        title: `Reverse ${voucherNo}?`,
+        text: "A mirror REVERSAL voucher swaps every debit and credit. The original is marked REVERSED.",
+        input: "textarea",
+        placeholder: "e.g. Wrong fund used — repost to General Fund",
+        confirmText: "Post reversal",
+        icon: "warning",
+        minLength: 3,
+        danger: true,
+      });
+      if (reason === null) return;
+      body = JSON.stringify({ reason });
     }
     setActing(`${action}:${id}`);
     try {

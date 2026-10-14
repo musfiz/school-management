@@ -316,6 +316,67 @@ export class JournalPostingService {
     });
   }
 
+  /* ---------------- system auto-post (STUDENT_BILLING etc.) ---------------- */
+
+  /**
+   * System posting inside the caller's transaction (Phase 3 accrual billing,
+   * Phase 4 collections). Runs the same 5 validation rules as manual drafts
+   * but persists the entry straight to APPROVED with maker/checker/approver
+   * all set to the triggering user — system postings never sit in DRAFT.
+   */
+  async postSystemJournal(
+    manager: EntityManager,
+    args: {
+      voucherType: 'JOURNAL' | 'RECEIVE' | 'PAYMENT' | 'CONTRA';
+      transactionDate: string;
+      narration: string;
+      sourceModule: 'STUDENT_BILLING' | 'MFS_COLLECTION' | 'PAYROLL' | 'PROCUREMENT' | 'MANUAL';
+      sourceReferenceId?: string | null;
+      actorId: string;
+      lines: JournalLineDto[];
+    },
+  ): Promise<JournalEntry> {
+    const lines = await this.checkLines(manager, args.lines);
+    const period = await this.resolvePeriod(manager, args.transactionDate, undefined);
+    const voucherNo = await this.sequences.nextVoucherNo(
+      manager,
+      args.voucherType,
+      args.transactionDate,
+    );
+    const repo = manager.getRepository(JournalEntry);
+    const entry = repo.create({
+      voucherNo,
+      voucherType: args.voucherType,
+      transactionDate: args.transactionDate.slice(0, 10),
+      fiscalPeriodId: period.id,
+      sourceModule: args.sourceModule,
+      sourceReferenceId: args.sourceReferenceId ?? null,
+      narration: args.narration.trim(),
+      status: 'APPROVED',
+      createdByUserId: args.actorId,
+      verifiedByUserId: args.actorId,
+      approvedByUserId: args.actorId,
+      approvedAt: new Date(),
+    });
+    const saved = await repo.save(entry);
+    await manager.getRepository(JournalLine).save(
+      lines.map((l) =>
+        manager.getRepository(JournalLine).create({
+          journalEntryId: saved.id,
+          glAccountId: l.glAccountId,
+          fundId: l.fundId,
+          costCenterId: l.costCenterId ?? null,
+          subledgerType: l.subledgerType ?? null,
+          subledgerId: l.subledgerId ?? null,
+          debitAmount: l.debit.toFixed(2),
+          creditAmount: l.credit.toFixed(2),
+          lineMemo: l.lineMemo ?? null,
+        }),
+      ),
+    );
+    return this.findOneIn(manager, saved.id);
+  }
+
   /* ---------------- rule engine ---------------- */
 
   /** Role lookup inside the caller's transaction (hierarchy enforcement). */
