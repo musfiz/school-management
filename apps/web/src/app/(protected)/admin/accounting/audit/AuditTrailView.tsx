@@ -279,7 +279,7 @@ export default function AuditTrailView() {
               key={tab.id}
               type="button"
               onClick={() => setActiveTab(tab.id)}
-              className={`flex cursor-pointer items-center gap-1.5 rounded-xs px-3 py-1.5 text-xs font-medium transition-colors ${
+              className={`flex cursor-pointer items-center gap-1.5 rounded-xs border border-transparent px-3 py-1.5 text-xs font-medium transition-colors ${
                 isActive ? "bg-brand-600 text-white" : "bg-ink-100 text-ink-700 hover:bg-ink-200"
               }`}
             >
@@ -453,14 +453,14 @@ export default function AuditTrailView() {
                   <button
                     type="button"
                     onClick={() => loadVouchers()}
-                    className="cursor-pointer rounded-xs bg-brand-500 px-3 py-1 text-xs font-medium text-white hover:bg-brand-600"
+                    className="cursor-pointer rounded-xs border border-brand-500 bg-brand-500 px-3 py-1.5 text-xs font-medium text-white hover:bg-brand-600"
                   >
                     Run Query
                   </button>
                   <button
                     type="button"
                     onClick={exportVouchersCsv}
-                    className="flex cursor-pointer items-center gap-1 rounded-xs border border-ink-200 bg-white px-2.5 py-1 text-xs font-medium text-ink-700 hover:bg-ink-50"
+                    className="flex cursor-pointer items-center gap-1 rounded-xs border border-ink-200 bg-white px-2.5 py-1.5 text-xs font-medium text-ink-700 hover:bg-ink-50"
                   >
                     <Download className="h-3 w-3" />
                     <span>CSV</span>
@@ -474,7 +474,7 @@ export default function AuditTrailView() {
                         toast(e instanceof Error ? e.message : "Print failed", "error");
                       }
                     }}
-                    className="flex cursor-pointer items-center gap-1 rounded-xs border border-ink-200 bg-white px-2.5 py-1 text-xs font-medium text-ink-700 hover:bg-ink-50"
+                    className="flex cursor-pointer items-center gap-1 rounded-xs border border-ink-200 bg-white px-2.5 py-1.5 text-xs font-medium text-ink-700 hover:bg-ink-50"
                   >
                     <Printer className="h-3 w-3" />
                     <span>Print</span>
@@ -485,7 +485,7 @@ export default function AuditTrailView() {
                       setVStatus(""); setVType(""); setVModule("");
                       setVStart(""); setVEnd(""); setVSearch("");
                     }}
-                    className="cursor-pointer rounded-xs bg-ink-100 px-2.5 py-1 text-xs font-medium text-ink-700 hover:bg-ink-200"
+                    className="cursor-pointer rounded-xs border border-transparent bg-ink-100 px-2.5 py-1.5 text-xs font-medium text-ink-700 hover:bg-ink-200"
                   >
                     Clear
                   </button>
@@ -508,7 +508,7 @@ export default function AuditTrailView() {
               }
             >
               {vLoading ? (
-                <AdminPageLoader />
+                <AdminPageLoader variant="inline" />
               ) : (
                 <div className="overflow-x-auto rounded-xs border border-ink-100">
                   <table className="w-full text-left text-xs">
@@ -655,7 +655,7 @@ export default function AuditTrailView() {
                     toast(e instanceof Error ? e.message : "Print failed", "error");
                   }
                 }}
-                className="flex cursor-pointer items-center gap-1 rounded-xs border border-ink-200 bg-white px-2.5 py-1 text-xs font-medium text-ink-700 hover:bg-ink-50"
+                className="flex cursor-pointer items-center gap-1 rounded-xs border border-ink-200 bg-white px-2.5 py-1.5 text-xs font-medium text-ink-700 hover:bg-ink-50"
               >
                 <Printer className="h-3 w-3" />
                 <span>Print</span>
@@ -663,7 +663,7 @@ export default function AuditTrailView() {
             }
           >
             {rLoading ? (
-              <AdminPageLoader />
+              <AdminPageLoader variant="inline" />
             ) : reversals.length === 0 ? (
               <p className="py-6 text-center text-sm text-ink-400">
                 No reversals recorded. Corrections to approved vouchers must create a linked REVERSAL entry — originals are never edited or deleted.
@@ -765,14 +765,14 @@ export default function AuditTrailView() {
                   <button
                     type="button"
                     onClick={() => loadLogs()}
-                    className="cursor-pointer rounded-xs bg-brand-500 px-3 py-1 text-xs font-medium text-white hover:bg-brand-600"
+                    className="cursor-pointer rounded-xs border border-brand-500 bg-brand-500 px-3 py-1.5 text-xs font-medium text-white hover:bg-brand-600"
                   >
                     Run Query
                   </button>
                   <button
                     type="button"
                     onClick={exportLogsCsv}
-                    className="flex cursor-pointer items-center gap-1 rounded-xs border border-ink-200 bg-white px-2.5 py-1 text-xs font-medium text-ink-700 hover:bg-ink-50"
+                    className="flex cursor-pointer items-center gap-1 rounded-xs border border-ink-200 bg-white px-2.5 py-1.5 text-xs font-medium text-ink-700 hover:bg-ink-50"
                   >
                     <Download className="h-3 w-3" />
                     <span>CSV</span>
@@ -783,7 +783,7 @@ export default function AuditTrailView() {
 
             <DashCard title={`Chronological Activity Stream (${logs.length} events)`}>
               {lLoading ? (
-                <AdminPageLoader />
+                <AdminPageLoader variant="inline" />
               ) : logs.length === 0 ? (
                 <p className="py-6 text-center text-sm text-ink-400">No audit events match the current filters.</p>
               ) : (

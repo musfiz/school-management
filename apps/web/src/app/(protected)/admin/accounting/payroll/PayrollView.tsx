@@ -493,7 +493,7 @@ export default function PayrollView() {
                 type="button"
                 onClick={createRun}
                 disabled={acting === "create-run"}
-                className="cursor-pointer rounded-xs bg-brand-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-50"
+                className="cursor-pointer rounded-xs border border-brand-600 bg-brand-600 px-3 py-1 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-50"
               >
                 {acting === "create-run" ? "Opening…" : "Open draft run"}
               </button>
@@ -699,7 +699,7 @@ export default function PayrollView() {
                                 type="button"
                                 onClick={() => addPayslip(r)}
                                 disabled={acting === "add-slip"}
-                                className="cursor-pointer rounded-xs bg-brand-600 px-3 py-1 text-xs font-semibold text-white hover:bg-brand-700 disabled:opacity-50"
+                                className="cursor-pointer rounded-xs border border-brand-600 bg-brand-600 px-3 py-1 text-xs font-semibold text-white hover:bg-brand-700 disabled:opacity-50"
                               >
                                 {acting === "add-slip" ? "Adding…" : "Add payslip"}
                               </button>
@@ -714,7 +714,7 @@ export default function PayrollView() {
                                 type="button"
                                 onClick={() => approveRun(r)}
                                 disabled={acting === `approve:${r.id}` || (r.lines ?? []).length === 0}
-                                className="cursor-pointer rounded-xs bg-emerald-700 px-3 py-1 text-xs font-semibold text-white hover:bg-emerald-800 disabled:opacity-50"
+                                className="cursor-pointer rounded-xs border border-emerald-700 bg-emerald-700 px-3 py-1 text-xs font-semibold text-white hover:bg-emerald-800 disabled:opacity-50"
                               >
                                 {acting === `approve:${r.id}` ? "Posting…" : "Approve & post"}
                               </button>
@@ -746,7 +746,7 @@ export default function PayrollView() {
                                 type="button"
                                 onClick={() => payRun(r)}
                                 disabled={acting === `pay:${r.id}`}
-                                className="cursor-pointer rounded-xs bg-brand-600 px-3 py-1 text-xs font-semibold text-white hover:bg-brand-700 disabled:opacity-50"
+                                className="cursor-pointer rounded-xs border border-brand-600 bg-brand-600 px-3 py-1 text-xs font-semibold text-white hover:bg-brand-700 disabled:opacity-50"
                               >
                                 {acting === `pay:${r.id}`
                                   ? "Disbursing…"
@@ -909,7 +909,7 @@ export default function PayrollView() {
                 type="button"
                 onClick={createHonorarium}
                 disabled={acting === "create-hon"}
-                className="cursor-pointer rounded-xs bg-brand-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-50"
+                className="cursor-pointer rounded-xs border border-brand-600 bg-brand-600 px-3 py-1 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-50"
               >
                 {acting === "create-hon" ? "Saving…" : "Save draft bill"}
               </button>
@@ -971,7 +971,7 @@ export default function PayrollView() {
                                   type="button"
                                   onClick={() => approveHonorarium(b)}
                                   disabled={acting === `approve-hon:${b.id}`}
-                                  className="cursor-pointer rounded-xs bg-emerald-700 px-2 py-1 text-xs font-semibold text-white hover:bg-emerald-800 disabled:opacity-50"
+                                  className="cursor-pointer rounded-xs border border-emerald-700 bg-emerald-700 px-2 py-1 text-xs font-semibold text-white hover:bg-emerald-800 disabled:opacity-50"
                                 >
                                   Approve
                                 </button>
@@ -991,7 +991,7 @@ export default function PayrollView() {
                                 type="button"
                                 onClick={() => payHonorarium(b)}
                                 disabled={acting === `pay-hon:${b.id}`}
-                                className="cursor-pointer rounded-xs bg-brand-600 px-2 py-1 text-xs font-semibold text-white hover:bg-brand-700 disabled:opacity-50"
+                                className="cursor-pointer rounded-xs border border-brand-600 bg-brand-600 px-2 py-1 text-xs font-semibold text-white hover:bg-brand-700 disabled:opacity-50"
                               >
                                 Pay
                               </button>

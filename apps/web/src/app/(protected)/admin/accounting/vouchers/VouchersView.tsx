@@ -289,7 +289,7 @@ export default function VouchersView() {
         <button
           type="button"
           onClick={() => setShowForm((s) => !s)}
-          className="flex items-center gap-1.5 rounded-xs bg-brand-600 px-3 py-2 text-sm font-semibold text-white hover:bg-brand-700"
+          className="flex items-center gap-1.5 rounded-xs border border-brand-600 bg-brand-600 px-3 py-2 text-sm font-semibold text-white hover:bg-brand-700"
         >
           <Plus className="h-4 w-4" /> New voucher
         </button>
@@ -406,7 +406,7 @@ export default function VouchersView() {
             <button type="button" onClick={() => setShowForm(false)} className="rounded-xs border border-ink-200 px-3 py-2 text-sm font-semibold text-ink-700 hover:bg-ink-100">
               Cancel
             </button>
-            <button type="button" disabled={!formValid || saving} onClick={submitDraft} className="rounded-xs bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-50">
+            <button type="button" disabled={!formValid || saving} onClick={submitDraft} className="rounded-xs border border-brand-600 bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-50">
               {saving ? "Saving…" : "Save draft"}
             </button>
           </div>
@@ -455,7 +455,7 @@ export default function VouchersView() {
                   <span className="ml-auto flex gap-1.5">
                     {v.status === "DRAFT" && (
                       <>
-                        <button type="button" disabled={!!acting} onClick={() => act(v.id, "verify", v.voucherNo)} className="flex items-center gap-1 rounded-xs bg-sky-600 px-2 py-1 text-xs font-semibold text-white hover:bg-sky-700 disabled:opacity-50">
+                        <button type="button" disabled={!!acting} onClick={() => act(v.id, "verify", v.voucherNo)} className="flex items-center gap-1 rounded-xs border border-sky-600 bg-sky-600 px-2 py-1 text-xs font-semibold text-white hover:bg-sky-700 disabled:opacity-50">
                           <CheckCheck className="h-3.5 w-3.5" /> {busy ? "…" : "Verify"}
                         </button>
                         <button type="button" disabled={!!acting} onClick={() => act(v.id, "delete", v.voucherNo)} className="flex items-center gap-1 rounded-xs border border-rose-200 px-2 py-1 text-xs font-semibold text-rose-600 hover:bg-rose-50 disabled:opacity-50">
@@ -464,12 +464,12 @@ export default function VouchersView() {
                       </>
                     )}
                     {v.status === "VERIFIED" && (
-                      <button type="button" disabled={!!acting} onClick={() => act(v.id, "approve", v.voucherNo)} className="flex items-center gap-1 rounded-xs bg-emerald-600 px-2 py-1 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-50">
+                      <button type="button" disabled={!!acting} onClick={() => act(v.id, "approve", v.voucherNo)} className="flex items-center gap-1 rounded-xs border border-emerald-600 bg-emerald-600 px-2 py-1 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-50">
                         <Stamp className="h-3.5 w-3.5" /> {busy ? "…" : "Approve"}
                       </button>
                     )}
                     {v.status === "APPROVED" && v.voucherType !== "REVERSAL" && (
-                      <button type="button" disabled={!!acting} onClick={() => act(v.id, "reverse", v.voucherNo)} className="flex items-center gap-1 rounded-xs bg-amber-600 px-2 py-1 text-xs font-semibold text-white hover:bg-amber-700 disabled:opacity-50">
+                      <button type="button" disabled={!!acting} onClick={() => act(v.id, "reverse", v.voucherNo)} className="flex items-center gap-1 rounded-xs border border-amber-600 bg-amber-600 px-2 py-1 text-xs font-semibold text-white hover:bg-amber-700 disabled:opacity-50">
                         <Undo2 className="h-3.5 w-3.5" /> {busy ? "…" : "Reverse"}
                       </button>
                     )}

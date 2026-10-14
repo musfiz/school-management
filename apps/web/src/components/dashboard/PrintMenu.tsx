@@ -32,6 +32,13 @@ export interface PrintMenuProps {
   fileName?: string;
   title?: string;
   className?: string;
+  /**
+   * Trigger size — `md` (30px, filter rows / cards) or `lg` (38px, modal
+   * footers next to `text-sm py-2` buttons). Follows the button standard.
+   */
+  size?: "md" | "lg";
+  /** Stretch the trigger to its container width (e.g. `flex-1` in footers). */
+  fullWidth?: boolean;
 }
 
 type Busy = null | "print" | "pdf-print" | "pdf-download";
@@ -43,6 +50,8 @@ export default function PrintMenu({
   fileName,
   title = "Document",
   className = "",
+  size = "md",
+  fullWidth = false,
 }: PrintMenuProps) {
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState<Busy>(null);
@@ -72,6 +81,13 @@ export default function PrintMenu({
   const doPdfDownload = () =>
     run("pdf-download", () => (pdfUrl ? downloadPdfUrl(pdfUrl, fileName || `${title}.pdf`) : null));
 
+  const triggerCls =
+    size === "lg"
+      ? "border border-brand-600 bg-brand-600 px-3 py-2 text-sm font-semibold text-white hover:bg-brand-700"
+      : "border border-ink-200 bg-white px-2.5 py-1.5 text-xs font-medium text-ink-700 hover:bg-ink-50";
+  const triggerWidth = fullWidth ? "w-full justify-center" : "";
+  const triggerIcon = size === "lg" ? "h-4 w-4" : "h-3 w-3";
+
   // Single action → render a plain button instead of a dropdown.
   if ((canBrowserPrint && !canPdf) || (!canBrowserPrint && canPdf && false)) {
     return (
@@ -79,9 +95,9 @@ export default function PrintMenu({
         type="button"
         onClick={doBrowserPrint}
         disabled={busy !== null}
-        className={`flex cursor-pointer items-center gap-1 rounded-xs border border-ink-200 bg-white px-2.5 py-1 text-xs font-medium text-ink-700 hover:bg-ink-50 disabled:opacity-60 ${className}`}
+        className={`flex cursor-pointer items-center gap-1 rounded-xs ${triggerCls} disabled:opacity-60 ${triggerWidth} ${className}`}
       >
-        {busy === "print" ? <Loader2 className="h-3 w-3 animate-spin" /> : <Printer className="h-3 w-3" />}
+        {busy === "print" ? <Loader2 className={`${triggerIcon} animate-spin`} /> : <Printer className={triggerIcon} />}
         <span>Print</span>
       </button>
     );
@@ -93,13 +109,13 @@ export default function PrintMenu({
         type="button"
         onClick={() => setOpen((o) => !o)}
         onBlur={() => window.setTimeout(() => setOpen(false), 150)}
-        className="flex cursor-pointer items-center gap-1 rounded-xs border border-ink-200 bg-white px-2.5 py-1 text-xs font-medium text-ink-700 hover:bg-ink-50"
+        className={`flex cursor-pointer items-center gap-1 rounded-xs ${triggerCls} ${triggerWidth}`}
         aria-haspopup="menu"
         aria-expanded={open}
       >
-        <Printer className="h-3 w-3" />
+        <Printer className={triggerIcon} />
         <span>Print / PDF</span>
-        <ChevronDown className="h-3 w-3" />
+        <ChevronDown className={triggerIcon} />
       </button>
       {open && (
         <div

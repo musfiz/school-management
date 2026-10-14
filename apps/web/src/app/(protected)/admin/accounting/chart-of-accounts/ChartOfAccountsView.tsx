@@ -13,6 +13,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 import DataTable from "@/components/dashboard/DataTable";
 import { DashCard, DashPageHeader, StatGrid } from "@/components/dashboard/DashPage";
 import AdminPageLoader from "@/components/dashboard/AdminPageLoader";
+import DatePickerField from "@/components/ui/DatePicker";
 import { apiFetch } from "@/lib/api";
 import { confirmDialog, toast } from "@/lib/swal";
 import {
@@ -590,7 +591,7 @@ export default function ChartOfAccountsView() {
               <button onClick={() => setExpanded(new Set())} className="rounded-xs border border-ink-200 px-3 py-2 text-xs font-semibold text-ink-600 hover:bg-ink-50">
                 Collapse
               </button>
-              <button onClick={() => openAccountModal()} className="flex items-center gap-1 rounded-xs bg-navy-800 px-3 py-2 text-xs font-semibold text-white hover:bg-navy-900">
+              <button onClick={() => openAccountModal()} className="flex items-center gap-1 rounded-xs border border-navy-800 bg-navy-800 px-3 py-1.5 text-xs font-semibold text-white hover:bg-navy-900">
                 <Plus size={14} /> New Account
               </button>
             </span>
@@ -794,14 +795,22 @@ export default function ChartOfAccountsView() {
                   <input value={periodForm.periodName} onChange={(e) => setPeriodForm({ ...periodForm, periodName: e.target.value })} placeholder="FY 2026-2027 (July-June)" className={`${INPUT_BASE} mt-1`} />
                 </label>
                 <div className="grid grid-cols-2 gap-3">
-                  <label className="text-xs font-semibold text-ink-600">
-                    Start Date *
-                    <input type="date" value={periodForm.startDate} onChange={(e) => setPeriodForm({ ...periodForm, startDate: e.target.value })} className={`${INPUT_BASE} mt-1`} />
-                  </label>
-                  <label className="text-xs font-semibold text-ink-600">
-                    End Date *
-                    <input type="date" value={periodForm.endDate} onChange={(e) => setPeriodForm({ ...periodForm, endDate: e.target.value })} className={`${INPUT_BASE} mt-1`} />
-                  </label>
+                  <DatePickerField
+                    label="Start Date"
+                    value={periodForm.startDate}
+                    onChange={(v) => setPeriodForm({ ...periodForm, startDate: v })}
+                    placeholder="Start date"
+                    maxDate={periodForm.endDate || undefined}
+                    required
+                  />
+                  <DatePickerField
+                    label="End Date"
+                    value={periodForm.endDate}
+                    onChange={(v) => setPeriodForm({ ...periodForm, endDate: v })}
+                    placeholder="End date"
+                    minDate={periodForm.startDate || undefined}
+                    required
+                  />
                 </div>
               </div>
             )}
@@ -810,7 +819,7 @@ export default function ChartOfAccountsView() {
               <button onClick={() => setModal(null)} disabled={saving} className="rounded-xs border border-ink-200 px-4 py-2 text-sm font-semibold text-ink-600 hover:bg-ink-50 disabled:opacity-50">
                 Cancel
               </button>
-              <button onClick={saveModal} disabled={saving} className="rounded-xs bg-navy-800 px-4 py-2 text-sm font-semibold text-white hover:bg-navy-900 disabled:opacity-50">
+              <button onClick={saveModal} disabled={saving} className="rounded-xs border border-navy-800 bg-navy-800 px-4 py-2 text-sm font-semibold text-white hover:bg-navy-900 disabled:opacity-50">
                 {saving ? "Saving…" : modal.id ? "Save changes" : "Create"}
               </button>
             </div>

@@ -553,7 +553,7 @@ export default function PayablesTaxView() {
                 type="button"
                 onClick={createBill}
                 disabled={acting === "create-bill"}
-                className="cursor-pointer rounded-xs bg-brand-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-50"
+                className="cursor-pointer rounded-xs border border-brand-600 bg-brand-600 px-3 py-1 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-50"
               >
                 {acting === "create-bill" ? "Saving…" : "Save draft bill"}
               </button>
@@ -653,7 +653,7 @@ export default function PayablesTaxView() {
                                     type="button"
                                     onClick={() => approveBill(b.id, b.billNo)}
                                     disabled={acting === `approve:${b.id}`}
-                                    className="cursor-pointer rounded-xs bg-emerald-700 px-2 py-1 text-xs font-semibold text-white hover:bg-emerald-800 disabled:opacity-50"
+                                    className="cursor-pointer rounded-xs border border-emerald-700 bg-emerald-700 px-2 py-1 text-xs font-semibold text-white hover:bg-emerald-800 disabled:opacity-50"
                                   >
                                     Approve
                                   </button>
@@ -672,7 +672,7 @@ export default function PayablesTaxView() {
                                 <button
                                   type="button"
                                   onClick={() => (payBillId === b.id ? setPayBillId(null) : openPay(b))}
-                                  className="cursor-pointer rounded-xs bg-brand-600 px-2 py-1 text-xs font-semibold text-white hover:bg-brand-700"
+                                  className="cursor-pointer rounded-xs border border-brand-600 bg-brand-600 px-2 py-1 text-xs font-semibold text-white hover:bg-brand-700"
                                 >
                                   Pay
                                 </button>
@@ -711,7 +711,7 @@ export default function PayablesTaxView() {
                                   type="button"
                                   onClick={() => submitPay(b)}
                                   disabled={acting === `pay:${b.id}`}
-                                  className="cursor-pointer rounded-xs bg-brand-600 px-3 py-1 text-xs font-semibold text-white hover:bg-brand-700 disabled:opacity-50"
+                                  className="cursor-pointer rounded-xs border border-brand-600 bg-brand-600 px-3 py-1 text-xs font-semibold text-white hover:bg-brand-700 disabled:opacity-50"
                                 >
                                   {acting === `pay:${b.id}` ? "Posting…" : "Post payment"}
                                 </button>
@@ -866,7 +866,7 @@ export default function PayablesTaxView() {
                   type="button"
                   onClick={remitChallan}
                   disabled={acting === "remit" || selected.size === 0}
-                  className="cursor-pointer rounded-xs bg-brand-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-50"
+                  className="cursor-pointer rounded-xs border border-brand-600 bg-brand-600 px-3 py-1 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-50"
                 >
                   {acting === "remit" ? "Posting…" : "Post challan deposit"}
                 </button>
@@ -969,7 +969,7 @@ export default function PayablesTaxView() {
                 type="button"
                 onClick={createVendor}
                 disabled={acting === "create-vendor"}
-                className="cursor-pointer rounded-xs bg-brand-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-50"
+                className="cursor-pointer rounded-xs border border-brand-600 bg-brand-600 px-3 py-1 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-50"
               >
                 {acting === "create-vendor" ? "Saving…" : "Add vendor"}
               </button>

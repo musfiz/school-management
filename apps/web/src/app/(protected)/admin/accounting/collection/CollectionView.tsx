@@ -308,7 +308,7 @@ export default function CollectionView() {
             key={t}
             type="button"
             onClick={() => setTab(t)}
-            className={`rounded-xs px-3 py-1.5 text-sm font-semibold ${tab === t ? "bg-brand-600 text-white" : "border border-ink-200 bg-white text-ink-700 hover:bg-ink-100"}`}
+            className={`rounded-xs border px-3 py-1.5 text-xs font-semibold ${tab === t ? "border-transparent bg-brand-600 text-white" : "border-ink-200 bg-white text-ink-700 hover:bg-ink-100"}`}
           >
             {t}
             {t === "Settlement" && pending.length > 0 && (
@@ -334,7 +334,7 @@ export default function CollectionView() {
                 type="button"
                 disabled={loadingDues}
                 onClick={loadDues}
-                className="flex items-center gap-1 rounded-xs bg-brand-600 px-3 py-1 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-50"
+                className="flex items-center gap-1 rounded-xs border border-brand-600 bg-brand-600 px-3 py-1 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-50"
               >
                 <Search className="h-4 w-4" /> {loadingDues ? "Loading…" : "Load dues"}
               </button>
@@ -494,7 +494,7 @@ export default function CollectionView() {
                 type="button"
                 disabled={acting === "collect" || cart.length === 0}
                 onClick={collect}
-                className="flex items-center justify-center gap-1.5 rounded-xs bg-brand-600 px-3 py-2 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-50"
+                className="flex items-center justify-center gap-1.5 rounded-xs border border-brand-600 bg-brand-600 px-3 py-2 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-50"
               >
                 <Banknote className="h-4 w-4" />
                 {acting === "collect" ? "Posting…" : `Collect ${cart.length} invoice${cart.length === 1 ? "" : "s"} → print MR`}
@@ -550,7 +550,7 @@ export default function CollectionView() {
                     <Printer className="h-3.5 w-3.5" /> Print
                   </button>
                   {r.reconciliationStatus === "PENDING" && (
-                    <button type="button" disabled={!!acting} onClick={() => settleReceipt(r.id, r.moneyReceiptNo)} className="flex items-center gap-1 rounded-xs bg-sky-600 px-2 py-1 text-xs font-semibold text-white hover:bg-sky-700 disabled:opacity-50">
+                    <button type="button" disabled={!!acting} onClick={() => settleReceipt(r.id, r.moneyReceiptNo)} className="flex items-center gap-1 rounded-xs border border-sky-600 bg-sky-600 px-2 py-1 text-xs font-semibold text-white hover:bg-sky-700 disabled:opacity-50">
                       <ArrowRightLeft className="h-3.5 w-3.5" /> Settle
                     </button>
                   )}
@@ -588,7 +588,7 @@ export default function CollectionView() {
                   type="button"
                   disabled={!!acting}
                   onClick={() => settleReceipt(r.id, r.moneyReceiptNo)}
-                  className="ml-auto flex items-center gap-1 rounded-xs bg-sky-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-sky-700 disabled:opacity-50"
+                  className="ml-auto flex items-center gap-1 rounded-xs border border-sky-600 bg-sky-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-sky-700 disabled:opacity-50"
                 >
                   <ArrowRightLeft className="h-3.5 w-3.5" />
                   {acting === `settle:${r.id}` ? "Settling…" : "Settle → 11201"}
@@ -666,6 +666,8 @@ function ReceiptModal({ receipt, onClose }: { receipt: PaymentCollection; onClos
             printTargetId="receipt-print-area"
             pdfUrl={`/api/documents/money-receipt/${receipt.id}/pdf`}
             fileName={`${receipt.moneyReceiptNo}.pdf`}
+            size="lg"
+            fullWidth
             className="flex-1"
           />
           <button

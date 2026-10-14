@@ -593,7 +593,7 @@ export default function ReportsView() {
       {/* Main Report Display Container */}
       <div id="printable-report-area">
         {loading ? (
-          <AdminPageLoader />
+          <AdminPageLoader variant="inline" />
         ) : (
           <>
             {/* Header for printouts */}

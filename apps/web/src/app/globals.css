@@ -791,7 +791,13 @@ html.lang-en {
 /* ----------------------------------------------------------------------------
    Shared date picker theme (react-datepicker, `.sm-datepicker`).
    Used by <DatePickerField /> — every form gets the same calendar look.
+   The calendar renders in a body portal (`#sm-datepicker-portal`) so it is
+   never clipped by modal scroll containers (`overflow-y-auto`) — and it
+   paints above modals (z-50) but below SweetAlert2 alerts.
 ---------------------------------------------------------------------------- */
+.react-datepicker-popper {
+  z-index: 70 !important;
+}
 .sm-datepicker {
   font-family: inherit;
   border: 1px solid var(--color-ink-200);

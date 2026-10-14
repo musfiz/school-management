@@ -99,6 +99,7 @@ export default function DatePickerField({
           shouldCloseOnSelect
           dateFormat="yyyy-MM-dd"
           placeholderText={placeholder}
+          portalId="sm-datepicker-portal"
           minDate={minDate ? parseISODate(minDate) ?? undefined : undefined}
           maxDate={maxDate ? parseISODate(maxDate) ?? undefined : undefined}
           disabled={disabled}
