@@ -103,9 +103,7 @@ export default function ImageUploader({
         onDragLeave={() => setIsDragging(false)}
         onDrop={handleDrop}
         aria-label="Upload image — click, drag and drop, or paste"
-        className={`relative flex ${previewClassName} items-center justify-center overflow-hidden rounded-md border-2 border-dashed transition-colors ${
-          isDragging ? "border-brand-500 bg-brand-50" : "border-ink-300 bg-ink-50"
-        }`}
+        className={`relative flex ${previewClassName} items-center justify-center overflow-hidden rounded-xs border-2 border-dashed transition-colors ${ isDragging ? "border-brand-500 bg-brand-50" : "border-ink-300 bg-ink-50" }`}
       >
         {value ? (
           <Image
@@ -137,7 +135,7 @@ export default function ImageUploader({
               onChange("");
             }}
             aria-label="Remove image"
-            className="absolute right-2 top-2 rounded-full bg-white/90 p-1 text-ink-600 shadow-soft hover:bg-white hover:text-red-600"
+            className="absolute right-2 top-2 rounded-full bg-white/90 p-1 text-ink-600 hover:bg-white hover:text-red-600"
           >
             <X className="h-3.5 w-3.5" />
           </button>
@@ -148,7 +146,7 @@ export default function ImageUploader({
         type="button"
         onClick={() => fileInputRef.current?.click()}
         disabled={uploading}
-        className="flex items-center gap-1.5 rounded-md border border-ink-200 px-3 py-2 text-sm font-semibold text-ink-700 disabled:opacity-60 hover:bg-ink-50"
+        className="flex items-center gap-1.5 rounded-xs border border-ink-200 px-3 py-2 text-sm font-semibold text-ink-700 disabled:opacity-60 hover:bg-ink-50"
       >
         {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
         {value ? "Replace image" : "Upload image"}

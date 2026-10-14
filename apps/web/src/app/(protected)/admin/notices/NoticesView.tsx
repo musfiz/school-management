@@ -63,7 +63,7 @@ const EMPTY_FORM: FormState = {
 };
 
 const INPUT_BASE =
-  "w-full rounded-md border bg-white px-3 py-2 text-sm outline-none transition-colors focus:border-brand-400";
+  "w-full rounded-xs cursor-pointer border bg-white px-3 py-1 text-sm outline-none transition-colors focus:border-brand-400";
 
 export default function NoticesView() {
   const [notices, setNotices] = useState<NoticeItem[]>([]);
@@ -299,7 +299,7 @@ export default function NoticesView() {
               <div className="flex items-center gap-2">
                 {n.isPinned && (
                   <span
-                    className="inline-flex items-center gap-1 rounded bg-amber-50 px-1.5 py-0.5 text-[11px] font-bold text-amber-700 ring-1 ring-amber-300"
+                    className="inline-flex items-center gap-1 rounded-xs bg-amber-50 px-1.5 py-0.5 text-[11px] font-bold text-amber-700 ring-1 ring-amber-300"
                     title="Pinned Notice"
                   >
                     <Pin className="h-3 w-3 fill-amber-500 text-amber-600" />
@@ -326,7 +326,7 @@ export default function NoticesView() {
         header: "Category",
         accessorKey: "category",
         cell: ({ row }) => (
-          <span className="inline-flex items-center rounded-sm bg-navy-50 px-2.5 py-1 text-xs font-semibold text-navy-800">
+          <span className="inline-flex items-center rounded-xs bg-navy-50 px-2.5 py-1 text-xs font-semibold text-navy-800">
             {row.original.category || "General"}
           </span>
         ),
@@ -364,7 +364,7 @@ export default function NoticesView() {
                   href={resolveImageUrl(n.pdfUrl)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 rounded bg-red-50 px-2 py-1 text-xs font-semibold text-red-700 hover:bg-red-100"
+                  className="inline-flex items-center gap-1 rounded-xs bg-red-50 px-2 py-1 text-xs font-semibold text-red-700 hover:bg-red-100"
                   title="View PDF Document"
                 >
                   <FileText className="h-3.5 w-3.5" />
@@ -372,7 +372,7 @@ export default function NoticesView() {
                 </a>
               ) : null}
               {n.imageUrl ? (
-                <span className="rounded bg-sky-50 px-2 py-1 text-xs font-semibold text-sky-700">
+                <span className="rounded-xs bg-sky-50 px-2 py-1 text-xs font-semibold text-sky-700">
                   Image
                 </span>
               ) : null}
@@ -409,9 +409,7 @@ export default function NoticesView() {
               <button
                 type="button"
                 onClick={() => togglePinned(n)}
-                className={`rounded p-1.5 hover:bg-amber-50 ${
-                  n.isPinned ? "text-amber-600" : "text-ink-400"
-                }`}
+                className={`rounded-xs p-1.5 hover:bg-amber-50 ${ n.isPinned ? "text-amber-600" : "text-ink-400" }`}
                 title={n.isPinned ? "Unpin notice" : "Pin notice"}
               >
                 <Pin
@@ -421,9 +419,7 @@ export default function NoticesView() {
               <button
                 type="button"
                 onClick={() => toggleActive(n)}
-                className={`rounded p-1.5 hover:bg-ink-50 ${
-                  n.isActive ? "text-emerald-600" : "text-ink-400"
-                }`}
+                className={`rounded-xs p-1.5 hover:bg-ink-50 ${ n.isActive ? "text-emerald-600" : "text-ink-400" }`}
                 title={n.isActive ? "Hide from website" : "Show on website"}
               >
                 {n.isActive ? (
@@ -435,7 +431,7 @@ export default function NoticesView() {
               <button
                 type="button"
                 onClick={() => openEditForm(n)}
-                className="rounded p-1.5 text-brand-600 hover:bg-brand-50"
+                className="rounded-xs p-1.5 text-brand-600 hover:bg-brand-50"
                 title="Edit notice"
               >
                 <Pencil className="h-4 w-4" />
@@ -443,7 +439,7 @@ export default function NoticesView() {
               <button
                 type="button"
                 onClick={() => handleDelete(n)}
-                className="rounded p-1.5 text-red-600 hover:bg-red-50"
+                className="rounded-xs p-1.5 text-red-600 hover:bg-red-50"
                 title="Delete notice"
               >
                 <Trash2 className="h-4 w-4" />
@@ -471,7 +467,7 @@ export default function NoticesView() {
           <button
             type="button"
             onClick={openAddForm}
-            className="flex items-center gap-1.5 rounded-md bg-brand-600 px-3.5 py-2 text-sm font-semibold text-white shadow-soft transition-colors hover:bg-brand-700"
+            className="flex items-center gap-1.5 rounded-xs bg-brand-600 px-3.5 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-700"
           >
             <Plus className="h-4 w-4" />
             Add Notice
@@ -489,7 +485,7 @@ export default function NoticesView() {
             <button
               type="button"
               onClick={closeForm}
-              className="rounded p-1 text-ink-400 hover:bg-ink-50 hover:text-ink-700"
+              className="rounded-xs p-1 text-ink-400 hover:bg-ink-50 hover:text-ink-700"
               aria-label="Close form"
             >
               <X className="h-4 w-4" />
@@ -508,11 +504,7 @@ export default function NoticesView() {
                     <input
                       value={form.title}
                       onChange={(e) => patchForm({ title: e.target.value })}
-                      className={`${INPUT_BASE} ${
-                        errors.title
-                          ? "border-red-500 focus:border-red-500"
-                          : "border-ink-200"
-                      }`}
+                      className={`${INPUT_BASE} ${ errors.title ? "border-red-500 focus:border-red-500" : "border-ink-200" }`}
                       placeholder="e.g. Midterm Examination Routine 2026"
                     />
                     {errors.title && (
@@ -569,11 +561,7 @@ export default function NoticesView() {
                       type="date"
                       value={form.publishDate}
                       onChange={(e) => patchForm({ publishDate: e.target.value })}
-                      className={`${INPUT_BASE} ${
-                        errors.publishDate
-                          ? "border-red-500 focus:border-red-500"
-                          : "border-ink-200"
-                      }`}
+                      className={`${INPUT_BASE} ${ errors.publishDate ? "border-red-500 focus:border-red-500" : "border-ink-200" }`}
                     />
                     {errors.publishDate && (
                       <p className="mt-1 text-xs font-medium text-red-500">
@@ -642,7 +630,7 @@ export default function NoticesView() {
               </div>
 
               {/* Row 5: Media & Attachment (Image + PDF) */}
-              <div className="grid gap-6 rounded-lg border border-ink-100 bg-ink-50/50 p-4 lg:grid-cols-2">
+              <div className="grid gap-6 rounded-xs border border-ink-100 bg-ink-50/50 p-4 lg:grid-cols-2">
                 <div>
                   <span className="mb-1.5 block text-sm font-medium text-ink-700">
                     Notice Banner / Thumbnail Image
@@ -671,7 +659,7 @@ export default function NoticesView() {
                     type="checkbox"
                     checked={form.isPinned}
                     onChange={(e) => patchForm({ isPinned: e.target.checked })}
-                    className="h-4 w-4 rounded border-ink-300 text-brand-600 focus:ring-brand-500"
+                    className="h-4 w-4 rounded-xs border-ink-300 text-brand-600"
                   />
                   <span className="text-sm font-medium text-ink-800">
                     Pin to top of Notice Board
@@ -683,7 +671,7 @@ export default function NoticesView() {
                     type="checkbox"
                     checked={form.isActive}
                     onChange={(e) => patchForm({ isActive: e.target.checked })}
-                    className="h-4 w-4 rounded border-ink-300 text-brand-600 focus:ring-brand-500"
+                    className="h-4 w-4 rounded-xs border-ink-300 text-brand-600"
                   />
                   <span className="text-sm font-medium text-ink-800">
                     Published (Visible on website)
@@ -698,7 +686,7 @@ export default function NoticesView() {
                 type="button"
                 onClick={handleSubmit}
                 disabled={saving}
-                className="flex items-center gap-1.5 rounded-md bg-brand-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60 hover:bg-brand-700"
+                className="flex items-center gap-1.5 rounded-xs bg-brand-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60 hover:bg-brand-700"
               >
                 {saving ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -710,7 +698,7 @@ export default function NoticesView() {
               <button
                 type="button"
                 onClick={closeForm}
-                className="rounded-md px-4 py-2 text-sm font-semibold text-ink-700 hover:bg-ink-50"
+                className="rounded-xs px-4 py-2 text-sm font-semibold text-ink-700 hover:bg-ink-50"
               >
                 Cancel
               </button>
@@ -729,14 +717,14 @@ export default function NoticesView() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search notices..."
-              className="w-64 rounded-md border border-ink-200 bg-white py-2 pl-9 pr-3 text-sm outline-none focus:border-brand-400"
+              className="w-64 rounded-xs cursor-pointer border border-ink-200 bg-white py-1 pl-9 pr-3 text-sm outline-none focus:border-brand-400"
             />
           </div>
 
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="rounded-md border border-ink-200 bg-white px-3 py-2 text-sm outline-none focus:border-brand-400"
+            className="rounded-xs cursor-pointer border border-ink-200 bg-white px-3 py-1 text-sm outline-none focus:border-brand-400"
           >
             <option value="ALL">All Categories</option>
             {NOTICE_CATEGORIES.map((cat) => (

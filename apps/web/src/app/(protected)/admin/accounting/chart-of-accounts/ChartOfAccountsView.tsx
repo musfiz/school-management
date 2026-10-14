@@ -31,7 +31,7 @@ import {
 } from "@/lib/accounting";
 
 const INPUT_BASE =
-  "w-full rounded-md border border-ink-200 bg-white px-3 py-2 text-sm outline-none transition-colors focus:border-brand-400";
+  "w-full rounded-xs cursor-pointer border border-ink-200 bg-white px-3 py-1 text-sm outline-none transition-colors focus:border-brand-400";
 
 const TYPE_BADGE: Record<AccountType, string> = {
   ASSET: "bg-sky-100 text-sky-800",
@@ -363,15 +363,13 @@ export default function ChartOfAccountsView() {
     return (
       <div key={node.id}>
         <div
-          className={`group flex items-center gap-2 rounded-md px-2 py-1.5 transition-colors hover:bg-ink-100 ${
-            node.isActive ? "" : "opacity-55"
-          }`}
+          className={`group flex items-center gap-2 rounded-xs px-2 py-1.5 transition-colors hover:bg-ink-100 ${ node.isActive ? "" : "opacity-55" }`}
           style={{ paddingLeft: `${8 + depth * 22}px` }}
         >
           {hasKids ? (
             <button
               onClick={() => toggleExpand(node.id)}
-              className="flex h-5 w-5 shrink-0 items-center justify-center rounded text-ink-400 hover:bg-ink-200 hover:text-navy-800"
+              className="flex h-5 w-5 shrink-0 items-center justify-center rounded-xs text-ink-400 hover:bg-ink-200 hover:text-navy-800"
               aria-label={isOpen ? "Collapse" : "Expand"}
             >
               {isOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
@@ -379,23 +377,23 @@ export default function ChartOfAccountsView() {
           ) : (
             <span className="h-5 w-5 shrink-0 text-center text-xs leading-5 text-ink-300">·</span>
           )}
-          <code className="shrink-0 rounded bg-ink-100 px-1.5 py-0.5 font-mono text-xs font-semibold text-navy-800">
+          <code className="shrink-0 rounded-xs bg-ink-100 px-1.5 py-0.5 font-mono text-xs font-semibold text-navy-800">
             {node.glCode}
           </code>
           <span className="min-w-0 flex-1 truncate text-sm font-medium text-ink-800">{node.accountName}</span>
           <span className={`hidden shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold sm:inline ${TYPE_BADGE[node.accountType]}`}>
             {ACCOUNT_TYPE_LABELS[node.accountType]}
           </span>
-          <span className="hidden shrink-0 rounded border border-ink-200 px-1.5 py-0.5 font-mono text-[11px] font-bold text-ink-500 md:inline">
+          <span className="hidden shrink-0 rounded-xs border border-ink-200 px-1.5 py-0.5 font-mono text-[11px] font-bold text-ink-500 md:inline">
             {node.normalBalance}
           </span>
           {node.isControlAccount && (
-            <span className="hidden shrink-0 rounded bg-navy-800 px-1.5 py-0.5 text-[11px] font-semibold text-white lg:inline">
+            <span className="hidden shrink-0 rounded-xs bg-navy-800 px-1.5 py-0.5 text-[11px] font-semibold text-white lg:inline">
               CONTROL
             </span>
           )}
           {node.isCashOrBank && (
-            <span className="hidden shrink-0 rounded bg-emerald-600 px-1.5 py-0.5 text-[11px] font-semibold text-white lg:inline">
+            <span className="hidden shrink-0 rounded-xs bg-emerald-600 px-1.5 py-0.5 text-[11px] font-semibold text-white lg:inline">
               CASH/BANK
             </span>
           )}
@@ -408,28 +406,28 @@ export default function ChartOfAccountsView() {
             <button
               title="Add child account"
               onClick={() => openAccountModal(undefined, node)}
-              className="rounded p-1 text-ink-400 hover:bg-white hover:text-brand-600"
+              className="rounded-xs p-1 text-ink-400 hover:bg-white hover:text-brand-600"
             >
               <Plus size={14} />
             </button>
             <button
               title="Edit account"
               onClick={() => openAccountModal(node)}
-              className="rounded p-1 text-ink-400 hover:bg-white hover:text-navy-800"
+              className="rounded-xs p-1 text-ink-400 hover:bg-white hover:text-navy-800"
             >
               <Pencil size={14} />
             </button>
             <button
               title={node.isActive ? "Deactivate" : "Reactivate"}
               onClick={() => toggleAccountActive(node)}
-              className="rounded p-1 text-ink-400 hover:bg-white hover:text-amber-600"
+              className="rounded-xs p-1 text-ink-400 hover:bg-white hover:text-amber-600"
             >
               <span className="text-xs font-bold">{node.isActive ? "⊘" : "↺"}</span>
             </button>
             <button
               title="Delete account"
               onClick={() => deleteAccount(node)}
-              className="rounded p-1 text-ink-400 hover:bg-white hover:text-red-600"
+              className="rounded-xs p-1 text-ink-400 hover:bg-white hover:text-red-600"
             >
               <Trash2 size={14} />
             </button>
@@ -452,16 +450,16 @@ export default function ChartOfAccountsView() {
         header: "Flags",
         cell: ({ row }) => (
           <span className="flex flex-wrap gap-1">
-            {row.original.isRestricted && <span className="rounded bg-red-100 px-2 py-0.5 text-[11px] font-semibold text-red-700">RESTRICTED</span>}
-            {row.original.shariahCompliant && <span className="rounded bg-emerald-100 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">SHARIAH</span>}
-            {!row.original.isActive && <span className="rounded bg-ink-200 px-2 py-0.5 text-[11px] font-semibold text-ink-500">INACTIVE</span>}
+            {row.original.isRestricted && <span className="rounded-xs bg-red-100 px-2 py-0.5 text-[11px] font-semibold text-red-700">RESTRICTED</span>}
+            {row.original.shariahCompliant && <span className="rounded-xs bg-emerald-100 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">SHARIAH</span>}
+            {!row.original.isActive && <span className="rounded-xs bg-ink-200 px-2 py-0.5 text-[11px] font-semibold text-ink-500">INACTIVE</span>}
           </span>
         ),
       },
       {
         header: "Actions",
         cell: ({ row }) => (
-          <button onClick={() => openFundModal(row.original)} className="rounded p-1 text-ink-400 hover:bg-ink-100 hover:text-navy-800" title="Edit fund">
+          <button onClick={() => openFundModal(row.original)} className="rounded-xs p-1 text-ink-400 hover:bg-ink-100 hover:text-navy-800" title="Edit fund">
             <Pencil size={14} />
           </button>
         ),
@@ -474,11 +472,11 @@ export default function ChartOfAccountsView() {
     () => [
       { header: "Code", accessorKey: "centerCode", cell: (c) => <code className="font-mono text-xs font-bold text-navy-800">{c.getValue<string>()}</code> },
       { header: "Cost Center", accessorKey: "centerName" },
-      { header: "Type", accessorKey: "institutionType", cell: (c) => <span className="rounded bg-ink-100 px-2 py-0.5 text-[11px] font-semibold text-ink-600">{c.getValue<string>()}</span> },
+      { header: "Type", accessorKey: "institutionType", cell: (c) => <span className="rounded-xs bg-ink-100 px-2 py-0.5 text-[11px] font-semibold text-ink-600">{c.getValue<string>()}</span> },
       {
         header: "Actions",
         cell: ({ row }) => (
-          <button onClick={() => openCenterModal(row.original)} className="rounded p-1 text-ink-400 hover:bg-ink-100 hover:text-navy-800" title="Edit cost center">
+          <button onClick={() => openCenterModal(row.original)} className="rounded-xs p-1 text-ink-400 hover:bg-ink-100 hover:text-navy-800" title="Edit cost center">
             <Pencil size={14} />
           </button>
         ),
@@ -496,9 +494,9 @@ export default function ChartOfAccountsView() {
         header: "Status",
         cell: ({ row }) =>
           row.original.isClosed ? (
-            <span className="rounded bg-ink-200 px-2 py-0.5 text-[11px] font-semibold text-ink-600">CLOSED</span>
+            <span className="rounded-xs bg-ink-200 px-2 py-0.5 text-[11px] font-semibold text-ink-600">CLOSED</span>
           ) : (
-            <span className="rounded bg-emerald-100 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">OPEN</span>
+            <span className="rounded-xs bg-emerald-100 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">OPEN</span>
           ),
       },
       {
@@ -506,13 +504,13 @@ export default function ChartOfAccountsView() {
         cell: ({ row }) => (
           <span className="flex items-center gap-1">
             {!row.original.isClosed && (
-              <button onClick={() => openPeriodModal(row.original)} className="rounded p-1 text-ink-400 hover:bg-ink-100 hover:text-navy-800" title="Edit period">
+              <button onClick={() => openPeriodModal(row.original)} className="rounded-xs p-1 text-ink-400 hover:bg-ink-100 hover:text-navy-800" title="Edit period">
                 <Pencil size={14} />
               </button>
             )}
             <button
               onClick={() => setPeriodClosed(row.original, !row.original.isClosed)}
-              className="rounded border border-ink-200 px-2 py-0.5 text-[11px] font-semibold text-ink-600 hover:bg-ink-50"
+              className="rounded-xs border border-ink-200 px-2 py-0.5 text-[11px] font-semibold text-ink-600 hover:bg-ink-50"
             >
               {row.original.isClosed ? "Reopen" : "Close"}
             </button>
@@ -586,19 +584,19 @@ export default function ChartOfAccountsView() {
               Show inactive
             </label>
             <span className="flex shrink-0 gap-2">
-              <button onClick={() => setExpanded(collectIds(tree))} className="rounded-md border border-ink-200 px-3 py-2 text-xs font-semibold text-ink-600 hover:bg-ink-50">
+              <button onClick={() => setExpanded(collectIds(tree))} className="rounded-xs border border-ink-200 px-3 py-2 text-xs font-semibold text-ink-600 hover:bg-ink-50">
                 Expand all
               </button>
-              <button onClick={() => setExpanded(new Set())} className="rounded-md border border-ink-200 px-3 py-2 text-xs font-semibold text-ink-600 hover:bg-ink-50">
+              <button onClick={() => setExpanded(new Set())} className="rounded-xs border border-ink-200 px-3 py-2 text-xs font-semibold text-ink-600 hover:bg-ink-50">
                 Collapse
               </button>
-              <button onClick={() => openAccountModal()} className="flex items-center gap-1 rounded-md bg-navy-800 px-3 py-2 text-xs font-semibold text-white hover:bg-navy-900">
+              <button onClick={() => openAccountModal()} className="flex items-center gap-1 rounded-xs bg-navy-800 px-3 py-2 text-xs font-semibold text-white hover:bg-navy-900">
                 <Plus size={14} /> New Account
               </button>
             </span>
           </div>
 
-          <div className="max-h-[540px] overflow-y-auto rounded-lg border border-ink-200 bg-white p-2">
+          <div className="max-h-[540px] overflow-y-auto rounded-xs border border-ink-200 bg-white p-2">
             {visibleTree.length === 0 ? (
               <p className="px-4 py-10 text-center text-sm text-ink-400">
                 No accounts match. Run the accounting seeder (<code>pnpm --filter api seed:accounting</code>) or create the first account.
@@ -615,7 +613,7 @@ export default function ChartOfAccountsView() {
         <div className="grid gap-4 xl:grid-cols-2">
           <DashCard title="Funds">
             <div className="mb-2 flex justify-end">
-              <button onClick={() => openFundModal()} className="flex items-center gap-1 rounded-md border border-ink-200 px-3 py-1.5 text-xs font-semibold text-ink-600 hover:bg-ink-50">
+              <button onClick={() => openFundModal()} className="flex items-center gap-1 rounded-xs border border-ink-200 px-3 py-1.5 text-xs font-semibold text-ink-600 hover:bg-ink-50">
                 <Plus size={13} /> New Fund
               </button>
             </div>
@@ -624,7 +622,7 @@ export default function ChartOfAccountsView() {
 
           <DashCard title="Cost Centers">
             <div className="mb-2 flex justify-end">
-              <button onClick={() => openCenterModal()} className="flex items-center gap-1 rounded-md border border-ink-200 px-3 py-1.5 text-xs font-semibold text-ink-600 hover:bg-ink-50">
+              <button onClick={() => openCenterModal()} className="flex items-center gap-1 rounded-xs border border-ink-200 px-3 py-1.5 text-xs font-semibold text-ink-600 hover:bg-ink-50">
                 <Plus size={13} /> New Center
               </button>
             </div>
@@ -634,7 +632,7 @@ export default function ChartOfAccountsView() {
 
         <DashCard title="Fiscal Periods">
           <div className="mb-2 flex justify-end">
-            <button onClick={() => openPeriodModal()} className="flex items-center gap-1 rounded-md border border-ink-200 px-3 py-1.5 text-xs font-semibold text-ink-600 hover:bg-ink-50">
+            <button onClick={() => openPeriodModal()} className="flex items-center gap-1 rounded-xs border border-ink-200 px-3 py-1.5 text-xs font-semibold text-ink-600 hover:bg-ink-50">
               <Plus size={13} /> New Period
             </button>
           </div>
@@ -646,7 +644,7 @@ export default function ChartOfAccountsView() {
       {modal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-navy-900/50 p-4" onClick={() => !saving && setModal(null)}>
           <div
-            className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-lg bg-white p-5 shadow-card"
+            className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-xs bg-white p-5"
             onClick={(e) => e.stopPropagation()}
           >
             <h2 className="font-display text-base font-bold text-navy-900">
@@ -809,10 +807,10 @@ export default function ChartOfAccountsView() {
             )}
 
             <div className="mt-5 flex justify-end gap-2">
-              <button onClick={() => setModal(null)} disabled={saving} className="rounded-md border border-ink-200 px-4 py-2 text-sm font-semibold text-ink-600 hover:bg-ink-50 disabled:opacity-50">
+              <button onClick={() => setModal(null)} disabled={saving} className="rounded-xs border border-ink-200 px-4 py-2 text-sm font-semibold text-ink-600 hover:bg-ink-50 disabled:opacity-50">
                 Cancel
               </button>
-              <button onClick={saveModal} disabled={saving} className="rounded-md bg-navy-800 px-4 py-2 text-sm font-semibold text-white hover:bg-navy-900 disabled:opacity-50">
+              <button onClick={saveModal} disabled={saving} className="rounded-xs bg-navy-800 px-4 py-2 text-sm font-semibold text-white hover:bg-navy-900 disabled:opacity-50">
                 {saving ? "Saving…" : modal.id ? "Save changes" : "Create"}
               </button>
             </div>

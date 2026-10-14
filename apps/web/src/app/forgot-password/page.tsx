@@ -52,7 +52,7 @@ export default async function ForgotPasswordPage({
         <div className="mb-6 flex flex-col items-center text-center">
           <span
             aria-hidden
-            className="mb-3 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-navy-900 text-white shadow-card"
+            className="mb-3 inline-flex h-12 w-12 items-center justify-center rounded-xs bg-navy-900 text-white shadow-card"
           >
             <MailCheck className="h-5 w-5" />
           </span>
@@ -61,7 +61,7 @@ export default async function ForgotPasswordPage({
           </p>
         </div>
 
-        <div className="rounded-2xl border border-ink-200/80 bg-white p-7 shadow-card sm:p-9">
+        <div className="rounded-xs border border-ink-200/80 bg-white p-7 shadow-card sm:p-9">
           <h1 className="font-display text-2xl font-extrabold tracking-tight text-navy-900">
             Forgot your password?
           </h1>
@@ -74,7 +74,7 @@ export default async function ForgotPasswordPage({
           {/* Static placeholder — swap for a real <form action="/api/auth/forgot"> once the endpoint exists. */}
           <div
             role="status"
-            className="mt-6 flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2.5 text-sm text-amber-800"
+            className="mt-6 flex items-start gap-2 rounded-xs border border-amber-200 bg-amber-50 px-3 py-2.5 text-sm text-amber-800"
           >
             <MailCheck className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
             <span>

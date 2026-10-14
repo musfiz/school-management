@@ -22,7 +22,7 @@ import {
 } from "@/lib/billing";
 
 const INPUT =
-  "w-full rounded-md border border-ink-200 bg-white px-3 py-2 text-sm outline-none transition-colors focus:border-brand-400";
+  "w-full rounded-xs cursor-pointer border border-ink-200 bg-white px-3 py-1 text-sm outline-none transition-colors focus:border-brand-400";
 
 const STATUS_BADGE: Record<string, string> = {
   UNPAID: "bg-slate-200 text-slate-700",
@@ -440,7 +440,7 @@ export default function BillingView() {
             key={t}
             type="button"
             onClick={() => setTab(t)}
-            className={`rounded-md px-3 py-1.5 text-sm font-semibold ${tab === t ? "bg-brand-600 text-white" : "border border-ink-200 bg-white text-ink-700 hover:bg-ink-100"}`}
+            className={`rounded-xs px-3 py-1.5 text-sm font-semibold ${tab === t ? "bg-brand-600 text-white" : "border border-ink-200 bg-white text-ink-700 hover:bg-ink-100"}`}
           >
             {t}
           </button>
@@ -450,10 +450,10 @@ export default function BillingView() {
       {tab === "Invoices" && (
         <>
           <div className="mb-3 flex flex-wrap justify-end gap-2">
-            <button type="button" onClick={() => { setShowSingle((s) => !s); setShowBulk(false); }} className="flex items-center gap-1.5 rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white hover:bg-brand-700">
+            <button type="button" onClick={() => { setShowSingle((s) => !s); setShowBulk(false); }} className="flex items-center gap-1.5 rounded-xs bg-brand-600 px-3 py-2 text-sm font-semibold text-white hover:bg-brand-700">
               <Plus className="h-4 w-4" /> Single invoice
             </button>
-            <button type="button" onClick={() => { setShowBulk((s) => !s); setShowSingle(false); }} className="flex items-center gap-1.5 rounded-md border border-brand-300 px-3 py-2 text-sm font-semibold text-brand-700 hover:bg-brand-50">
+            <button type="button" onClick={() => { setShowBulk((s) => !s); setShowSingle(false); }} className="flex items-center gap-1.5 rounded-xs border border-brand-300 px-3 py-2 text-sm font-semibold text-brand-700 hover:bg-brand-50">
               <BookOpen className="h-4 w-4" /> Bulk generate
             </button>
           </div>
@@ -478,7 +478,7 @@ export default function BillingView() {
                 {sItems.map((it, idx) => {
                   const head = headById.get(it.feeHeadId);
                   return (
-                    <div key={it.key} className="grid gap-2 rounded-md border border-ink-200 bg-ink-50/50 p-2 md:grid-cols-[26px_1fr_130px_110px_40px]">
+                    <div key={it.key} className="grid gap-2 rounded-xs border border-ink-200 bg-ink-50/50 p-2 md:grid-cols-[26px_1fr_130px_110px_40px]">
                       <span className="pt-2 text-center text-xs font-bold text-ink-400">{idx + 1}</span>
                       <select value={it.feeHeadId} onChange={(e) => setSItems((p) => p.map((x) => (x.key === it.key ? { ...x, feeHeadId: e.target.value } : x)))} className={INPUT}>
                         <option value="">Fee head…</option>
@@ -494,8 +494,8 @@ export default function BillingView() {
                 })}
               </div>
               <div className="mt-2 flex justify-between">
-                <button type="button" onClick={() => setSItems((p) => [...p, newItem()])} className="rounded-md border border-ink-200 px-2.5 py-1.5 text-xs font-semibold text-ink-700 hover:bg-ink-100">+ Add head</button>
-                <button type="button" disabled={acting === "create-single"} onClick={createSingle} className="rounded-md bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-50">
+                <button type="button" onClick={() => setSItems((p) => [...p, newItem()])} className="rounded-xs border border-ink-200 px-2.5 py-1.5 text-xs font-semibold text-ink-700 hover:bg-ink-100">+ Add head</button>
+                <button type="button" disabled={acting === "create-single"} onClick={createSingle} className="rounded-xs bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-50">
                   {acting === "create-single" ? "Posting…" : "Generate + post"}
                 </button>
               </div>
@@ -518,7 +518,7 @@ export default function BillingView() {
               </div>
               <div className="mt-3 space-y-2">
                 {bItems.map((it, idx) => (
-                  <div key={it.key} className="grid gap-2 rounded-md border border-ink-200 bg-ink-50/50 p-2 md:grid-cols-[26px_1fr_130px_110px_40px]">
+                  <div key={it.key} className="grid gap-2 rounded-xs border border-ink-200 bg-ink-50/50 p-2 md:grid-cols-[26px_1fr_130px_110px_40px]">
                     <span className="pt-2 text-center text-xs font-bold text-ink-400">{idx + 1}</span>
                     <select value={it.feeHeadId} onChange={(e) => setBItems((p) => p.map((x) => (x.key === it.key ? { ...x, feeHeadId: e.target.value } : x)))} className={INPUT}>
                       <option value="">Fee head…</option>
@@ -533,8 +533,8 @@ export default function BillingView() {
                 ))}
               </div>
               <div className="mt-2 flex justify-between">
-                <button type="button" onClick={() => setBItems((p) => [...p, newItem()])} className="rounded-md border border-ink-200 px-2.5 py-1.5 text-xs font-semibold text-ink-700 hover:bg-ink-100">+ Add head</button>
-                <button type="button" disabled={acting === "create-bulk"} onClick={createBulk} className="rounded-md bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-50">
+                <button type="button" onClick={() => setBItems((p) => [...p, newItem()])} className="rounded-xs border border-ink-200 px-2.5 py-1.5 text-xs font-semibold text-ink-700 hover:bg-ink-100">+ Add head</button>
+                <button type="button" disabled={acting === "create-bulk"} onClick={createBulk} className="rounded-xs bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-50">
                   {acting === "create-bulk" ? "Posting…" : "Bulk generate"}
                 </button>
               </div>
@@ -547,8 +547,8 @@ export default function BillingView() {
                 <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-400" />
                 <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search invoice no / student / period…" className={`${INPUT} pl-8`} />
               </div>
-              <input value={periodFilter} onChange={(e) => setPeriodFilter(e.target.value)} placeholder="Period e.g. 2026-10" className="rounded-md border border-ink-200 bg-white px-2 py-2 text-sm" />
-              <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="rounded-md border border-ink-200 bg-white px-2 py-2 text-sm">
+              <input value={periodFilter} onChange={(e) => setPeriodFilter(e.target.value)} placeholder="Period e.g. 2026-10" className="rounded-xs cursor-pointer border border-ink-200 bg-white px-2 py-1 text-sm" />
+              <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="rounded-xs cursor-pointer border border-ink-200 bg-white px-2 py-1 text-sm">
                 <option value="">All statuses</option>
                 {["UNPAID", "PARTIAL", "OVERDUE", "PAID", "REVERSED"].map((s) => (
                   <option key={s} value={s}>{s}</option>
@@ -560,7 +560,7 @@ export default function BillingView() {
                 const open = expanded.has(inv.id);
                 const due = dueOf(inv);
                 return (
-                  <div key={inv.id} className="rounded-md border border-ink-200">
+                  <div key={inv.id} className="rounded-xs border border-ink-200">
                     <div className="flex flex-wrap items-center gap-2 px-3 py-2">
                       <button type="button" onClick={() => setExpanded((p) => { const n = new Set(p); if (n.has(inv.id)) n.delete(inv.id); else n.add(inv.id); return n; })} className="font-mono text-sm font-bold text-ink-900">
                         {inv.invoiceNo}
@@ -574,12 +574,12 @@ export default function BillingView() {
                       </span>
                       <span className="flex gap-1.5">
                         {!["PAID", "REVERSED"].includes(inv.status) && (
-                          <button type="button" disabled={!!acting} onClick={() => lateFine(inv.id, inv.invoiceNo)} className="flex items-center gap-1 rounded-md bg-amber-600 px-2 py-1 text-xs font-semibold text-white hover:bg-amber-700 disabled:opacity-50">
+                          <button type="button" disabled={!!acting} onClick={() => lateFine(inv.id, inv.invoiceNo)} className="flex items-center gap-1 rounded-xs bg-amber-600 px-2 py-1 text-xs font-semibold text-white hover:bg-amber-700 disabled:opacity-50">
                             <Gavel className="h-3.5 w-3.5" /> Fine
                           </button>
                         )}
                         {!["REVERSED"].includes(inv.status) && Number(inv.paidAmount) === 0 && (
-                          <button type="button" disabled={!!acting} onClick={() => reverseInvoice(inv.id, inv.invoiceNo)} className="flex items-center gap-1 rounded-md border border-rose-200 px-2 py-1 text-xs font-semibold text-rose-600 hover:bg-rose-50 disabled:opacity-50">
+                          <button type="button" disabled={!!acting} onClick={() => reverseInvoice(inv.id, inv.invoiceNo)} className="flex items-center gap-1 rounded-xs border border-rose-200 px-2 py-1 text-xs font-semibold text-rose-600 hover:bg-rose-50 disabled:opacity-50">
                             <Undo2 className="h-3.5 w-3.5" /> Reverse
                           </button>
                         )}
@@ -616,9 +616,9 @@ export default function BillingView() {
       {tab === "Fee Heads" && (
         <DashCard title={`Fee heads (${heads.length}) — each maps to a CoA revenue / caution GL`}>
           {heads.length === 0 && (
-            <div className="mb-3 rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-800">
+            <div className="mb-3 rounded-xs bg-amber-50 px-3 py-2 text-sm text-amber-800">
               No fee heads yet. Seed the standard catalogue (TUITION / EXAM / HOSTEL / CAUTION…) or create heads manually.
-              <button type="button" disabled={acting === "seed"} onClick={seedDefaults} className="ml-2 rounded-md bg-amber-600 px-2.5 py-1 text-xs font-bold text-white hover:bg-amber-700 disabled:opacity-50">
+              <button type="button" disabled={acting === "seed"} onClick={seedDefaults} className="ml-2 rounded-xs bg-amber-600 px-2.5 py-1 text-xs font-bold text-white hover:bg-amber-700 disabled:opacity-50">
                 {acting === "seed" ? "Seeding…" : "Seed defaults"}
               </button>
             </div>
@@ -641,7 +641,7 @@ export default function BillingView() {
                         disabled={acting === `del-head:${h.id}`}
                         onClick={() => deleteHead(h.id, h.headCode)}
                         title="Delete (only if never billed)"
-                        className="rounded-md border border-rose-200 px-2 py-1 text-xs font-semibold text-rose-600 hover:bg-rose-50 disabled:opacity-50"
+                        className="rounded-xs border border-rose-200 px-2 py-1 text-xs font-semibold text-rose-600 hover:bg-rose-50 disabled:opacity-50"
                       >
                         {acting === `del-head:${h.id}` ? "…" : "Delete"}
                       </button>
@@ -651,7 +651,7 @@ export default function BillingView() {
               </tbody>
             </table>
           </div>
-          <div className="mt-4 grid gap-2 rounded-md border border-ink-200 bg-ink-50/50 p-3 md:grid-cols-[120px_1fr_140px_150px_1fr_auto]">
+          <div className="mt-4 grid gap-2 rounded-xs border border-ink-200 bg-ink-50/50 p-3 md:grid-cols-[120px_1fr_140px_150px_1fr_auto]">
             <input value={hCode} onChange={(e) => setHCode(e.target.value)} placeholder="CODE" className={`${INPUT} font-mono`} />
             <input value={hName} onChange={(e) => setHName(e.target.value)} placeholder="Head name" className={INPUT} />
             <select value={hType} onChange={(e) => setHType(e.target.value as BillingType)} className={INPUT}>
@@ -668,8 +668,8 @@ export default function BillingView() {
             <input value={hRate} onChange={(e) => setHRate(e.target.value)} placeholder="Per-credit rate (BDT)" inputMode="decimal" className={`${INPUT} mt-2 max-w-56 text-right`} />
           )}
           <div className="mt-2 flex justify-end gap-2">
-            {heads.length > 0 && <button type="button" disabled={acting === "seed"} onClick={seedDefaults} className="rounded-md border border-ink-200 px-3 py-2 text-sm text-ink-600 hover:bg-ink-100 disabled:opacity-50">Ensure defaults</button>}
-            <button type="button" disabled={acting === "create-head"} onClick={createHead} className="rounded-md bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-50">
+            {heads.length > 0 && <button type="button" disabled={acting === "seed"} onClick={seedDefaults} className="rounded-xs border border-ink-200 px-3 py-2 text-sm text-ink-600 hover:bg-ink-100 disabled:opacity-50">Ensure defaults</button>}
+            <button type="button" disabled={acting === "create-head"} onClick={createHead} className="rounded-xs bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-50">
               {acting === "create-head" ? "Saving…" : "Add fee head"}
             </button>
           </div>
@@ -699,13 +699,13 @@ export default function BillingView() {
             </table>
             {waivers.length === 0 && <p className="py-4 text-center text-sm text-ink-500">No waivers yet.</p>}
           </div>
-          <div className="mt-4 grid gap-2 rounded-md border border-ink-200 bg-ink-50/50 p-3 md:grid-cols-[1fr_220px_110px_auto]">
+          <div className="mt-4 grid gap-2 rounded-xs border border-ink-200 bg-ink-50/50 p-3 md:grid-cols-[1fr_220px_110px_auto]">
             <input value={wStudent} onChange={(e) => setWStudent(e.target.value)} placeholder="Student UUID" className={`${INPUT} font-mono`} />
             <select value={wType} onChange={(e) => setWType(e.target.value as (typeof WAIVER_TYPES)[number])} className={INPUT}>
               {WAIVER_TYPES.map((t) => <option key={t} value={t}>{WAIVER_LABELS[t]}</option>)}
             </select>
             <input value={wPct} onChange={(e) => setWPct(e.target.value)} placeholder="%" inputMode="decimal" className={`${INPUT} text-right`} />
-            <button type="button" disabled={acting === "create-waiver"} onClick={createWaiver} className="rounded-md bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-50">
+            <button type="button" disabled={acting === "create-waiver"} onClick={createWaiver} className="rounded-xs bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-50">
               {acting === "create-waiver" ? "Granting…" : "Grant waiver"}
             </button>
           </div>
@@ -718,13 +718,13 @@ export default function BillingView() {
           <DashCard title="Student ledger (accrual)">
             <div className="flex flex-wrap gap-2">
               <input value={lStudent} onChange={(e) => setLStudent(e.target.value)} placeholder="Student UUID" className={`${INPUT} max-w-96 flex-1 font-mono`} />
-              <button type="button" onClick={loadLedger} className="flex items-center gap-1 rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white hover:bg-brand-700">
+              <button type="button" onClick={loadLedger} className="flex items-center gap-1 rounded-xs bg-brand-600 px-3 py-2 text-sm font-semibold text-white hover:bg-brand-700">
                 <Receipt className="h-4 w-4" /> Load ledger
               </button>
             </div>
             {ledger && (
               <div className="mt-3">
-                <div className="grid grid-cols-2 gap-2 rounded-md bg-ink-900 p-3 font-mono text-xs text-white md:grid-cols-4">
+                <div className="grid grid-cols-2 gap-2 rounded-xs bg-ink-900 p-3 font-mono text-xs text-white md:grid-cols-4">
                   <span>Gross {fmtMoney(ledger.summary.gross)}</span>
                   <span>Waiver {fmtMoney(ledger.summary.waiver)}</span>
                   <span>Net {fmtMoney(ledger.summary.net)} + Fine {fmtMoney(ledger.summary.lateFine)}</span>
@@ -735,7 +735,7 @@ export default function BillingView() {
                 </div>
                 <div className="mt-2 space-y-1">
                   {ledger.invoices.map((i) => (
-                    <div key={i.id} className="flex flex-wrap items-center gap-2 rounded border border-ink-100 px-2 py-1.5 text-xs">
+                    <div key={i.id} className="flex flex-wrap items-center gap-2 rounded-xs border border-ink-100 px-2 py-1.5 text-xs">
                       <span className="font-mono font-bold">{i.invoiceNo}</span>
                       <span className="text-ink-500">{i.billingPeriod}</span>
                       <span className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${STATUS_BADGE[i.status]}`}>{i.status}</span>
@@ -748,11 +748,11 @@ export default function BillingView() {
             )}
           </DashCard>
           <DashCard title="Defaulter aging (0–30 / 31–60 / 61–90 / 90+)">
-            <button type="button" onClick={loadAging} className="flex items-center gap-1 rounded-md border border-ink-200 px-3 py-2 text-sm font-semibold text-ink-700 hover:bg-ink-100">
+            <button type="button" onClick={loadAging} className="flex items-center gap-1 rounded-xs border border-ink-200 px-3 py-2 text-sm font-semibold text-ink-700 hover:bg-ink-100">
               <Wallet className="h-4 w-4" /> Refresh aging
             </button>
             {aging && (
-              <div className="mt-2 rounded-md bg-ink-900 p-3 font-mono text-xs text-white">
+              <div className="mt-2 rounded-xs bg-ink-900 p-3 font-mono text-xs text-white">
                 Total due {fmtMoney(aging.totalDue)} · {Object.entries(aging.counts).map(([k, v]) => <span key={k} className="mr-3">{k}d: {v}</span>)}
               </div>
             )}
@@ -770,7 +770,7 @@ export default function BillingView() {
                 {cautionAccounts.map((a) => <option key={a.id} value={a.id}>{a.glCode} — {a.accountName}</option>)}
               </select>
               <input value={cAmount} onChange={(e) => setCAmount(e.target.value)} placeholder="Amount" inputMode="decimal" className={`${INPUT} text-right`} />
-              <button type="button" disabled={acting === "caution"} onClick={collectCaution} className="rounded-md bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-50">
+              <button type="button" disabled={acting === "caution"} onClick={collectCaution} className="rounded-xs bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-50">
                 {acting === "caution" ? "Posting…" : "Collect"}
               </button>
             </div>
@@ -778,7 +778,7 @@ export default function BillingView() {
           <DashCard title={`Deposits (${cautions.length}) — settle on graduation (adjust to dues / refund)`}>
             <div className="space-y-1">
               {cautions.map((c) => (
-                <div key={c.id} className="flex flex-wrap items-center gap-2 rounded border border-ink-100 px-2 py-1.5 text-xs">
+                <div key={c.id} className="flex flex-wrap items-center gap-2 rounded-xs border border-ink-100 px-2 py-1.5 text-xs">
                   <span className="font-mono">{c.studentId.slice(0, 13)}…</span>
                   <span className="font-mono">{c.glAccount ? c.glAccount.glCode : c.glAccountId.slice(0, 8)}</span>
                   <span className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${c.status === "HELD" ? "bg-sky-100 text-sky-800" : "bg-emerald-100 text-emerald-800"}`}>{c.status}</span>

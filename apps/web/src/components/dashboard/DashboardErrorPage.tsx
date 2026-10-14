@@ -103,7 +103,7 @@ export default function DashboardErrorPage({
           {showHome && (
             <Link
               href="/admin"
-              className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-indigo-700 hover:shadow-md"
+              className="inline-flex items-center gap-2 rounded-xs bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white transition-all hover:bg-indigo-700"
             >
               <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
@@ -115,7 +115,7 @@ export default function DashboardErrorPage({
 
           <button
             onClick={() => window.history.back()}
-            className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition-all hover:bg-slate-50 hover:shadow-md"
+            className="inline-flex items-center gap-2 rounded-xs border border-slate-300 bg-white px-5 py-1 text-sm font-semibold text-slate-700 transition-all hover:bg-slate-50"
           >
             <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="m12 19-7-7 7-7" />
@@ -126,7 +126,7 @@ export default function DashboardErrorPage({
 
           <Link
             href="/contact"
-            className="inline-flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-semibold text-slate-600 transition-all hover:bg-slate-100 hover:text-slate-900"
+            className="inline-flex items-center gap-2 rounded-xs px-5 py-2.5 text-sm font-semibold text-slate-600 transition-all hover:bg-slate-100 hover:text-slate-900"
           >
             Contact Support
           </Link>

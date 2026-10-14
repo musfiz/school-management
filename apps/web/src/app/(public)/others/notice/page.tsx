@@ -57,15 +57,15 @@ export default async function NoticePage() {
               return (
                 <li
                   key={n.id}
-                  className="rounded-xl border border-ink-200 bg-white p-6 shadow-soft transition-all hover:shadow-card"
+                  className="rounded-xs border border-ink-200 bg-white p-6 shadow-soft transition-all hover:shadow-card"
                 >
                   <div className="flex flex-wrap items-center justify-between gap-3 border-b border-ink-100 pb-3">
                     <div className="flex items-center gap-2">
-                      <span className="rounded-sm bg-navy-50 px-2.5 py-1 text-xs font-semibold text-navy-700">
+                      <span className="rounded-xs bg-navy-50 px-2.5 py-1 text-xs font-semibold text-navy-700">
                         {n.category}
                       </span>
                       {n.isPinned && (
-                        <span className="inline-flex items-center gap-1 rounded bg-amber-50 px-2 py-0.5 text-xs font-bold text-amber-700 ring-1 ring-amber-300">
+                        <span className="inline-flex items-center gap-1 rounded-xs bg-amber-50 px-2 py-0.5 text-xs font-bold text-amber-700 ring-1 ring-amber-300">
                           <Pin className="h-3 w-3 fill-amber-500 text-amber-600" />
                           Pinned
                         </span>
@@ -106,7 +106,7 @@ export default async function NoticePage() {
                           href={resolveImageUrl(n.pdfUrl)}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-2 rounded-md bg-red-50 px-3.5 py-2 text-xs font-semibold text-red-700 transition-colors hover:bg-red-100"
+                          className="inline-flex items-center gap-2 rounded-xs bg-red-50 px-3.5 py-2 text-xs font-semibold text-red-700 transition-colors hover:bg-red-100"
                         >
                           <FileText className="h-4 w-4" />
                           Download Official Notice (PDF)
@@ -123,10 +123,10 @@ export default async function NoticePage() {
             {fallbackNotices.map((n) => (
               <li
                 key={n.id}
-                className="rounded-sm border border-ink-200 bg-white p-6 shadow-soft"
+                className="rounded-xs border border-ink-200 bg-white p-6 shadow-soft"
               >
                 <div className="flex flex-wrap items-center gap-3">
-                  <span className="rounded-sm bg-navy-50 px-2.5 py-1 text-xs font-semibold text-navy-700">
+                  <span className="rounded-xs bg-navy-50 px-2.5 py-1 text-xs font-semibold text-navy-700">
                     {n.category}
                   </span>
                   <span className="text-sm text-ink-400">

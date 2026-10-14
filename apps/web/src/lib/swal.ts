@@ -5,9 +5,9 @@ const swal = Swal.mixin({
   buttonsStyling: false,
   customClass: {
     confirmButton:
-      "rounded-md bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700",
+      "rounded-xs bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700",
     cancelButton:
-      "rounded-md border border-ink-200 px-4 py-2 text-sm font-semibold text-ink-700 hover:bg-ink-50",
+      "rounded-xs border border-ink-200 px-4 py-2 text-sm font-semibold text-ink-700 hover:bg-ink-50",
     actions: "gap-2",
   },
 });
@@ -19,7 +19,7 @@ const toastMixin = swal.mixin({
   timer: 3000,
   timerProgressBar: true,
   customClass: {
-    popup: "!p-2.5 !px-3.5 !rounded-md !shadow-md !max-w-sm",
+    popup: "!p-2.5 !px-3.5 !rounded-xs !shadow-md !max-w-sm",
     title: "!text-xs !font-semibold !m-0 !p-0 !text-ink-900",
     htmlContainer: "!text-xs !text-ink-600 !m-0 !mt-0.5 !p-0 leading-tight",
     icon: "!m-0 !mr-2 ![font-size:10px]",
@@ -96,10 +96,10 @@ export async function confirmDialog(options: {
     focusCancel: true,
     customClass: {
       confirmButton: options.danger
-        ? "rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700"
-        : "rounded-md bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700",
+        ? "rounded-xs bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700"
+        : "rounded-xs bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700",
       cancelButton:
-        "rounded-md border border-ink-200 px-4 py-2 text-sm font-semibold text-ink-700 hover:bg-ink-50",
+        "rounded-xs border border-ink-200 px-4 py-2 text-sm font-semibold text-ink-700 hover:bg-ink-50",
       actions: "gap-2",
     },
   });
@@ -161,12 +161,12 @@ export async function promptDialog(options: {
     },
     customClass: {
       confirmButton: options.danger
-        ? "rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700"
-        : "rounded-md bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700",
+        ? "rounded-xs bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700"
+        : "rounded-xs bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700",
       cancelButton:
-        "rounded-md border border-ink-200 px-4 py-2 text-sm font-semibold text-ink-700 hover:bg-ink-50",
+        "rounded-xs border border-ink-200 px-4 py-2 text-sm font-semibold text-ink-700 hover:bg-ink-50",
       actions: "gap-2",
-      input: "rounded-md border border-ink-200 px-3 py-2 text-sm focus:border-brand-400 focus:outline-none",
+      input: "rounded-xs cursor-pointer border border-ink-200 px-3 py-1 text-sm focus:border-brand-400 focus:outline-none",
     },
   });
   if (!result.isConfirmed || result.value === undefined) return null;

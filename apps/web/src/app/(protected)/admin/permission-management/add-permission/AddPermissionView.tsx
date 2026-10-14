@@ -157,7 +157,7 @@ export default function AddPermissionView() {
                 value={r.name}
                 onChange={(e) => patchRow(r.id, { name: e.target.value })}
                 placeholder="e.g. results.edit"
-                className="w-full rounded-md border border-ink-200 px-2.5 py-1.5 text-sm outline-none focus:border-brand-400"
+                className="w-full rounded-xs cursor-pointer border border-ink-200 px-2.5 py-1.5 text-sm outline-none focus:border-brand-400"
               />
             );
           }
@@ -183,7 +183,7 @@ export default function AddPermissionView() {
                   patchRow(r.id, { description: e.target.value })
                 }
                 placeholder="Optional description"
-                className="w-full rounded-md border border-ink-200 px-2.5 py-1.5 text-sm outline-none focus:border-brand-400"
+                className="w-full rounded-xs cursor-pointer border border-ink-200 px-2.5 py-1.5 text-sm outline-none focus:border-brand-400"
               />
             );
           }
@@ -209,7 +209,7 @@ export default function AddPermissionView() {
                     module_id: e.target.value ? e.target.value : null,
                   })
                 }
-                className="w-full rounded-md border border-ink-200 px-2.5 py-1.5 text-sm outline-none focus:border-brand-400"
+                className="w-full rounded-xs cursor-pointer border border-ink-200 px-2.5 py-1.5 text-sm outline-none focus:border-brand-400"
               >
                 <option value="">— None —</option>
                 {modules.map((m) => (
@@ -244,7 +244,7 @@ export default function AddPermissionView() {
                     onClick={() =>
                       saveRow(r.id, { name: r.name, description: r.description, module_id: r.module_id ?? null }, !!r.isNew)
                     }
-                    className="flex items-center gap-1 rounded-md bg-brand-600 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-brand-700 disabled:opacity-60"
+                    className="flex items-center gap-1 rounded-xs bg-brand-600 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-brand-700 disabled:opacity-60"
                   >
                     {saving ? (
                       <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -256,7 +256,7 @@ export default function AddPermissionView() {
                   <button
                     type="button"
                     onClick={() => cancelEdit(r.id)}
-                    className="rounded-md border border-ink-200 px-2.5 py-1.5 text-xs font-semibold text-ink-700 hover:bg-ink-50"
+                    className="rounded-xs border border-ink-200 px-2.5 py-1.5 text-xs font-semibold text-ink-700 hover:bg-ink-50"
                   >
                     Cancel
                   </button>
@@ -266,7 +266,7 @@ export default function AddPermissionView() {
                   <button
                     type="button"
                     onClick={() => startEdit(r.id)}
-                    className="rounded-md p-1.5 text-ink-500 hover:bg-ink-50"
+                    className="rounded-xs p-1.5 text-ink-500 hover:bg-ink-50"
                     aria-label="Edit permission"
                   >
                     <Pencil className="h-4 w-4" />
@@ -274,7 +274,7 @@ export default function AddPermissionView() {
                   <button
                     type="button"
                     onClick={() => deleteRow(r.id, r.name)}
-                    className="rounded-md p-1.5 text-red-600 hover:bg-red-50"
+                    className="rounded-xs p-1.5 text-red-600 hover:bg-red-50"
                     aria-label="Remove permission"
                   >
                     <Trash2 className="h-4 w-4" />
@@ -297,7 +297,7 @@ export default function AddPermissionView() {
       <DashPageHeader title="Add Permission" />
 
       {error && (
-        <div className="mb-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+        <div className="mb-4 rounded-xs border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           {error}
         </div>
       )}
@@ -310,7 +310,7 @@ export default function AddPermissionView() {
           <button
             type="button"
             onClick={addRow}
-            className="flex items-center gap-1.5 rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white hover:bg-brand-700"
+            className="flex items-center gap-1.5 rounded-xs bg-brand-600 px-3 py-2 text-sm font-semibold text-white hover:bg-brand-700"
           >
             <Plus className="h-4 w-4" />
             Add Permission

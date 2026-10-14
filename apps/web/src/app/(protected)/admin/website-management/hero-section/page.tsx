@@ -45,7 +45,7 @@ function Field({
 }
 
 const inputClass =
-  "w-full rounded-md border border-ink-200 px-3 py-2 text-sm outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400";
+  "w-full rounded-xs cursor-pointer border border-ink-200 px-3 py-1 text-sm outline-none focus:border-brand-400";
 
 function BilingualCard({
   title,
@@ -209,7 +209,7 @@ export default function HeroSectionSettingsPage() {
           type="button"
           onClick={handleSave}
           disabled={saving}
-          className="inline-flex items-center gap-2 self-start rounded-md bg-navy-800 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-navy-900 disabled:opacity-50 sm:self-auto"
+          className="inline-flex items-center gap-2 self-start rounded-xs bg-navy-800 px-4 py-2 text-sm font-semibold text-white hover:bg-navy-900 disabled:opacity-50 sm:self-auto"
         >
           {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
           {saving ? "Saving..." : "Save Settings"}
@@ -221,7 +221,7 @@ export default function HeroSectionSettingsPage() {
         <DashCard title="Visibility & Options">
           <div className="grid gap-6 sm:grid-cols-2">
             {/* Show/Hide Hero Section */}
-            <div className="flex items-center justify-between rounded-lg border border-ink-200 p-4 bg-white">
+            <div className="flex items-center justify-between rounded-xs border border-ink-200 p-4 bg-white">
               <div>
                 <p className="text-sm font-semibold text-ink-900">Show Hero Section</p>
                 <p className="text-xs text-ink-500">
@@ -235,12 +235,12 @@ export default function HeroSectionSettingsPage() {
                   onChange={(e) => update("isVisible", e.target.checked)}
                   className="peer sr-only"
                 />
-                <div className="peer h-6 w-11 rounded-full bg-ink-200 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-navy-800 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none"></div>
+                <div className="peer h-6 w-11 cursor-pointer rounded-full bg-ink-200 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-navy-800 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none"></div>
               </label>
             </div>
 
             {/* Show/Hide Apply Button */}
-            <div className="flex items-center justify-between rounded-lg border border-ink-200 p-4 bg-white">
+            <div className="flex items-center justify-between rounded-xs border border-ink-200 p-4 bg-white">
               <div>
                 <p className="text-sm font-semibold text-ink-900">Show &ldquo;Apply For Admission&rdquo; Button</p>
                 <p className="text-xs text-ink-500">
@@ -254,7 +254,7 @@ export default function HeroSectionSettingsPage() {
                   onChange={(e) => update("showApplyButton", e.target.checked)}
                   className="peer sr-only"
                 />
-                <div className="peer h-6 w-11 rounded-full bg-ink-200 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-navy-800 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none"></div>
+                <div className="peer h-6 w-11 cursor-pointer rounded-full bg-ink-200 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-navy-800 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none"></div>
               </label>
             </div>
           </div>
@@ -354,7 +354,7 @@ export default function HeroSectionSettingsPage() {
           <button
             type="submit"
             disabled={saving}
-            className="inline-flex items-center gap-2 rounded-md bg-navy-800 px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-navy-900 disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-xs bg-navy-800 px-6 py-2.5 text-sm font-semibold text-white hover:bg-navy-900 disabled:opacity-50"
           >
             {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
             {saving ? "Saving..." : "Save Settings"}

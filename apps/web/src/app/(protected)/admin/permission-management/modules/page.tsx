@@ -134,7 +134,7 @@ export default function ModulesPage() {
             <button
               type="button"
               onClick={() => openEditForm(row.original)}
-              className="rounded p-1.5 text-brand-600 hover:bg-brand-50"
+              className="rounded-xs p-1.5 text-brand-600 hover:bg-brand-50"
               aria-label="Edit module"
             >
               <Pencil className="h-4 w-4" />
@@ -142,7 +142,7 @@ export default function ModulesPage() {
             <button
               type="button"
               onClick={() => handleDelete(row.original)}
-              className="rounded p-1.5 text-red-600 hover:bg-red-50"
+              className="rounded-xs p-1.5 text-red-600 hover:bg-red-50"
               aria-label="Remove module"
             >
               <Trash2 className="h-4 w-4" />
@@ -164,7 +164,7 @@ export default function ModulesPage() {
           <button
             type="button"
             onClick={openAddForm}
-            className="flex items-center gap-1.5 rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white hover:bg-brand-700"
+            className="flex items-center gap-1.5 rounded-xs bg-brand-600 px-3 py-2 text-sm font-semibold text-white hover:bg-brand-700"
           >
             <Plus className="h-4 w-4" />
             Add Module
@@ -181,7 +181,7 @@ export default function ModulesPage() {
             <button
               type="button"
               onClick={closeForm}
-              className="rounded p-1 text-ink-400 hover:bg-ink-50 hover:text-ink-700"
+              className="rounded-xs p-1 text-ink-400 hover:bg-ink-50 hover:text-ink-700"
               aria-label="Close form"
             >
               <X className="h-4 w-4" />
@@ -197,7 +197,7 @@ export default function ModulesPage() {
               value={form.name}
               onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
               placeholder="e.g. Website Management"
-              className="w-full rounded-md border border-ink-200 px-3 py-2 text-sm outline-none focus:border-brand-400"
+              className="w-full rounded-xs cursor-pointer border border-ink-200 px-3 py-1 text-sm outline-none focus:border-brand-400"
             />
             {error && (
               <span className="mt-1 block text-xs text-red-600">{error}</span>
@@ -209,7 +209,7 @@ export default function ModulesPage() {
               type="button"
               onClick={handleSubmit}
               disabled={saving}
-              className="flex items-center gap-1.5 rounded-md bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-60"
+              className="flex items-center gap-1.5 rounded-xs bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-60"
             >
               {saving ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -221,7 +221,7 @@ export default function ModulesPage() {
             <button
               type="button"
               onClick={closeForm}
-              className="rounded-md px-4 py-2 text-sm font-semibold text-ink-700 hover:bg-ink-50"
+              className="rounded-xs px-4 py-2 text-sm font-semibold text-ink-700 hover:bg-ink-50"
             >
               Cancel
             </button>

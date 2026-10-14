@@ -102,7 +102,7 @@ export default function LoginForm({
 
   return (
     <div className="w-full max-w-md">
-      <div className="rounded-lg border border-ink-200/80 bg-white p-7 shadow-card sm:p-9">
+      <div className="rounded-xs border border-ink-200/80 bg-white p-7 shadow-card sm:p-9">
         {/* Heading */}
         <div>
           <h1 className="font-display text-2xl font-extrabold tracking-tight text-navy-900 sm:text-[1.65rem]">
@@ -118,7 +118,7 @@ export default function LoginForm({
           {globalError && (
             <div
               role="alert"
-              className="flex items-start gap-2 rounded-md border border-red-200 bg-red-50 px-3 py-2.5 text-sm text-red-700"
+              className="flex items-start gap-2 rounded-xs border border-red-200 bg-red-50 px-3 py-1 text-sm text-red-700"
             >
               <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
               <span>{globalError}</span>
@@ -131,11 +131,7 @@ export default function LoginForm({
               Email address
             </label>
             <div
-              className={`mt-1.5 flex items-center gap-2 rounded-md border bg-white px-3 py-2.5 transition-colors focus-within:border-navy-400 focus-within:ring-2 focus-within:ring-navy-100 ${
-                errors.email
-                  ? "border-red-400 focus-within:border-red-500 focus-within:ring-red-100"
-                  : "border-ink-200"
-              }`}
+              className={`mt-1.5 flex items-center gap-2 rounded-xs cursor-pointer border bg-white px-3 py-1 transition-colors focus-within:border-navy-400 ${ errors.email ? "border-red-400 focus-within:border-red-500" : "border-ink-200" }`}
             >
               <Mail className="h-4 w-4 shrink-0 text-ink-400" aria-hidden />
               <input
@@ -153,7 +149,7 @@ export default function LoginForm({
                 onBlur={emailReg.onBlur}
                 ref={emailReg.ref}
                 name={emailReg.name}
-                className="w-full bg-transparent text-sm outline-none placeholder:text-ink-400"
+                className="w-full cursor-pointer bg-transparent text-sm outline-none placeholder:text-ink-400"
               />
             </div>
             {errors.email && (
@@ -174,11 +170,7 @@ export default function LoginForm({
               Password
             </label>
             <div
-              className={`mt-1.5 flex items-center gap-2 rounded-md border bg-white px-3 py-2.5 transition-colors focus-within:border-navy-400 focus-within:ring-2 focus-within:ring-navy-100 ${
-                errors.password
-                  ? "border-red-400 focus-within:border-red-500 focus-within:ring-red-100"
-                  : "border-ink-200"
-              }`}
+              className={`mt-1.5 flex items-center gap-2 rounded-xs cursor-pointer border bg-white px-3 py-1 transition-colors focus-within:border-navy-400 ${ errors.password ? "border-red-400 focus-within:border-red-500" : "border-ink-200" }`}
             >
               <KeyRound className="h-4 w-4 shrink-0 text-ink-400" aria-hidden />
               <input
@@ -193,12 +185,12 @@ export default function LoginForm({
                 onBlur={passwordReg.onBlur}
                 ref={passwordReg.ref}
                 name={passwordReg.name}
-                className="w-full bg-transparent text-sm outline-none placeholder:text-ink-400"
+                className="w-full cursor-pointer bg-transparent text-sm outline-none placeholder:text-ink-400"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword((v) => !v)}
-                className="shrink-0 rounded p-0.5 text-ink-400 transition-colors hover:text-ink-700"
+                className="shrink-0 rounded-xs p-0.5 text-ink-400 transition-colors hover:text-ink-700"
                 tabIndex={-1}
                 aria-label={showPassword ? "Hide password" : "Show password"}
                 aria-pressed={showPassword}
@@ -231,7 +223,7 @@ export default function LoginForm({
             </div>
 
             {/* Debug quick-login — wire to a test account and log in instantly. */}
-            <div className="mt-3 rounded-md border border-ink-200 bg-ink-50/60 p-3">
+            <div className="mt-3 rounded-xs border border-ink-200 bg-ink-50/60 p-3">
               <p className="text-xs font-semibold uppercase tracking-wider text-ink-500">
                 Debug login
               </p>
@@ -250,7 +242,7 @@ export default function LoginForm({
                       clearErrors(["email", "password"]);
                       void trigger(["email", "password"]);
                     }}
-                    className="rounded-md border border-ink-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-navy-800 shadow-sm transition-colors hover:bg-navy-50 focus-visible:ring-2 focus-visible:ring-navy-300 focus-visible:ring-offset-2"
+                    className="rounded-xs border border-ink-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-navy-800 transition-colors hover:bg-navy-50"
                   >
                     {item.label}
                   </button>
@@ -268,7 +260,7 @@ export default function LoginForm({
           <button
             type="submit"
             disabled={isPending}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-navy-800 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-navy-900 focus-visible:ring-2 focus-visible:ring-navy-300 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-70"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-xs bg-navy-800 px-2.5 py-1 text-sm font-semibold text-white transition-all hover:bg-navy-900 disabled:cursor-not-allowed disabled:opacity-70"
           >
             {isPending ? (
               <>
@@ -297,7 +289,7 @@ export default function LoginForm({
         <button
           type="button"
           onClick={onGoogleClick}
-          className="inline-flex w-full items-center justify-center gap-2.5 rounded-md border border-ink-200 bg-white px-4 py-2.5 text-sm font-semibold text-ink-700 shadow-sm transition-colors hover:bg-ink-50 focus-visible:ring-2 focus-visible:ring-navy-300 focus-visible:ring-offset-2"
+          className="inline-flex w-full items-center justify-center gap-2.5 rounded-xs border border-ink-200 bg-white px-2.5 py-1 text-sm font-semibold text-ink-700 transition-colors hover:bg-ink-50"
         >
           <GoogleIcon />
           Continue with Google

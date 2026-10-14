@@ -563,7 +563,7 @@ export default function Sidebar({ role, name }: { role: Role; name?: string }) {
     >
       {/* Brand header */}
       <div className="flex h-16 shrink-0 items-center gap-2.5 border-b border-ink-200 px-4">
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-navy-900 text-gold-400 shadow-sm">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xs bg-navy-900 text-gold-400 shadow-sm">
           <RiGraduationCapLine className="h-4.5 w-4.5" />
         </span>
         {!collapsed && (

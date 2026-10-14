@@ -126,7 +126,7 @@ export default async function SubPage({
               {localized.map((m) => (
                 <div
                   key={m.id}
-                  className="flex flex-col items-center rounded-md border border-ink-200 bg-white p-6 text-center shadow-soft"
+                  className="flex flex-col items-center rounded-xs border border-ink-200 bg-white p-6 text-center shadow-soft"
                 >
                   {m.imageUrl ? (
                     <Image
@@ -193,7 +193,7 @@ export default async function SubPage({
               {localized.map((p) => (
                 <div
                   key={p.id}
-                  className="flex flex-col items-center rounded-md border border-ink-200 bg-white p-6 text-center shadow-soft"
+                  className="flex flex-col items-center rounded-xs border border-ink-200 bg-white p-6 text-center shadow-soft"
                 >
                   {p.imageUrl ? (
                     <Image
@@ -261,7 +261,7 @@ export default async function SubPage({
               {localized.map((t) => (
                 <div
                   key={t.id}
-                  className="flex flex-col items-center rounded-md border border-ink-200 bg-white p-6 text-center shadow-soft"
+                  className="flex flex-col items-center rounded-xs border border-ink-200 bg-white p-6 text-center shadow-soft"
                 >
                   {t.imageUrl ? (
                     <Image
@@ -336,7 +336,7 @@ export default async function SubPage({
               {localized.map((s) => (
                 <div
                   key={s.id}
-                  className="flex flex-col items-center rounded-md border border-ink-200 bg-white p-6 text-center shadow-soft"
+                  className="flex flex-col items-center rounded-xs border border-ink-200 bg-white p-6 text-center shadow-soft"
                 >
                   {s.imageUrl ? (
                     <Image
@@ -397,7 +397,7 @@ export default async function SubPage({
                 width={400}
                 height={400}
                 unoptimized={isExternalImage(cms.imageUrl)}
-                className="aspect-square w-full shrink-0 rounded-md object-cover sm:h-100 sm:w-100"
+                className="aspect-square w-full shrink-0 rounded-xs object-cover sm:h-100 sm:w-100"
               />
             )}
             {hasContent ? (

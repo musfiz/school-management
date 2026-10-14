@@ -7,6 +7,7 @@ import AdminPageLoader from "@/components/dashboard/AdminPageLoader";
 import { apiFetch } from "@/lib/api";
 import { confirmDialog, promptDialog, toast } from "@/lib/swal";
 import DatePickerField from "@/components/ui/DatePicker";
+import SearchSelect from "@/components/ui/SearchSelect";
 import {
   VOUCHER_TYPES,
   VOUCHER_TYPE_LABELS,
@@ -23,7 +24,7 @@ import {
 } from "@/lib/accounting";
 
 const INPUT_BASE =
-  "w-full rounded-md border border-ink-200 bg-white px-3 py-2 text-sm outline-none transition-colors focus:border-brand-400";
+  "w-full rounded-xs cursor-pointer border border-ink-200 bg-white px-3 py-1 text-sm outline-none transition-colors focus:border-brand-400";
 
 const STATUS_BADGE: Record<JournalStatus, string> = {
   DRAFT: "bg-slate-200 text-slate-700",
@@ -101,6 +102,28 @@ export default function VouchersView() {
 
   const accountById = useMemo(() => new Map(accounts.map((a) => [a.id, a])), [accounts]);
   const fundById = useMemo(() => new Map(funds.map((f) => [f.id, f])), [funds]);
+
+  /* Searchable react-select options (GL / fund / cost center / sub-ledger). */
+  const glOptions = useMemo(
+    () =>
+      accounts.map((a) => ({
+        value: a.id,
+        label: `${a.glCode} — ${a.accountName}${a.isControlAccount ? " (control)" : ""}`,
+      })),
+    [accounts],
+  );
+  const fundOptions = useMemo(
+    () => funds.map((f) => ({ value: f.id, label: `${f.fundCode} — ${f.fundName}` })),
+    [funds],
+  );
+  const centerOptions = useMemo(
+    () => centers.map((c) => ({ value: c.id, label: `${c.centerCode} — ${c.centerName}` })),
+    [centers],
+  );
+  const subledgerOptions = useMemo(
+    () => ["STUDENT", "VENDOR", "EMPLOYEE", "DONOR"].map((t) => ({ value: t, label: t })),
+    [],
+  );
 
   /* Client-side mirror of posting Rules 1 + 3 (server re-validates). */
   const totals = useMemo(() => {
@@ -266,7 +289,7 @@ export default function VouchersView() {
         <button
           type="button"
           onClick={() => setShowForm((s) => !s)}
-          className="flex items-center gap-1.5 rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white hover:bg-brand-700"
+          className="flex items-center gap-1.5 rounded-xs bg-brand-600 px-3 py-2 text-sm font-semibold text-white hover:bg-brand-700"
         >
           <Plus className="h-4 w-4" /> New voucher
         </button>
@@ -308,39 +331,45 @@ export default function VouchersView() {
             {lines.map((l, idx) => {
               const acct = accountById.get(l.glAccountId);
               return (
-                <div key={l.key} className="grid gap-2 rounded-md border border-ink-200 bg-ink-50/50 p-2 md:grid-cols-[26px_1fr_1fr_110px_110px_90px]">
+                <div key={l.key} className="grid gap-2 rounded-xs border border-ink-200 bg-ink-50/50 p-2 md:grid-cols-[26px_1fr_1fr_110px_110px_90px]">
                   <span className="pt-2 text-center text-xs font-bold text-ink-400">{idx + 1}</span>
-                  <select value={l.glAccountId} onChange={(e) => setLine(l.key, { glAccountId: e.target.value })} className={INPUT_BASE}>
-                    <option value="">GL account…</option>
-                    {accounts.map((a) => (
-                      <option key={a.id} value={a.id}>{a.glCode} — {a.accountName}{a.isControlAccount ? " (control)" : ""}</option>
-                    ))}
-                  </select>
-                  <select value={l.fundId} onChange={(e) => setLine(l.key, { fundId: e.target.value })} className={INPUT_BASE}>
-                    <option value="">Fund…</option>
-                    {funds.map((f) => (
-                      <option key={f.id} value={f.id}>{f.fundCode} — {f.fundName}</option>
-                    ))}
-                  </select>
+                  <SearchSelect
+                    ariaLabel={`Line ${idx + 1} GL account`}
+                    value={l.glAccountId}
+                    onChange={(v) => setLine(l.key, { glAccountId: v })}
+                    options={glOptions}
+                    placeholder="GL account… (type to search)"
+                  />
+                  <SearchSelect
+                    ariaLabel={`Line ${idx + 1} fund`}
+                    value={l.fundId}
+                    onChange={(v) => setLine(l.key, { fundId: v })}
+                    options={fundOptions}
+                    placeholder="Fund… (type to search)"
+                  />
                   <input value={l.debitAmount} onChange={(e) => setLine(l.key, { debitAmount: e.target.value })} placeholder="Dr" inputMode="decimal" className={`${INPUT_BASE} text-right`} />
                   <input value={l.creditAmount} onChange={(e) => setLine(l.key, { creditAmount: e.target.value })} placeholder="Cr" inputMode="decimal" className={`${INPUT_BASE} text-right`} />
-                  <button type="button" disabled={lines.length <= 2} onClick={() => setLines((prev) => prev.filter((x) => x.key !== l.key))} className="rounded-md px-2 text-rose-600 hover:bg-rose-50 disabled:opacity-40" title="Remove line">
+                  <button type="button" disabled={lines.length <= 2} onClick={() => setLines((prev) => prev.filter((x) => x.key !== l.key))} className="rounded-xs px-2 text-rose-600 hover:bg-rose-50 disabled:opacity-40" title="Remove line">
                     <Trash2 className="h-4 w-4" />
                   </button>
-                  <select value={l.costCenterId} onChange={(e) => setLine(l.key, { costCenterId: e.target.value })} className={`${INPUT_BASE} md:col-start-2`}>
-                    <option value="">Cost center (optional)…</option>
-                    {centers.map((c) => (
-                      <option key={c.id} value={c.id}>{c.centerCode} — {c.centerName}</option>
-                    ))}
-                  </select>
+                  <div className="md:col-start-2">
+                    <SearchSelect
+                      ariaLabel={`Line ${idx + 1} cost center`}
+                      value={l.costCenterId}
+                      onChange={(v) => setLine(l.key, { costCenterId: v })}
+                      options={centerOptions}
+                      placeholder="Cost center (optional)…"
+                    />
+                  </div>
                   {acct?.isControlAccount ? (
                     <>
-                      <select value={l.subledgerType} onChange={(e) => setLine(l.key, { subledgerType: e.target.value })} className={INPUT_BASE}>
-                        <option value="">Sub-ledger type…</option>
-                        {["STUDENT", "VENDOR", "EMPLOYEE", "DONOR"].map((t) => (
-                          <option key={t} value={t}>{t}</option>
-                        ))}
-                      </select>
+                      <SearchSelect
+                        ariaLabel={`Line ${idx + 1} sub-ledger type`}
+                        value={l.subledgerType}
+                        onChange={(v) => setLine(l.key, { subledgerType: v })}
+                        options={subledgerOptions}
+                        placeholder="Sub-ledger type…"
+                      />
                       <input value={l.subledgerId} onChange={(e) => setLine(l.key, { subledgerId: e.target.value })} placeholder="Sub-ledger UUID" className={`${INPUT_BASE} md:col-span-2`} />
                     </>
                   ) : (
@@ -352,10 +381,10 @@ export default function VouchersView() {
           </div>
 
           <div className="mt-2 flex flex-wrap items-center gap-2">
-            <button type="button" onClick={() => setLines((prev) => [...prev, newLine()])} className="flex items-center gap-1 rounded-md border border-ink-200 px-2.5 py-1.5 text-xs font-semibold text-ink-700 hover:bg-ink-100">
+            <button type="button" onClick={() => setLines((prev) => [...prev, newLine()])} className="flex items-center gap-1 rounded-xs border border-ink-200 px-2.5 py-1.5 text-xs font-semibold text-ink-700 hover:bg-ink-100">
               <Plus className="h-3.5 w-3.5" /> Add line
             </button>
-            <div className="ml-auto flex items-center gap-3 rounded-md bg-ink-900 px-3 py-1.5 font-mono text-xs text-white">
+            <div className="ml-auto flex items-center gap-3 rounded-xs bg-ink-900 px-3 py-1.5 font-mono text-xs text-white">
               <span>Dr {fmtMoney(totals.dr)}</span>
               <span>Cr {fmtMoney(totals.cr)}</span>
               <span className={totals.diff === 0 && totals.dr > 0 ? "text-emerald-300" : "text-rose-300"}>
@@ -364,7 +393,7 @@ export default function VouchersView() {
             </div>
           </div>
           {totals.fundGaps.length > 0 && (
-            <div className="mt-2 rounded-md bg-rose-50 px-3 py-2 text-xs text-rose-700">
+            <div className="mt-2 rounded-xs bg-rose-50 px-3 py-2 text-xs text-rose-700">
               Cross-fund leak: {totals.fundGaps.map((g) => {
                 const f = fundById.get(g.fundId);
                 return <span key={g.fundId} className="mr-2 font-semibold">{f ? `${f.fundCode} ${f.fundName}` : g.fundId} Δ {fmtMoney(g.diff)}</span>;
@@ -374,10 +403,10 @@ export default function VouchersView() {
           )}
 
           <div className="mt-3 flex justify-end gap-2">
-            <button type="button" onClick={() => setShowForm(false)} className="rounded-md border border-ink-200 px-3 py-2 text-sm font-semibold text-ink-700 hover:bg-ink-100">
+            <button type="button" onClick={() => setShowForm(false)} className="rounded-xs border border-ink-200 px-3 py-2 text-sm font-semibold text-ink-700 hover:bg-ink-100">
               Cancel
             </button>
-            <button type="button" disabled={!formValid || saving} onClick={submitDraft} className="rounded-md bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-50">
+            <button type="button" disabled={!formValid || saving} onClick={submitDraft} className="rounded-xs bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-50">
               {saving ? "Saving…" : "Save draft"}
             </button>
           </div>
@@ -395,13 +424,13 @@ export default function VouchersView() {
             <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-400" />
             <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search voucher no / narration…" className={`${INPUT_BASE} pl-8`} />
           </div>
-          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="rounded-md border border-ink-200 bg-white px-2 py-2 text-sm">
+          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="rounded-xs cursor-pointer border border-ink-200 bg-white px-2 py-1 text-sm">
             <option value="">All statuses</option>
             {["DRAFT", "VERIFIED", "APPROVED", "REVERSED"].map((s) => (
               <option key={s} value={s}>{s}</option>
             ))}
           </select>
-          <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} className="rounded-md border border-ink-200 bg-white px-2 py-2 text-sm">
+          <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} className="rounded-xs cursor-pointer border border-ink-200 bg-white px-2 py-1 text-sm">
             <option value="">All types</option>
             {VOUCHER_TYPES.map((t) => (
               <option key={t} value={t}>{VOUCHER_TYPE_LABELS[t]}</option>
@@ -414,7 +443,7 @@ export default function VouchersView() {
             const open = expanded.has(v.id);
             const busy = acting?.endsWith(v.id);
             return (
-              <div key={v.id} className="rounded-md border border-ink-200">
+              <div key={v.id} className="rounded-xs border border-ink-200">
                 <div className="flex flex-wrap items-center gap-2 px-3 py-2">
                   <button type="button" onClick={() => toggleExpand(v.id)} className="text-ink-500 hover:text-ink-800">
                     {open ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
@@ -426,21 +455,21 @@ export default function VouchersView() {
                   <span className="ml-auto flex gap-1.5">
                     {v.status === "DRAFT" && (
                       <>
-                        <button type="button" disabled={!!acting} onClick={() => act(v.id, "verify", v.voucherNo)} className="flex items-center gap-1 rounded-md bg-sky-600 px-2 py-1 text-xs font-semibold text-white hover:bg-sky-700 disabled:opacity-50">
+                        <button type="button" disabled={!!acting} onClick={() => act(v.id, "verify", v.voucherNo)} className="flex items-center gap-1 rounded-xs bg-sky-600 px-2 py-1 text-xs font-semibold text-white hover:bg-sky-700 disabled:opacity-50">
                           <CheckCheck className="h-3.5 w-3.5" /> {busy ? "…" : "Verify"}
                         </button>
-                        <button type="button" disabled={!!acting} onClick={() => act(v.id, "delete", v.voucherNo)} className="flex items-center gap-1 rounded-md border border-rose-200 px-2 py-1 text-xs font-semibold text-rose-600 hover:bg-rose-50 disabled:opacity-50">
+                        <button type="button" disabled={!!acting} onClick={() => act(v.id, "delete", v.voucherNo)} className="flex items-center gap-1 rounded-xs border border-rose-200 px-2 py-1 text-xs font-semibold text-rose-600 hover:bg-rose-50 disabled:opacity-50">
                           <Trash2 className="h-3.5 w-3.5" /> Delete
                         </button>
                       </>
                     )}
                     {v.status === "VERIFIED" && (
-                      <button type="button" disabled={!!acting} onClick={() => act(v.id, "approve", v.voucherNo)} className="flex items-center gap-1 rounded-md bg-emerald-600 px-2 py-1 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-50">
+                      <button type="button" disabled={!!acting} onClick={() => act(v.id, "approve", v.voucherNo)} className="flex items-center gap-1 rounded-xs bg-emerald-600 px-2 py-1 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-50">
                         <Stamp className="h-3.5 w-3.5" /> {busy ? "…" : "Approve"}
                       </button>
                     )}
                     {v.status === "APPROVED" && v.voucherType !== "REVERSAL" && (
-                      <button type="button" disabled={!!acting} onClick={() => act(v.id, "reverse", v.voucherNo)} className="flex items-center gap-1 rounded-md bg-amber-600 px-2 py-1 text-xs font-semibold text-white hover:bg-amber-700 disabled:opacity-50">
+                      <button type="button" disabled={!!acting} onClick={() => act(v.id, "reverse", v.voucherNo)} className="flex items-center gap-1 rounded-xs bg-amber-600 px-2 py-1 text-xs font-semibold text-white hover:bg-amber-700 disabled:opacity-50">
                         <Undo2 className="h-3.5 w-3.5" /> {busy ? "…" : "Reverse"}
                       </button>
                     )}

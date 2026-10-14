@@ -45,9 +45,7 @@ export default function HeroSlider({ slides: slidesProp }: { slides?: HeroSlide[
           {slides.map((slide, i) => (
             <div
               key={slide.src}
-              className={`absolute inset-0 transition-opacity duration-700 ${
-                i === index ? "opacity-100" : "opacity-0"
-              }`}
+              className={`absolute inset-0 transition-opacity duration-700 ${ i === index ? "opacity-100" : "opacity-0" }`}
               aria-hidden={i !== index}
             >
               <Image
@@ -78,7 +76,7 @@ export default function HeroSlider({ slides: slidesProp }: { slides?: HeroSlide[
             type="button"
             onClick={prev}
             aria-label="Previous slide"
-            className="absolute left-3 top-1/2 -translate-y-1/2 rounded-sm bg-white/15 p-2 text-white backdrop-blur transition-colors hover:bg-white/30"
+            className="absolute left-3 top-1/2 -translate-y-1/2 rounded-xs bg-white/15 p-2 text-white backdrop-blur transition-colors hover:bg-white/30"
           >
             <ChevronLeft className="h-5 w-5" />
           </button>
@@ -86,7 +84,7 @@ export default function HeroSlider({ slides: slidesProp }: { slides?: HeroSlide[
             type="button"
             onClick={next}
             aria-label="Next slide"
-            className="absolute right-3 top-1/2 -translate-y-1/2 rounded-sm bg-white/15 p-2 text-white backdrop-blur transition-colors hover:bg-white/30"
+            className="absolute right-3 top-1/2 -translate-y-1/2 rounded-xs bg-white/15 p-2 text-white backdrop-blur transition-colors hover:bg-white/30"
           >
             <ChevronRight className="h-5 w-5" />
           </button>
@@ -100,9 +98,7 @@ export default function HeroSlider({ slides: slidesProp }: { slides?: HeroSlide[
                 onClick={() => setIndex(i)}
                 aria-label={`Go to slide ${i + 1}`}
                 aria-current={i === index}
-                className={`h-2 rounded-sm transition-all ${
-                  i === index ? "w-6 bg-gold-400" : "w-2 bg-white/50 hover:bg-white/80"
-                }`}
+                className={`h-2 rounded-xs transition-all ${ i === index ? "w-6 bg-gold-400" : "w-2 bg-white/50 hover:bg-white/80" }`}
               />
             ))}
           </div>

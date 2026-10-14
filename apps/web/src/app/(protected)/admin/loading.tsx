@@ -18,11 +18,11 @@ export default function DashboardLoading() {
 
         {/* Skeleton loaders */}
         <div className="mt-8 space-y-3">
-          <div className="h-10 w-64 animate-pulse rounded-lg bg-slate-100" />
+          <div className="h-10 w-64 animate-pulse rounded-xs bg-slate-100" />
           <div className="flex gap-2">
-            <div className="h-8 w-24 animate-pulse rounded bg-slate-100" />
-            <div className="h-8 w-24 animate-pulse rounded bg-slate-100" />
-            <div className="h-8 w-24 animate-pulse rounded bg-slate-100" />
+            <div className="h-8 w-24 animate-pulse rounded-xs bg-slate-100" />
+            <div className="h-8 w-24 animate-pulse rounded-xs bg-slate-100" />
+            <div className="h-8 w-24 animate-pulse rounded-xs bg-slate-100" />
           </div>
         </div>
       </div>
