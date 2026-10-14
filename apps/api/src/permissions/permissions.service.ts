@@ -55,7 +55,7 @@ export class PermissionsService {
   // ---- User assignment ----
 
   /** Return the list of permission names assigned to a user. */
-  async getUserPermissions(userId: number): Promise<string[]> {
+  async getUserPermissions(userId: string): Promise<string[]> {
     const rows = await this.permissionRepository
       .createQueryBuilder('p')
       .innerJoin(
@@ -72,9 +72,9 @@ export class PermissionsService {
 
   /** Assign a single permission (by name) to a user. */
   async assignPermission(
-    userId: number,
+    userId: string,
     permissionName: string,
-    assignedBy?: number,
+    assignedBy?: string,
   ): Promise<UserPermission> {
     const permission = await this.findOneByName(permissionName);
     if (!permission) {
@@ -101,7 +101,7 @@ export class PermissionsService {
 
   /** Revoke a single permission (by name) from a user. */
   async revokePermission(
-    userId: number,
+    userId: string,
     permissionName: string,
   ): Promise<void> {
     const permission = await this.findOneByName(permissionName);
@@ -119,9 +119,9 @@ export class PermissionsService {
 
   /** Replace the full set of a user's permissions with the given names. */
   async setUserPermissions(
-    userId: number,
+    userId: string,
     permissionNames: string[],
-    assignedBy?: number,
+    assignedBy?: string,
   ): Promise<void> {
     const permissions = await this.permissionRepository.find({
       where: { name: In(permissionNames) },

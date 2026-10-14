@@ -1,7 +1,7 @@
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3031";
 
 export interface Slider {
-  id: number;
+  id: string;
   imageUrl: string;
   titleEn: string | null;
   titleBn: string | null;

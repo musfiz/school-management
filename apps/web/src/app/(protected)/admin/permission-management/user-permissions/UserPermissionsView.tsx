@@ -289,7 +289,7 @@ export default function UserPermissionsView() {
   /** Currently checked permission names in the matrix. */
   const [checked, setChecked] = useState<Selection>(new Set());
   /** Permission names each selected user already had (for diffing on save). */
-  const [original, setOriginal] = useState<Map<number, Set<string>>>(new Map());
+  const [original, setOriginal] = useState<Map<string, Set<string>>>(new Map());
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -345,10 +345,10 @@ export default function UserPermissionsView() {
         const entries = await Promise.all(
           selectedUsers.map(async (u) => {
             const perms = await getUserPermissions(u.id);
-            return [u.id, perms] as [number, string[]];
+            return [u.id, perms] as [string, string[]];
           }),
         );
-        const origMap = new Map<number, Set<string>>();
+        const origMap = new Map<string, Set<string>>();
         const union = new Set<string>();
         for (const [id, perms] of entries) {
           origMap.set(id, new Set(perms));
@@ -439,7 +439,7 @@ export default function UserPermissionsView() {
         "success",
       );
       // Refresh originals
-      const newOrig = new Map<number, Set<string>>();
+      const newOrig = new Map<string, Set<string>>();
       for (const u of selectedUsers) newOrig.set(u.id, new Set(validNames));
       setOriginal(newOrig);
     } catch (err) {

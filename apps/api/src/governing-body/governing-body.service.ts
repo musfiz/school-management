@@ -22,13 +22,13 @@ export class GoverningBodyService {
     return this.repo.save(this.repo.create(dto));
   }
 
-  async update(id: number, dto: UpdateGoverningBodyMemberDto): Promise<GoverningBodyMember> {
+  async update(id: string, dto: UpdateGoverningBodyMemberDto): Promise<GoverningBodyMember> {
     const member = await this.repo.findOne({ where: { id } });
     if (!member) throw new NotFoundException(`Member ${id} not found`);
     return this.repo.save(this.repo.merge(member, dto));
   }
 
-  async remove(id: number): Promise<{ id: number }> {
+  async remove(id: string): Promise<{ id: string }> {
     const member = await this.repo.findOne({ where: { id } });
     if (!member) throw new NotFoundException(`Member ${id} not found`);
     await this.repo.remove(member);

@@ -5,8 +5,8 @@ import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateCol
  *  shown on the site; inactive ones are kept for later. */
 @Entity('sliders')
 export class Slider {
-  @PrimaryGeneratedColumn('increment')
-  id!: number;
+  @PrimaryGeneratedColumn('uuid')
+  id!: string;
 
   @Column({ name: 'image_url', type: 'varchar', length: 255 })
   imageUrl!: string;

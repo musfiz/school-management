@@ -4,8 +4,8 @@ import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateCol
  *  page and managed from the dashboard, ordered by `sortOrder`. */
 @Entity('governing_body_members')
 export class GoverningBodyMember {
-  @PrimaryGeneratedColumn('increment')
-  id!: number;
+  @PrimaryGeneratedColumn('uuid')
+  id!: string;
 
   @Column({ name: 'name', type: 'varchar', length: 150 })
   name!: string;

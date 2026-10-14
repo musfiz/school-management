@@ -58,7 +58,7 @@ export async function POST(req: Request) {
 
   const data = await res.json() as {
     access_token: string;
-    user: { id: number; name: string; email: string; role: string };
+    user: { id: string; name: string; email: string; role: string };
   };
 
   await setSessionCookie(data.access_token);

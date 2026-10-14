@@ -16,7 +16,7 @@ import {
 } from "@/lib/modules";
 
 interface FormState {
-  id: number | null;
+  id: string | null;
   name: string;
 }
 

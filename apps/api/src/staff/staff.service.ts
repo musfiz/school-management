@@ -19,13 +19,13 @@ export class StaffService {
     return this.repo.save(this.repo.create(dto));
   }
 
-  async update(id: number, dto: UpdateStaffMemberDto): Promise<StaffMember> {
+  async update(id: string, dto: UpdateStaffMemberDto): Promise<StaffMember> {
     const member = await this.repo.findOne({ where: { id } });
     if (!member) throw new NotFoundException(`Staff member ${id} not found`);
     return this.repo.save(this.repo.merge(member, dto));
   }
 
-  async remove(id: number): Promise<{ id: number }> {
+  async remove(id: string): Promise<{ id: string }> {
     const member = await this.repo.findOne({ where: { id } });
     if (!member) throw new NotFoundException(`Staff member ${id} not found`);
     await this.repo.remove(member);

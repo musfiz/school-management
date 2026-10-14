@@ -4,7 +4,7 @@ import {
   Delete,
   Get,
   Param,
-  ParseIntPipe,
+  ParseUUIDPipe,
   Patch,
   Post,
   UseGuards,
@@ -46,7 +46,7 @@ export class GoverningBodyController {
   @Roles(UserRole.ADMIN, UserRole.MANAGEMENT)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update a governing body member' })
-  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateGoverningBodyMemberDto) {
+  update(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateGoverningBodyMemberDto) {
     return this.governingBodyService.update(id, dto);
   }
 
@@ -55,7 +55,7 @@ export class GoverningBodyController {
   @Roles(UserRole.ADMIN, UserRole.MANAGEMENT)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Remove a governing body member' })
-  remove(@Param('id', ParseIntPipe) id: number) {
+  remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.governingBodyService.remove(id);
   }
 }

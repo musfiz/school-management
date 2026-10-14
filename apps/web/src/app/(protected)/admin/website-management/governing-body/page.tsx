@@ -13,7 +13,7 @@ import { confirmDialog, toast } from "@/lib/swal";
 import type { GoverningBodyMember } from "@/lib/governing-body";
 
 interface FormState {
-  id: number | null;
+  id: string | null;
   name: string;
   nameBn: string;
   designation: string;

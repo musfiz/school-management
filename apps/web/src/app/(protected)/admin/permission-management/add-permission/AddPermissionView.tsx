@@ -31,7 +31,7 @@ export default function AddPermissionView() {
   const [rows, setRows] = useState<PermissionRow[]>([]);
   const [modules, setModules] = useState<Module[]>([]);
   const [loading, setLoading] = useState(true);
-  const [savingId, setSavingId] = useState<number | "new" | null>(null);
+  const [savingId, setSavingId] = useState<string | "new" | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
@@ -61,7 +61,7 @@ export default function AddPermissionView() {
   function addRow() {
     setRows((prev) => [
       {
-        id: Date.now(), // temp client id
+        id: `new-${Date.now()}`, // temp client id
         name: "",
         description: "",
         module_id: null,
@@ -72,13 +72,13 @@ export default function AddPermissionView() {
     ]);
   }
 
-  function startEdit(id: number) {
+  function startEdit(id: string) {
     setRows((prev) =>
       prev.map((r) => (r.id === id ? { ...r, isEditing: true } : r)),
     );
   }
 
-  function cancelEdit(id: number) {
+  function cancelEdit(id: string) {
     setRows((prev) =>
       prev
         .map((r) =>
@@ -90,11 +90,11 @@ export default function AddPermissionView() {
     );
   }
 
-  function patchRow(id: number, patch: Partial<PermissionRow>) {
+  function patchRow(id: string, patch: Partial<PermissionRow>) {
     setRows((prev) => prev.map((r) => (r.id === id ? { ...r, ...patch } : r)));
   }
 
-  async function saveRow(id: number, data: { name: string; description?: string | null; module_id?: number | null }, isNew: boolean) {
+  async function saveRow(id: string, data: { name: string; description?: string | null; module_id?: string | null }, isNew: boolean) {
     const name = data.name.trim();
     if (!name) {
       toast("Permission name is required.", "warning");
@@ -129,7 +129,7 @@ export default function AddPermissionView() {
     }
   }
 
-  async function deleteRow(id: number, name: string) {
+  async function deleteRow(id: string, name: string) {
     const confirmed = await confirmDialog({
       title: "Remove this permission?",
       text: `"${name}" will be deleted from the catalog. Users who have it assigned will lose it.`,
@@ -206,7 +206,7 @@ export default function AddPermissionView() {
                 value={r.module_id ?? ""}
                 onChange={(e) =>
                   patchRow(r.id, {
-                    module_id: e.target.value ? Number(e.target.value) : null,
+                    module_id: e.target.value ? e.target.value : null,
                   })
                 }
                 className="w-full rounded-md border border-ink-200 px-2.5 py-1.5 text-sm outline-none focus:border-brand-400"

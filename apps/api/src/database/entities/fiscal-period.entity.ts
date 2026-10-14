@@ -13,8 +13,8 @@ import {
  */
 @Entity('fiscal_periods')
 export class FiscalPeriod {
-  @PrimaryGeneratedColumn('increment')
-  id!: number;
+  @PrimaryGeneratedColumn('uuid')
+  id!: string;
 
   @Column({ name: 'period_name', type: 'varchar', length: 50 })
   periodName!: string;
@@ -28,8 +28,8 @@ export class FiscalPeriod {
   @Column({ name: 'is_closed', type: 'boolean', default: false })
   isClosed!: boolean;
 
-  @Column({ name: 'closed_by_user_id', type: 'int', nullable: true })
-  closedByUserId?: number | null;
+  @Column({ name: 'closed_by_user_id', type: 'char', length: '36', nullable: true })
+  closedByUserId?: string | null;
 
   @Column({ name: 'closed_at', type: 'timestamp', nullable: true })
   closedAt?: Date | null;

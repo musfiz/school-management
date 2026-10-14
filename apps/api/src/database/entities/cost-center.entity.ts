@@ -25,8 +25,8 @@ export const INSTITUTION_TYPES: InstitutionType[] = [
  */
 @Entity('cost_centers')
 export class CostCenter {
-  @PrimaryGeneratedColumn('increment')
-  id!: number;
+  @PrimaryGeneratedColumn('uuid')
+  id!: string;
 
   @Column({ name: 'center_code', type: 'varchar', length: 15, unique: true })
   centerCode!: string;
@@ -37,8 +37,8 @@ export class CostCenter {
   @Column({ name: 'institution_type', type: 'varchar', length: 20, default: 'SCHOOL' })
   institutionType!: InstitutionType;
 
-  @Column({ name: 'parent_id', type: 'int', nullable: true })
-  parentId?: number | null;
+  @Column({ name: 'parent_id', type: 'char', length: '36', nullable: true })
+  parentId?: string | null;
 
   @ManyToOne(() => CostCenter, (center) => center.children, { onDelete: 'RESTRICT' })
   @JoinColumn({ name: 'parent_id' })

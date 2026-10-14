@@ -6,7 +6,7 @@ import { MenuChildInputDto, MenuItemInputDto } from './menu-item.dto';
 
 /** A plain tree node shaped for the frontend — no internal ids beyond `id` itself. */
 export interface MenuTreeNode {
-  id: number;
+  id: string;
   labelEn: string;
   labelBn: string | null;
   href: string;
@@ -24,7 +24,7 @@ export class MenusService {
 
   /** Build a nested tree from the flat, sort_order-ordered rows for a location. */
   private buildTree(rows: MenuItem[]): MenuTreeNode[] {
-    const byParent = new Map<number | null, MenuItem[]>();
+    const byParent = new Map<string | null, MenuItem[]>();
     for (const row of rows) {
       const key = row.parentId ?? null;
       const bucket = byParent.get(key) ?? [];
@@ -73,7 +73,7 @@ export class MenusService {
 
       const insertLevel = async (
         nodes: (MenuItemInputDto | MenuChildInputDto)[],
-        parentId: number | null,
+        parentId: string | null,
       ) => {
         for (let i = 0; i < nodes.length; i++) {
           const node = nodes[i];

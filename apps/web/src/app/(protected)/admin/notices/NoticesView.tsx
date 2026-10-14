@@ -31,7 +31,7 @@ import {
 import { resolveImageUrl } from "@/lib/media";
 
 interface FormState {
-  id: number | null;
+  id: string | null;
   title: string;
   titleBn: string;
   category: string;

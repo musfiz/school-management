@@ -7,7 +7,7 @@ import {
   Param,
   Delete,
   UseGuards,
-  ParseIntPipe,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { NoticesService } from './notices.service';
@@ -41,7 +41,7 @@ export class NoticesController {
   @Get(':id')
   @Public()
   @ApiOperation({ summary: 'Get a notice by ID' })
-  findOne(@Param('id', ParseIntPipe) id: number) {
+  findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.noticesService.findOne(id);
   }
 
@@ -59,7 +59,7 @@ export class NoticesController {
   @Roles(UserRole.ADMIN, UserRole.MANAGEMENT)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update a notice by ID' })
-  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateNoticeDto) {
+  update(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateNoticeDto) {
     return this.noticesService.update(id, dto);
   }
 
@@ -68,7 +68,7 @@ export class NoticesController {
   @Roles(UserRole.ADMIN, UserRole.MANAGEMENT)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Delete a notice by ID' })
-  remove(@Param('id', ParseIntPipe) id: number) {
+  remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.noticesService.remove(id);
   }
 }

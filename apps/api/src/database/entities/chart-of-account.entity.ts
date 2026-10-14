@@ -50,8 +50,8 @@ export const NORMAL_BALANCE_BY_TYPE: Record<AccountType, NormalBalance> = {
  */
 @Entity('chart_of_accounts')
 export class ChartOfAccount {
-  @PrimaryGeneratedColumn('increment')
-  id!: number;
+  @PrimaryGeneratedColumn('uuid')
+  id!: string;
 
   @Column({ name: 'gl_code', type: 'varchar', length: 20, unique: true })
   glCode!: string;
@@ -68,8 +68,8 @@ export class ChartOfAccount {
   @Column({ name: 'normal_balance', type: 'char', length: 2 })
   normalBalance!: NormalBalance;
 
-  @Column({ name: 'parent_id', type: 'int', nullable: true })
-  parentId?: number | null;
+  @Column({ name: 'parent_id', type: 'char', length: '36', nullable: true })
+  parentId?: string | null;
 
   @ManyToOne(() => ChartOfAccount, (account) => account.children, { onDelete: 'RESTRICT' })
   @JoinColumn({ name: 'parent_id' })
@@ -84,8 +84,8 @@ export class ChartOfAccount {
   @Column({ name: 'is_cash_or_bank', type: 'boolean', default: false })
   isCashOrBank!: boolean;
 
-  @Column({ name: 'default_fund_id', type: 'int', nullable: true })
-  defaultFundId?: number | null;
+  @Column({ name: 'default_fund_id', type: 'char', length: '36', nullable: true })
+  defaultFundId?: string | null;
 
   @ManyToOne(() => Fund, { onDelete: 'RESTRICT', nullable: true })
   @JoinColumn({ name: 'default_fund_id' })

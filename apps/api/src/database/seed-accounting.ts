@@ -182,12 +182,12 @@ async function seed() {
   for (const a of ACCOUNTS) {
     const existing = await accountRepo.findOne({ where: { glCode: a.code } });
     if (existing) continue;
-    let parentId: number | null = null;
+    let parentId: string | null = null;
     if (a.parent) {
       const parent = await accountRepo.findOne({ where: { glCode: a.parent } });
       parentId = parent?.id ?? null;
     }
-    let defaultFundId: number | null = null;
+    let defaultFundId: string | null = null;
     if (a.fund) {
       const fund = await fundRepo.findOne({ where: { fundCode: a.fund } });
       defaultFundId = fund?.id ?? null;

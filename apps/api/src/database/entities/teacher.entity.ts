@@ -5,8 +5,8 @@ import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateCol
  *  `department` and a `jointDate` (the date the teacher joined the school). */
 @Entity('teachers')
 export class Teacher {
-  @PrimaryGeneratedColumn('increment')
-  id!: number;
+  @PrimaryGeneratedColumn('uuid')
+  id!: string;
 
   @Column({ name: 'name', type: 'varchar', length: 150 })
   name!: string;

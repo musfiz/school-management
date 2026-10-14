@@ -7,7 +7,7 @@ import {
   Param,
   Delete,
   UseGuards,
-  ParseIntPipe,
+  ParseUUIDPipe,
   Query,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
@@ -50,7 +50,7 @@ export class ChartOfAccountsController {
 
   @Patch('funds/:id')
   @ApiOperation({ summary: 'Update a fund by ID' })
-  updateFund(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateFundDto) {
+  updateFund(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateFundDto) {
     return this.coaService.updateFund(id, dto);
   }
 
@@ -70,7 +70,7 @@ export class ChartOfAccountsController {
 
   @Patch('cost-centers/:id')
   @ApiOperation({ summary: 'Update a cost center by ID' })
-  updateCostCenter(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateCostCenterDto) {
+  updateCostCenter(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateCostCenterDto) {
     return this.coaService.updateCostCenter(id, dto);
   }
 
@@ -96,13 +96,13 @@ export class ChartOfAccountsController {
 
   @Patch('chart-of-accounts/:id')
   @ApiOperation({ summary: 'Update a GL account by ID' })
-  updateAccount(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateAccountDto) {
+  updateAccount(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateAccountDto) {
     return this.coaService.updateAccount(id, dto);
   }
 
   @Delete('chart-of-accounts/:id')
   @ApiOperation({ summary: 'Delete a GL account (blocked when it has children)' })
-  removeAccount(@Param('id', ParseIntPipe) id: number) {
+  removeAccount(@Param('id', ParseUUIDPipe) id: string) {
     return this.coaService.removeAccount(id);
   }
 
@@ -122,19 +122,19 @@ export class ChartOfAccountsController {
 
   @Patch('fiscal-periods/:id')
   @ApiOperation({ summary: 'Update an open fiscal period by ID' })
-  updatePeriod(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateFiscalPeriodDto) {
+  updatePeriod(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateFiscalPeriodDto) {
     return this.coaService.updatePeriod(id, dto);
   }
 
   @Patch('fiscal-periods/:id/close')
   @ApiOperation({ summary: 'Close a fiscal period (blocks future postings)' })
-  closePeriod(@Param('id', ParseIntPipe) id: number) {
+  closePeriod(@Param('id', ParseUUIDPipe) id: string) {
     return this.coaService.setPeriodClosed(id, true);
   }
 
   @Patch('fiscal-periods/:id/reopen')
   @ApiOperation({ summary: 'Reopen a closed fiscal period' })
-  reopenPeriod(@Param('id', ParseIntPipe) id: number) {
+  reopenPeriod(@Param('id', ParseUUIDPipe) id: string) {
     return this.coaService.setPeriodClosed(id, false);
   }
 }

@@ -13,7 +13,7 @@ import { confirmDialog, toast } from "@/lib/swal";
 import type { Slider } from "@/lib/sliders";
 
 interface FormState {
-  id: number | null;
+  id: string | null;
   imageUrl: string;
   titleEn: string;
   titleBn: string;

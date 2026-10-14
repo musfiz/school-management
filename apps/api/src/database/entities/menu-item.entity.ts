@@ -15,8 +15,8 @@ export type MenuLocation = 'header';
 
 @Entity('menu_items')
 export class MenuItem {
-  @PrimaryGeneratedColumn('increment')
-  id!: number;
+  @PrimaryGeneratedColumn('uuid')
+  id!: string;
 
   @Column({
     name: 'menu_location',
@@ -26,8 +26,8 @@ export class MenuItem {
   })
   menuLocation!: MenuLocation;
 
-  @Column({ name: 'parent_id', type: 'int', nullable: true })
-  parentId?: number | null;
+  @Column({ name: 'parent_id', type: 'char', length: '36', nullable: true })
+  parentId?: string | null;
 
   @ManyToOne(() => MenuItem, (item) => item.children, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'parent_id' })

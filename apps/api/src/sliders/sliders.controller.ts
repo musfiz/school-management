@@ -4,7 +4,7 @@ import {
   Delete,
   Get,
   Param,
-  ParseIntPipe,
+  ParseUUIDPipe,
   Patch,
   Post,
   UseGuards,
@@ -52,7 +52,7 @@ export class SlidersController {
   @Roles(UserRole.ADMIN, UserRole.MANAGEMENT)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update a slide' })
-  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateSliderDto) {
+  update(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateSliderDto) {
     return this.slidersService.update(id, dto);
   }
 
@@ -61,7 +61,7 @@ export class SlidersController {
   @Roles(UserRole.ADMIN, UserRole.MANAGEMENT)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Remove a slide' })
-  remove(@Param('id', ParseIntPipe) id: number) {
+  remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.slidersService.remove(id);
   }
 }

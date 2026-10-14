@@ -13,7 +13,7 @@ import { confirmDialog, toast } from "@/lib/swal";
 import type { StaffMember } from "@/lib/staff";
 
 interface FormState {
-  id: number | null;
+  id: string | null;
   name: string;
   nameBn: string;
   designation: string;

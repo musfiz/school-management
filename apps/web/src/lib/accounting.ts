@@ -1,5 +1,5 @@
 export interface Fund {
-  id: number;
+  id: string;
   fundCode: string;
   fundName: string;
   isRestricted: boolean;
@@ -19,11 +19,11 @@ export const INSTITUTION_TYPES: InstitutionType[] = [
 ];
 
 export interface CostCenter {
-  id: number;
+  id: string;
   centerCode: string;
   centerName: string;
   institutionType: InstitutionType;
-  parentId?: number | null;
+  parentId?: string | null;
   parent?: CostCenter | null;
   isActive: boolean;
   createdAt?: string;
@@ -78,17 +78,17 @@ export function isContraPair(parent: AccountType, child: AccountType): boolean {
 }
 
 export interface ChartOfAccount {
-  id: number;
+  id: string;
   glCode: string;
   accountName: string;
   accountNameBn?: string | null;
   accountType: AccountType;
   normalBalance: "DR" | "CR";
-  parentId?: number | null;
+  parentId?: string | null;
   parent?: ChartOfAccount | null;
   isControlAccount: boolean;
   isCashOrBank: boolean;
-  defaultFundId?: number | null;
+  defaultFundId?: string | null;
   defaultFund?: Fund | null;
   isActive: boolean;
   children?: AccountTreeNode[];
@@ -101,7 +101,7 @@ export interface AccountTreeNode extends ChartOfAccount {
 }
 
 export interface FiscalPeriod {
-  id: number;
+  id: string;
   periodName: string;
   startDate: string;
   endDate: string;

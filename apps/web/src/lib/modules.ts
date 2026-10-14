@@ -10,7 +10,7 @@
 import { apiFetch } from "./api";
 
 export interface Module {
-  id: number;
+  id: string;
   name: string;
   created_at?: string;
 }
@@ -27,7 +27,7 @@ export function createModule(input: { name: string }): Promise<Module> {
 }
 
 export function updateModule(
-  id: number,
+  id: string,
   input: { name: string },
 ): Promise<Module> {
   return apiFetch<Module>(`/api/modules/${id}`, {
@@ -36,8 +36,8 @@ export function updateModule(
   });
 }
 
-export function deleteModule(id: number): Promise<{ id: number }> {
-  return apiFetch<{ id: number }>(`/api/modules/${id}`, {
+export function deleteModule(id: string): Promise<{ id: string }> {
+  return apiFetch<{ id: string }>(`/api/modules/${id}`, {
     method: "DELETE",
   });
 }

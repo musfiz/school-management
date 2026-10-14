@@ -55,7 +55,7 @@ export class ChartOfAccountsService {
     return this.fundRepo.save(this.fundRepo.create(dto));
   }
 
-  async updateFund(id: number, dto: UpdateFundDto): Promise<Fund> {
+  async updateFund(id: string, dto: UpdateFundDto): Promise<Fund> {
     const fund = await this.fundRepo.findOne({ where: { id } });
     if (!fund) throw new NotFoundException(`Fund #${id} not found`);
     if (dto.fundCode && dto.fundCode !== fund.fundCode) {
@@ -87,7 +87,7 @@ export class ChartOfAccountsService {
     return this.centerRepo.save(this.centerRepo.create(dto));
   }
 
-  async updateCostCenter(id: number, dto: UpdateCostCenterDto): Promise<CostCenter> {
+  async updateCostCenter(id: string, dto: UpdateCostCenterDto): Promise<CostCenter> {
     const center = await this.centerRepo.findOne({ where: { id } });
     if (!center) throw new NotFoundException(`Cost center #${id} not found`);
     if (dto.centerCode && dto.centerCode !== center.centerCode) {
@@ -119,7 +119,7 @@ export class ChartOfAccountsService {
       relations: ['defaultFund'],
       order: { glCode: 'ASC' },
     });
-    const byId = new Map<number, AccountTreeNode>();
+    const byId = new Map<string, AccountTreeNode>();
     accounts.forEach((a) => byId.set(a.id, { ...a, children: [] }));
     const roots: AccountTreeNode[] = [];
     byId.forEach((node) => {
@@ -151,7 +151,7 @@ export class ChartOfAccountsService {
     return this.accountRepo.save(account);
   }
 
-  async updateAccount(id: number, dto: UpdateAccountDto): Promise<ChartOfAccount> {
+  async updateAccount(id: string, dto: UpdateAccountDto): Promise<ChartOfAccount> {
     const account = await this.accountRepo.findOne({ where: { id } });
     if (!account) throw new NotFoundException(`GL account #${id} not found`);
     if (dto.glCode && dto.glCode !== account.glCode) {
@@ -173,7 +173,7 @@ export class ChartOfAccountsService {
     return this.accountRepo.save(account);
   }
 
-  async removeAccount(id: number): Promise<void> {
+  async removeAccount(id: string): Promise<void> {
     const account = await this.accountRepo.findOne({ where: { id } });
     if (!account) throw new NotFoundException(`GL account #${id} not found`);
     const childCount = await this.accountRepo.count({ where: { parentId: id } });
@@ -197,8 +197,8 @@ export class ChartOfAccountsService {
 
   /** Parent must exist, match the child type, and not create a cycle. */
   private async assertValidParent(
-    selfId: number | null,
-    parentId: number,
+    selfId: string | null,
+    parentId: string,
     childType: ChartOfAccount['accountType'],
   ): Promise<void> {
     if (selfId !== null && parentId === selfId) {
@@ -213,7 +213,7 @@ export class ChartOfAccountsService {
     }
     // Walk up the ancestry chain to rule out a cycle.
     let cursor: ChartOfAccount | null = parent;
-    const seen = new Set<number>();
+    const seen = new Set<string>();
     while (cursor?.parentId) {
       if (cursor.parentId === selfId) {
         throw new BadRequestException('Cannot move an account under one of its own descendants');
@@ -235,7 +235,7 @@ export class ChartOfAccountsService {
     return this.periodRepo.save(this.periodRepo.create(dto));
   }
 
-  async updatePeriod(id: number, dto: UpdateFiscalPeriodDto): Promise<FiscalPeriod> {
+  async updatePeriod(id: string, dto: UpdateFiscalPeriodDto): Promise<FiscalPeriod> {
     const period = await this.periodRepo.findOne({ where: { id } });
     if (!period) throw new NotFoundException(`Fiscal period #${id} not found`);
     if (period.isClosed) {
@@ -247,7 +247,7 @@ export class ChartOfAccountsService {
   }
 
   /** Close (or reopen) a period. Phase 2 refuses postings into closed periods. */
-  async setPeriodClosed(id: number, closed: boolean, userId?: number): Promise<FiscalPeriod> {
+  async setPeriodClosed(id: string, closed: boolean, userId?: string): Promise<FiscalPeriod> {
     const period = await this.periodRepo.findOne({ where: { id } });
     if (!period) throw new NotFoundException(`Fiscal period #${id} not found`);
     period.isClosed = closed;

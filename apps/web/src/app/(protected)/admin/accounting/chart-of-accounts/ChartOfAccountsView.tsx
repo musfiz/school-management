@@ -48,9 +48,9 @@ type ModalKind = "account" | "fund" | "center" | "period";
 interface ModalState {
   kind: ModalKind;
   /** existing record id when editing, null when creating */
-  id: number | null;
+  id: string | null;
   /** preset parent for "add child" shortcut */
-  parentId?: number | null;
+  parentId?: string | null;
 }
 
 const EMPTY_ACCOUNT_FORM = {
@@ -78,7 +78,7 @@ function flatten(nodes: AccountTreeNode[]): AccountTreeNode[] {
   return out;
 }
 
-function collectIds(nodes: AccountTreeNode[]): Set<number> {
+function collectIds(nodes: AccountTreeNode[]): Set<string> {
   return new Set(flatten(nodes).map((n) => n.id));
 }
 
@@ -116,7 +116,7 @@ export default function ChartOfAccountsView() {
   const [typeFilter, setTypeFilter] = useState<AccountType | "ALL">("ALL");
   const [fundFilter, setFundFilter] = useState("ALL");
   const [showInactive, setShowInactive] = useState(false);
-  const [expanded, setExpanded] = useState<Set<number>>(new Set());
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
   const [modal, setModal] = useState<ModalState | null>(null);
   const [accountForm, setAccountForm] = useState(EMPTY_ACCOUNT_FORM);
@@ -174,7 +174,7 @@ export default function ChartOfAccountsView() {
   const allAccounts = useMemo(() => flatten(tree), [tree]);
   const openPeriod = periods.find((p) => !p.isClosed) ?? null;
 
-  function toggleExpand(id: number) {
+  function toggleExpand(id: string) {
     setExpanded((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
@@ -250,10 +250,10 @@ export default function ChartOfAccountsView() {
           accountNameBn: accountForm.accountNameBn.trim() || null,
           accountType: accountForm.accountType,
           normalBalance: accountForm.normalBalance,
-          parentId: accountForm.parentId === "" ? null : Number(accountForm.parentId),
+          parentId: accountForm.parentId === "" ? null : accountForm.parentId,
           isControlAccount: accountForm.isControlAccount,
           isCashOrBank: accountForm.isCashOrBank,
-          defaultFundId: accountForm.defaultFundId === "" ? null : Number(accountForm.defaultFundId),
+          defaultFundId: accountForm.defaultFundId === "" ? null : accountForm.defaultFundId,
           isActive: accountForm.isActive,
         };
         if (!payload.glCode || !payload.accountName) throw new Error("GL code and account name are required");
@@ -277,7 +277,7 @@ export default function ChartOfAccountsView() {
           centerCode: centerForm.centerCode.trim(),
           centerName: centerForm.centerName.trim(),
           institutionType: centerForm.institutionType,
-          parentId: centerForm.parentId === "" ? null : Number(centerForm.parentId),
+          parentId: centerForm.parentId === "" ? null : centerForm.parentId,
           isActive: centerForm.isActive,
         };
         if (!payload.centerCode || !payload.centerName) throw new Error("Center code and name are required");

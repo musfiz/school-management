@@ -49,7 +49,7 @@ export class UsersController {
   @ApiOperation({ summary: 'Get a user by ID' })
   @ApiResponse({ status: 200, description: 'User details', type: UserResponseDto })
   @ApiResponse({ status: 404, description: 'User not found' })
-  findOne(@Param('id') id: number) {
+  findOne(@Param('id') id: string) {
     return this.usersService.findOne(id);
   }
 
@@ -58,7 +58,7 @@ export class UsersController {
   @ApiOperation({ summary: 'Update a user' })
   @ApiResponse({ status: 200, description: 'User updated', type: UserResponseDto })
   @ApiResponse({ status: 404, description: 'User not found' })
-  update(@Param('id') id: number, @Body() updateUserDto: UpdateUserDto) {
+  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     return this.usersService.update(id, updateUserDto);
   }
 
@@ -68,7 +68,7 @@ export class UsersController {
   @ApiOperation({ summary: 'Delete a user' })
   @ApiResponse({ status: 204, description: 'User deleted' })
   @ApiResponse({ status: 404, description: 'User not found' })
-  remove(@Param('id') id: number) {
+  remove(@Param('id') id: string) {
     return this.usersService.remove(id);
   }
 }

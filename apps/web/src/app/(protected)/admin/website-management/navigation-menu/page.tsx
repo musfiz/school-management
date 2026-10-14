@@ -29,7 +29,7 @@ let tmpCounter = 0;
 const tmpId = () => `tmp-${++tmpCounter}`;
 
 interface ApiNode {
-  id?: number;
+  id?: string;
   labelEn: string;
   labelBn?: string | null;
   href: string;

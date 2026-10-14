@@ -3,12 +3,12 @@ import { Entity, PrimaryColumn, Column, CreateDateColumn, UpdateDateColumn } fro
 /** Where the header shows the logo, the site name/tagline text, or both. */
 export type HeaderDisplayMode = 'logo' | 'info' | 'both';
 
-/** Singleton row (id is always 1) holding the public site's header/footer
+/** Singleton row (fixed UUID id below) holding the public site's header/footer
  *  configuration, editable from the dashboard's Site Settings page. */
 @Entity('site_settings')
 export class SiteSetting {
-  @PrimaryColumn({ type: 'int', default: 1 })
-  id!: number;
+  @PrimaryColumn({ type: 'char', length: '36' })
+  id!: string;
 
   @Column({ name: 'site_name', type: 'varchar', length: 150, default: 'My School' })
   siteName!: string;

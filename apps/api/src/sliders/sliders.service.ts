@@ -28,13 +28,13 @@ export class SlidersService {
     return this.repo.save(this.repo.create(dto));
   }
 
-  async update(id: number, dto: UpdateSliderDto): Promise<Slider> {
+  async update(id: string, dto: UpdateSliderDto): Promise<Slider> {
     const slider = await this.repo.findOne({ where: { id } });
     if (!slider) throw new NotFoundException(`Slider ${id} not found`);
     return this.repo.save(this.repo.merge(slider, dto));
   }
 
-  async remove(id: number): Promise<{ id: number }> {
+  async remove(id: string): Promise<{ id: string }> {
     const slider = await this.repo.findOne({ where: { id } });
     if (!slider) throw new NotFoundException(`Slider ${id} not found`);
     await this.repo.remove(slider);

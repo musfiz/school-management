@@ -4,7 +4,7 @@ import {
   Delete,
   Get,
   Param,
-  ParseIntPipe,
+  ParseUUIDPipe,
   Patch,
   Post,
   UseGuards,
@@ -43,7 +43,7 @@ export class ExPrincipalsController {
   @Roles(UserRole.ADMIN, UserRole.MANAGEMENT)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update a former principal' })
-  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateExPrincipalDto) {
+  update(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateExPrincipalDto) {
     return this.exPrincipalsService.update(id, dto);
   }
 
@@ -52,7 +52,7 @@ export class ExPrincipalsController {
   @Roles(UserRole.ADMIN, UserRole.MANAGEMENT)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Remove a former principal' })
-  remove(@Param('id', ParseIntPipe) id: number) {
+  remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.exPrincipalsService.remove(id);
   }
 }

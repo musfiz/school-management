@@ -106,7 +106,7 @@ export class AuthService {
     };
   }
 
-  async validateUser(userId: number): Promise<User | null> {
+  async validateUser(userId: string): Promise<User | null> {
     return this.usersService.findByIdWithPassword(userId);
   }
 }

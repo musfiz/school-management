@@ -13,8 +13,8 @@ import {
  */
 @Entity('funds')
 export class Fund {
-  @PrimaryGeneratedColumn('increment')
-  id!: number;
+  @PrimaryGeneratedColumn('uuid')
+  id!: string;
 
   @Column({ name: 'fund_code', type: 'varchar', length: 10, unique: true })
   fundCode!: string;

@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import { SiteSetting } from '../database/entities/site-setting.entity';
 import { UpdateSiteSettingDto } from './site-setting.dto';
 
-const SINGLETON_ID = 1;
+const SINGLETON_ID = '00000000-0000-0000-0000-000000000001';
 
 @Injectable()
 export class SiteSettingsService {

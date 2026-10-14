@@ -5,8 +5,8 @@ import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateCol
  *  members: a name, an optional Bangla name, a designation, and a photo. */
 @Entity('staff_members')
 export class StaffMember {
-  @PrimaryGeneratedColumn('increment')
-  id!: number;
+  @PrimaryGeneratedColumn('uuid')
+  id!: string;
 
   @Column({ name: 'name', type: 'varchar', length: 150 })
   name!: string;

@@ -4,7 +4,7 @@ import {
   IsOptional,
   IsBoolean,
   IsIn,
-  IsInt,
+  IsUUID,
   MaxLength,
   Matches,
 } from 'class-validator';
@@ -73,9 +73,9 @@ export class CreateCostCenterDto {
   institutionType?: InstitutionType;
 
   @ApiPropertyOptional({ example: null })
-  @IsInt()
+  @IsUUID()
   @IsOptional()
-  parentId?: number | null;
+  parentId?: string | null;
 
   @ApiPropertyOptional({ example: true })
   @IsBoolean()
@@ -117,9 +117,9 @@ export class CreateAccountDto {
   normalBalance?: NormalBalance;
 
   @ApiPropertyOptional({ example: null })
-  @IsInt()
+  @IsUUID()
   @IsOptional()
-  parentId?: number | null;
+  parentId?: string | null;
 
   @ApiPropertyOptional({ example: false })
   @IsBoolean()
@@ -131,10 +131,10 @@ export class CreateAccountDto {
   @IsOptional()
   isCashOrBank?: boolean;
 
-  @ApiPropertyOptional({ example: 1 })
-  @IsInt()
+  @ApiPropertyOptional({ example: '3fa85f64-5717-4562-b3fc-2c963f66afa6' })
+  @IsUUID()
   @IsOptional()
-  defaultFundId?: number | null;
+  defaultFundId?: string | null;
 
   @ApiPropertyOptional({ example: true })
   @IsBoolean()
