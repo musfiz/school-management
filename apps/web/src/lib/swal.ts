@@ -22,13 +22,22 @@ const toastMixin = swal.mixin({
     popup: "!p-2.5 !px-3.5 !rounded-md !shadow-md !max-w-sm",
     title: "!text-xs !font-semibold !m-0 !p-0 !text-ink-900",
     htmlContainer: "!text-xs !text-ink-600 !m-0 !mt-0.5 !p-0 leading-tight",
-    icon: "!m-0 !mr-2 !w-5 !h-5 !scale-90",
+    icon: "!m-0 !mr-2 ![font-size:10px]",
   },
 });
 
+const TOAST_TITLES: Record<SweetAlertIcon, string> = {
+  success: "Success",
+  error: "Error",
+  warning: "Warning",
+  info: "Info",
+  question: "Question",
+};
+
 /**
  * Compact toast notification in the top corner.
- * Can be called with:
+ * The alert status (Success / Error / Info / Warning) is always the title;
+ * the operational message is the body text. Can be called with:
  * - toast(message, icon?)
  * - toast({ title, text, icon })
  */
@@ -39,14 +48,15 @@ export function toast(
   if (typeof messageOrOptions === "string") {
     return toastMixin.fire({
       icon,
-      title: messageOrOptions,
+      title: TOAST_TITLES[icon],
+      text: messageOrOptions,
     });
   }
 
   const { title, text, icon: iconOpt = "success" } = messageOrOptions;
   return toastMixin.fire({
     icon: iconOpt,
-    title: title || (iconOpt === "success" ? "Success" : "Error"),
+    title: title || TOAST_TITLES[iconOpt],
     text,
   });
 }

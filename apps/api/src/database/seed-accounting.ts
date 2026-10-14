@@ -1,5 +1,6 @@
-import { DataSource } from 'typeorm';
+import { DataSource, type DataSourceOptions } from 'typeorm';
 import { config } from '../config';
+import { dataSourceOptions } from './data-source';
 import { Fund } from './entities/fund.entity';
 import { CostCenter } from './entities/cost-center.entity';
 import {
@@ -9,17 +10,14 @@ import {
 } from './entities/chart-of-account.entity';
 import { FiscalPeriod } from './entities/fiscal-period.entity';
 
+// NOTE: schema is owned by migrations — never synchronize here (a partial
+// entity list + synchronize mangles foreign keys on migrated databases).
 const dataSource = new DataSource({
-  type: 'mysql',
-  host: config().database.host,
-  port: config().database.port,
-  username: config().database.username,
-  password: config().database.password,
+  ...dataSourceOptions,
   database: config().database.database,
-  entities: [Fund, CostCenter, ChartOfAccount, FiscalPeriod],
-  synchronize: true,
+  synchronize: false,
   logging: false,
-});
+} as DataSourceOptions);
 
 interface FundSeed {
   code: string;

@@ -29,7 +29,7 @@ import { UserRole } from '../database/entities/user-role.enum';
 @ApiTags('Accounting — Chart of Accounts')
 @ApiBearerAuth()
 @UseGuards(RolesGuard)
-@Roles(UserRole.ADMIN, UserRole.MANAGEMENT)
+@Roles(UserRole.ADMIN, UserRole.MANAGEMENT, UserRole.ACCOUNTANT)
 @Controller('accounting')
 export class ChartOfAccountsController {
   constructor(private readonly coaService: ChartOfAccountsService) {}

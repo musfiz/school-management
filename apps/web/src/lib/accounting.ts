@@ -106,8 +106,80 @@ export interface FiscalPeriod {
   startDate: string;
   endDate: string;
   isClosed: boolean;
-  closedByUserId?: number | null;
+  closedByUserId?: string | null;
   closedAt?: string | null;
   createdAt?: string;
   updatedAt?: string;
+}
+
+export type VoucherType =
+  | "JOURNAL"
+  | "RECEIVE"
+  | "PAYMENT"
+  | "CONTRA"
+  | "REVERSAL";
+
+export const VOUCHER_TYPES: VoucherType[] = [
+  "JOURNAL",
+  "RECEIVE",
+  "PAYMENT",
+  "CONTRA",
+  "REVERSAL",
+];
+
+export const VOUCHER_TYPE_LABELS: Record<VoucherType, string> = {
+  JOURNAL: "Journal",
+  RECEIVE: "Receipt",
+  PAYMENT: "Payment",
+  CONTRA: "Contra",
+  REVERSAL: "Reversal",
+};
+
+export type JournalStatus = "DRAFT" | "VERIFIED" | "APPROVED" | "REVERSED";
+
+export type SubledgerType = "STUDENT" | "VENDOR" | "EMPLOYEE" | "DONOR";
+
+export interface JournalLineForm {
+  key: string;
+  glAccountId: string;
+  fundId: string;
+  costCenterId: string;
+  subledgerType: string;
+  subledgerId: string;
+  debitAmount: string;
+  creditAmount: string;
+  lineMemo: string;
+}
+
+export interface JournalLine extends JournalLineForm {
+  id: string;
+  glAccount?: ChartOfAccount | null;
+  fund?: Fund | null;
+  costCenter?: CostCenter | null;
+}
+
+export interface JournalEntry {
+  id: string;
+  voucherNo: string;
+  voucherType: VoucherType;
+  transactionDate: string;
+  fiscalPeriodId: string;
+  fiscalPeriod?: FiscalPeriod | null;
+  sourceModule: string;
+  narration: string;
+  status: JournalStatus;
+  reversedEntryId?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
+  lines?: JournalLine[];
+}
+
+/** Parse a decimal-string amount safely (empty → 0). */
+export function parseAmount(raw: string): number {
+  const n = Number(String(raw ?? "").trim() === "" ? "0" : raw);
+  return Number.isFinite(n) && n >= 0 ? Math.round(n * 100) / 100 : NaN;
+}
+
+export function fmtMoney(n: number): string {
+  return n.toLocaleString("en-BD", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }

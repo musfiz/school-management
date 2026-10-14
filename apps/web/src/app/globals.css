@@ -787,3 +787,73 @@ html.lang-en {
   border-top: 1px solid var(--color-ink-200);
   margin: 1.5rem 0;
 }
+
+/* ----------------------------------------------------------------------------
+   Shared date picker theme (react-datepicker, `.sm-datepicker`).
+   Used by <DatePickerField /> — every form gets the same calendar look.
+---------------------------------------------------------------------------- */
+.sm-datepicker {
+  font-family: inherit;
+  border: 1px solid var(--color-ink-200);
+  border-radius: 0.5rem;
+  box-shadow: 0 8px 24px rgb(11 22 48 / 0.12);
+}
+.sm-datepicker .react-datepicker__header {
+  background-color: var(--color-navy-50);
+  border-bottom: 1px solid var(--color-ink-200);
+}
+.sm-datepicker .react-datepicker__current-month,
+.sm-datepicker .react-datepicker__day-name {
+  color: var(--color-navy-800);
+}
+.sm-datepicker .react-datepicker__day--selected,
+.sm-datepicker .react-datepicker__day--keyboard-selected,
+.sm-datepicker .react-datepicker__month-text--keyboard-selected,
+.sm-datepicker .react-datepicker__quarter-text--keyboard-selected,
+.sm-datepicker .react-datepicker__year-text--keyboard-selected {
+  background-color: var(--color-brand-600);
+  color: #fff;
+}
+.sm-datepicker .react-datepicker__day--selected:hover,
+.sm-datepicker .react-datepicker__day--keyboard-selected:hover {
+  background-color: var(--color-brand-500);
+}
+.sm-datepicker .react-datepicker__day:hover {
+  background-color: var(--color-ink-100);
+}
+.sm-datepicker .react-datepicker__day--today {
+  font-weight: 700;
+  color: var(--color-navy-700);
+}
+.sm-datepicker .react-datepicker__navigation-icon::before {
+  border-color: var(--color-navy-700);
+}
+
+/* ----------------------------------------------------------------------------
+   Oval alert badges (SweetAlert2).
+   Stretches the icon badge horizontally into an ellipse. Applied to the
+   container (not the glyph), so the entrance animations keep working and
+   every icon type — success, error, warning, info, question — turns oval.
+---------------------------------------------------------------------------- */
+.swal2-container .swal2-icon {
+  transform: scaleX(1.28);
+}
+
+/* ----------------------------------------------------------------------------
+   Toast timer bar matches the alert color (success / error / warning / info).
+---------------------------------------------------------------------------- */
+.swal2-container .swal2-icon.swal2-success ~ .swal2-timer-progress-bar {
+  background: #a5dc86;
+}
+.swal2-container .swal2-icon.swal2-error ~ .swal2-timer-progress-bar {
+  background: #f27474;
+}
+.swal2-container .swal2-icon.swal2-warning ~ .swal2-timer-progress-bar {
+  background: #f8bb86;
+}
+.swal2-container .swal2-icon.swal2-info ~ .swal2-timer-progress-bar {
+  background: #3fc3ee;
+}
+.swal2-container .swal2-icon.swal2-question ~ .swal2-timer-progress-bar {
+  background: #87adbd;
+}

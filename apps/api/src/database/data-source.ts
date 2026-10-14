@@ -18,6 +18,9 @@ import { Fund } from './entities/fund.entity';
 import { CostCenter } from './entities/cost-center.entity';
 import { ChartOfAccount } from './entities/chart-of-account.entity';
 import { FiscalPeriod } from './entities/fiscal-period.entity';
+import { JournalEntry } from './entities/journal-entry.entity';
+import { JournalLine } from './entities/journal-line.entity';
+import { VoucherSequence } from './entities/voucher-sequence.entity';
 
 dotenv.config();
 
@@ -28,7 +31,7 @@ export const dataSourceOptions: DataSourceOptions = {
   username: process.env.DB_USERNAME || 'root',
   password: process.env.DB_PASSWORD || '',
   database: process.env.DB_DATABASE || 'school',
-  entities: [User, MenuItem, SiteSetting, Page, GoverningBodyMember, ExPrincipal, Slider, StaffMember, Teacher, Permission, UserPermission, Module, HeroSection, Notice, Fund, CostCenter, ChartOfAccount, FiscalPeriod],
+  entities: [User, MenuItem, SiteSetting, Page, GoverningBodyMember, ExPrincipal, Slider, StaffMember, Teacher, Permission, UserPermission, Module, HeroSection, Notice, Fund, CostCenter, ChartOfAccount, FiscalPeriod, JournalEntry, JournalLine, VoucherSequence],
   migrations: ['src/database/migrations/*.ts'],
   synchronize: false,
   logging: process.env.NODE_ENV === 'development',

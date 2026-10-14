@@ -1,22 +1,20 @@
-import { DataSource } from 'typeorm';
+import { DataSource, type DataSourceOptions } from 'typeorm';
 import { config } from '../config';
+import { dataSourceOptions } from './data-source';
 import { User } from './entities/user.entity';
 import { UserRole } from './entities/user-role.enum';
 import { Permission } from './entities/permission.entity';
 import { UserPermission } from './entities/user-permission.entity';
 import * as bcrypt from 'bcryptjs';
 
+// NOTE: schema is owned by migrations — never synchronize here (a partial
+// entity list + synchronize mangles foreign keys on migrated databases).
 const dataSource = new DataSource({
-  type: 'mysql',
-  host: config().database.host,
-  port: config().database.port,
-  username: config().database.username,
-  password: config().database.password,
+  ...dataSourceOptions,
   database: config().database.database,
-  entities: [User, Permission, UserPermission],
-  synchronize: true,
+  synchronize: false,
   logging: true,
-});
+} as DataSourceOptions);
 
 async function seed() {
   console.log('🌱 Starting database seed...\n');
@@ -26,8 +24,9 @@ async function seed() {
 
   const userRepository = dataSource.getRepository(User);
 
-  // Clear existing users
-  await userRepository.clear();
+  // Clear existing users (DELETE, not TRUNCATE — journal tables hold
+  // RESTRICT/SET NULL foreign keys into users).
+  await userRepository.createQueryBuilder().delete().execute();
   console.log('🗑️  Cleared existing users\n');
 
   // Create users
@@ -45,6 +44,14 @@ async function seed() {
       email: 'principal@school.com',
       password: 'principal123',
       role: UserRole.MANAGEMENT,
+      isActive: true,
+      isVerified: true,
+    },
+    {
+      name: 'Accountant',
+      email: 'accountant@school.com',
+      password: 'accountant123',
+      role: UserRole.ACCOUNTANT,
       isActive: true,
       isVerified: true,
     },
