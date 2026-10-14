@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type KeyboardEvent } from "react";
+import { useId, useState, type KeyboardEvent } from "react";
 import ReactDatePicker from "react-datepicker";
 import { CalendarDays } from "lucide-react";
 import "react-datepicker/dist/react-datepicker.css";
@@ -64,16 +64,26 @@ export default function DatePickerField({
   // including clicking the already-selected date (which fires `onSelect`
   // but no `onChange`, so the uncontrolled picker would stay open).
   const [open, setOpen] = useState(false);
+  // NOTE: the wrapper is a <div>, NOT a <label>. The calendar popup lives
+  // inside this wrapper for positioning — nesting it in a <label> made
+  // every day-click also trigger the label's click-forwarding to the
+  // input, which re-opened the calendar right after selection. The title
+  // keeps a real <label htmlFor> association for accessibility.
+  const inputId = useId();
   return (
-    <label className={`block text-sm ${className}`}>
+    <div className={`block text-sm ${className}`}>
       {label && (
-        <span className="mb-1 block font-medium text-ink-700">
+        <label
+          htmlFor={inputId}
+          className="mb-1 block cursor-pointer font-medium text-ink-700"
+        >
           {label}
           {required && <span className="ml-0.5 text-rose-500">*</span>}
-        </span>
+        </label>
       )}
-      <span className="relative block">
+      <div className="relative block">
         <ReactDatePicker
+          id={inputId}
           selected={value ? parseISODate(value) : null}
           onChange={(d: Date | null) => {
             onChange(d ? toISODate(d) : "");
@@ -109,8 +119,8 @@ export default function DatePickerField({
         >
           <CalendarDays className="h-4 w-4" />
         </button>
-      </span>
+      </div>
       {error && <span className="mt-1 block text-xs text-rose-600">{error}</span>}
-    </label>
+    </div>
   );
 }

@@ -18,6 +18,9 @@ import { Vendor } from '../database/entities/vendor.entity';
 import { VendorBill } from '../database/entities/vendor-bill.entity';
 import { TaxChallan } from '../database/entities/tax-challan.entity';
 import { TaxChallanItem } from '../database/entities/tax-challan-item.entity';
+import { PayrollRun } from '../database/entities/payroll-run.entity';
+import { PayslipLine } from '../database/entities/payslip-line.entity';
+import { AdjunctHonorariumBill } from '../database/entities/adjunct-honorarium-bill.entity';
 import { ChartOfAccountsService } from './chart-of-accounts.service';
 import { ChartOfAccountsController } from './chart-of-accounts.controller';
 import { VoucherSequenceService } from './voucher-sequence.service';
@@ -29,6 +32,8 @@ import { FeeCollectionService } from './fee-collection.service';
 import { CollectionController } from './collection.controller';
 import { VendorBillService } from './vendor-bill.service';
 import { ProcurementController } from './procurement.controller';
+import { PayrollAccountingService } from './payroll.service';
+import { PayrollController } from './payroll.controller';
 
 @Module({
   imports: [
@@ -51,10 +56,13 @@ import { ProcurementController } from './procurement.controller';
       VendorBill,
       TaxChallan,
       TaxChallanItem,
+      PayrollRun,
+      PayslipLine,
+      AdjunctHonorariumBill,
     ]),
   ],
-  controllers: [ChartOfAccountsController, VouchersController, BillingController, CollectionController, ProcurementController],
-  providers: [ChartOfAccountsService, VoucherSequenceService, JournalPostingService, StudentBillingService, FeeCollectionService, VendorBillService],
-  exports: [ChartOfAccountsService, JournalPostingService, VoucherSequenceService, StudentBillingService, FeeCollectionService, VendorBillService],
+  controllers: [ChartOfAccountsController, VouchersController, BillingController, CollectionController, ProcurementController, PayrollController],
+  providers: [ChartOfAccountsService, VoucherSequenceService, JournalPostingService, StudentBillingService, FeeCollectionService, VendorBillService, PayrollAccountingService],
+  exports: [ChartOfAccountsService, JournalPostingService, VoucherSequenceService, StudentBillingService, FeeCollectionService, VendorBillService, PayrollAccountingService],
 })
 export class AccountingModule {}
