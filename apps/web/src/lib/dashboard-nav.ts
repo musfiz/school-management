@@ -25,6 +25,7 @@ import {
   RiDownloadCloudLine,
   RiInformationLine,
   RiShieldKeyholeLine,
+  RiShieldCheckLine,
   RiKey2Line,
   RiUserSettingsLine as RiUserPermissionLine,
 } from "react-icons/ri";
@@ -322,10 +323,17 @@ export const dashboardTree: DashTreeNode[] = [
       },
       {
         kind: "leaf",
-        label: "Reports & Audit",
+        label: "Financial Reports",
         href: "/admin/accounting/reports",
         roles: ["admin", "management", "accountant"],
         icon: RiDownloadCloudLine,
+      },
+      {
+        kind: "leaf",
+        label: "Audit Trail",
+        href: "/admin/accounting/audit",
+        roles: ["admin", "management", "accountant"],
+        icon: RiShieldCheckLine,
       },
     ],
   },
