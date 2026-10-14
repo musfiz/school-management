@@ -78,3 +78,57 @@ export interface AuditActivityLog {
   ipAddress?: string | null;
   createdAt: string;
 }
+
+export interface VoucherAuditFilters {
+  status?: string;
+  voucherType?: string;
+  sourceModule?: string;
+  startDate?: string;
+  endDate?: string;
+  search?: string;
+  limit?: number;
+}
+
+export interface ActivityLogFilters {
+  eventType?: string;
+  entityType?: string;
+  startDate?: string;
+  endDate?: string;
+  limit?: number;
+}
+
+export const VOUCHER_STATUSES = ["DRAFT", "VERIFIED", "APPROVED", "REVERSED"] as const;
+
+export const VOUCHER_TYPES = ["JOURNAL", "RECEIVE", "PAYMENT", "CONTRA", "REVERSAL"] as const;
+
+export const SOURCE_MODULES = [
+  "MANUAL",
+  "STUDENT_BILLING",
+  "MFS_COLLECTION",
+  "PROCUREMENT",
+  "PAYROLL",
+] as const;
+
+export const SOURCE_MODULE_LABELS: Record<string, string> = {
+  MANUAL: "Manual Journal",
+  STUDENT_BILLING: "Student Billing",
+  MFS_COLLECTION: "Fee Collection / MFS",
+  PROCUREMENT: "Procurement / Vendor",
+  PAYROLL: "Payroll / MPO",
+};
+
+export const AUDIT_EVENT_TYPES = [
+  "VOUCHER_CREATED",
+  "VOUCHER_VERIFIED",
+  "VOUCHER_APPROVED",
+  "VOUCHER_REVERSED",
+  "INVOICE_GENERATED",
+  "INVOICE_REVERSED",
+  "PAYMENT_COLLECTED",
+  "VENDOR_BILL_CREATED",
+  "VENDOR_BILL_APPROVED",
+  "TAX_CHALLAN_REMITTED",
+  "PAYROLL_RUN_APPROVED",
+  "PAYROLL_RUN_PAID",
+  "MANUAL_AUDIT_ENTRY",
+] as const;

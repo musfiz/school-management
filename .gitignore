@@ -112,3 +112,4 @@ $RECYCLE.BIN/
 *.pem
 .tmp/
 tmp/
+.opencode/*

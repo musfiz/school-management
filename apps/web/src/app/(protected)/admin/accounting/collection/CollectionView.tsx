@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Banknote, Printer, Search, Undo2, ArrowRightLeft, Receipt } from "lucide-react";
 import { DashCard, DashPageHeader } from "@/components/dashboard/DashPage";
 import AdminPageLoader from "@/components/dashboard/AdminPageLoader";
+import PrintMenu from "@/components/dashboard/PrintMenu";
 import { apiFetch } from "@/lib/api";
 import { confirmDialog, promptDialog, toast } from "@/lib/swal";
 import DatePickerField from "@/components/ui/DatePicker";
@@ -616,6 +617,7 @@ function ReceiptModal({ receipt, onClose }: { receipt: PaymentCollection; onClos
         className="w-full max-w-md rounded-xs bg-white p-6"
         onClick={(e) => e.stopPropagation()}
       >
+        <div id="receipt-print-area">
         <div className="border-b-2 border-dashed border-ink-200 pb-3 text-center">
           <p className="flex items-center justify-center gap-1.5 text-lg font-bold">
             <Receipt className="h-5 w-5" /> MONEY RECEIPT
@@ -654,14 +656,18 @@ function ReceiptModal({ receipt, onClose }: { receipt: PaymentCollection; onClos
             ))}
           </div>
         )}
+        <p className="mt-2 text-center font-mono text-[11px] text-ink-400">
+          System receipt · voucher {receipt.glJournalId?.slice(0, 13) ?? "—"} · due now {receipt.invoice ? fmtMoney(dueOf(receipt.invoice)) : "—"}
+        </p>
+        </div>
         <div className="mt-4 flex gap-2">
-          <button
-            type="button"
-            onClick={() => window.print()}
-            className="flex flex-1 items-center justify-center gap-1 rounded-xs bg-brand-600 px-3 py-2 text-sm font-semibold text-white hover:bg-brand-700"
-          >
-            <Printer className="h-4 w-4" /> Print
-          </button>
+          <PrintMenu
+            title={`Money Receipt ${receipt.moneyReceiptNo}`}
+            printTargetId="receipt-print-area"
+            pdfUrl={`/api/documents/money-receipt/${receipt.id}/pdf`}
+            fileName={`${receipt.moneyReceiptNo}.pdf`}
+            className="flex-1"
+          />
           <button
             type="button"
             onClick={onClose}
@@ -670,9 +676,6 @@ function ReceiptModal({ receipt, onClose }: { receipt: PaymentCollection; onClos
             Close
           </button>
         </div>
-        <p className="mt-2 text-center font-mono text-[11px] text-ink-400">
-          System receipt · voucher {receipt.glJournalId?.slice(0, 13) ?? "—"} · due now {receipt.invoice ? fmtMoney(dueOf(receipt.invoice)) : "—"}
-        </p>
       </div>
     </div>
   );

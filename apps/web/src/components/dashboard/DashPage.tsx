@@ -19,17 +19,24 @@ export function DashPageHeader({
 
 export function DashCard({
   title,
+  action,
   children,
   className = "",
 }: {
   title?: string;
+  action?: ReactNode;
   children: ReactNode;
   className?: string;
 }) {
   return (
     <div className={`rounded-xs border border-ink-200 bg-white p-4 shadow-soft ${className}`}>
-      {title && (
-        <h2 className="mb-3 font-display text-base font-bold text-navy-900">{title}</h2>
+      {(title || action) && (
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+          {title && (
+            <h2 className="font-display text-base font-bold text-navy-900">{title}</h2>
+          )}
+          {action && <div className="flex items-center gap-2">{action}</div>}
+        </div>
       )}
       {children}
     </div>

@@ -105,7 +105,7 @@ export default function DatePickerField({
           required={required}
           name={name}
           isClearable={!required && !disabled}
-          className={`w-full rounded-xs cursor-pointer border bg-white py-1 pl-3 pr-9 text-sm outline-none transition-colors focus:border-brand-400 disabled:bg-ink-50 disabled:text-ink-400 ${ error ? "border-rose-400" : "border-ink-200" }`}
+          className={`w-full rounded-xs cursor-pointer border bg-white py-1 pl-3 pr-14 text-sm outline-none transition-colors focus:border-brand-400 disabled:bg-ink-50 disabled:text-ink-400 ${ error ? "border-rose-400" : "border-ink-200" }`}
           wrapperClassName="block w-full"
           calendarClassName="sm-datepicker"
         />

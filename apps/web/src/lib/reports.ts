@@ -1,4 +1,6 @@
-import type { AccountType, NormalBalance } from "./accounting";
+import type { AccountType } from "./accounting";
+
+export type NormalBalance = "DR" | "CR";
 
 export interface TrialBalanceRow {
   glAccountId: string;

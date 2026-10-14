@@ -19,6 +19,7 @@ import { ModulesModule } from './modules/modules.module';
 import { HeroSectionModule } from './hero-section/hero-section.module';
 import { NoticesModule } from './notices/notices.module';
 import { AccountingModule } from './accounting/accounting.module';
+import { DocumentsModule } from './documents/documents.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { DatabaseService } from './database/database.service';
@@ -44,6 +45,7 @@ import { JwtAuthGuard } from './auth/jwt-auth.guard';
     HeroSectionModule,
     NoticesModule,
     AccountingModule,
+    DocumentsModule,
   ],
   controllers: [AppController],
   providers: [

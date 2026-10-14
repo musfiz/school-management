@@ -17,6 +17,7 @@ import { DashCard, DashPageHeader } from "@/components/dashboard/DashPage";
 import AdminPageLoader from "@/components/dashboard/AdminPageLoader";
 import { apiFetch } from "@/lib/api";
 import { toast } from "@/lib/swal";
+import { printElement, downloadReportPdf } from "@/lib/print";
 import SearchSelect from "@/components/ui/SearchSelect";
 import type { ChartOfAccount, CostCenter, Fund } from "@/lib/accounting";
 import {
@@ -250,6 +251,160 @@ export default function ReportsView() {
     }
   };
 
+  // Server-side A4 PDF via the global documents endpoint (pdf-lib — same
+  // bytes on Windows / Linux / macOS). Builds a tabular payload from the
+  // currently loaded tab.
+  const handleDownloadPdf = async () => {
+    const ts = new Date().toISOString().slice(0, 10);
+    const period = `Period: ${startDate} to ${endDate}`;
+    try {
+      if (activeTab === "trial-balance" && trialBalance) {
+        await downloadReportPdf(
+          {
+            title: "Trial Balance",
+            subtitle: period,
+            columns: [
+              { header: "GL Code", width: 1.4 },
+              { header: "Account Head", width: 3.4 },
+              { header: "Op. Dr", width: 1.5, align: "right" },
+              { header: "Op. Cr", width: 1.5, align: "right" },
+              { header: "Period Dr", width: 1.5, align: "right" },
+              { header: "Period Cr", width: 1.5, align: "right" },
+              { header: "Closing Dr", width: 1.5, align: "right" },
+              { header: "Closing Cr", width: 1.5, align: "right" },
+            ],
+            rows: trialBalance.rows.map((r) => [
+              r.glCode, r.accountName,
+              fmtMoney(r.openingDebit), fmtMoney(r.openingCredit),
+              fmtMoney(r.periodDebit), fmtMoney(r.periodCredit),
+              fmtMoney(r.closingDebit), fmtMoney(r.closingCredit),
+            ]),
+            totals: [
+              { label: "Closing Dr (BDT)", value: fmtMoney(trialBalance.totals.closingDebit) },
+              { label: "Closing Cr (BDT)", value: fmtMoney(trialBalance.totals.closingCredit) },
+              { label: "Status", value: trialBalance.totals.isBalanced ? "BALANCED" : `UNBALANCED (Diff ${trialBalance.totals.difference})` },
+            ],
+          },
+          `Trial_Balance_${startDate}_to_${endDate}_${ts}.pdf`,
+        );
+      } else if (activeTab === "income-expenditure" && incomeExp) {
+        await downloadReportPdf(
+          {
+            title: "Statement of Income & Expenditure",
+            subtitle: period,
+            columns: [
+              { header: "Section", width: 2 },
+              { header: "Head", width: 4 },
+              { header: "Amount (BDT)", width: 2, align: "right" },
+            ],
+            rows: [
+              ...incomeExp.revenues.map((r) => ["Revenue", `${r.glCode} — ${r.accountName}`, fmtMoney(r.amount)]),
+              ...incomeExp.contraRevenues.map((c) => ["Less: Waiver", `${c.glCode} — ${c.accountName}`, `(${fmtMoney(c.amount)})`]),
+              ...incomeExp.expenses.map((e) => ["Expenditure", `${e.glCode} — ${e.accountName}`, fmtMoney(e.amount)]),
+            ],
+            totals: [{ label: incomeExp.isSurplus ? "Net Surplus (BDT)" : "Net Deficit (BDT)", value: fmtMoney(incomeExp.netSurplusDeficit) }],
+          },
+          `Income_Expenditure_${startDate}_to_${endDate}_${ts}.pdf`,
+        );
+      } else if (activeTab === "defaulter-aging" && defaulterAging) {
+        await downloadReportPdf(
+          {
+            title: "Student Defaulter & Aging",
+            subtitle: `As of ${endDate}`,
+            columns: [
+              { header: "Student", width: 2.6 },
+              { header: "Invoice", width: 1.8 },
+              { header: "Due Date", width: 1.4 },
+              { header: "Bucket", width: 1.2 },
+              { header: "Due (BDT)", width: 1.4, align: "right" },
+            ],
+            rows: defaulterAging.items.map((i) => [
+              i.studentName, i.invoiceNo, i.dueDate, i.agingBucket, fmtMoney(i.dueBalance),
+            ]),
+            totals: [{ label: "Total Outstanding (BDT)", value: fmtMoney(defaulterAging.summary.totalOutstanding) }],
+          },
+          `Student_Defaulter_Aging_${endDate}_${ts}.pdf`,
+        );
+      } else if (activeTab === "general-ledger" && generalLedger) {
+        await downloadReportPdf(
+          {
+            title: `General Ledger — ${generalLedger.account.glCode} ${generalLedger.account.accountName}`,
+            subtitle: period,
+            columns: [
+              { header: "Date", width: 1.4 },
+              { header: "Voucher", width: 1.8 },
+              { header: "Narration", width: 3.6 },
+              { header: "Debit", width: 1.4, align: "right" },
+              { header: "Credit", width: 1.4, align: "right" },
+              { header: "Balance", width: 1.4, align: "right" },
+            ],
+            rows: generalLedger.lines.map((l) => [
+              l.transactionDate, l.voucherNo, l.narration,
+              fmtMoney(l.debitAmount), fmtMoney(l.creditAmount), fmtMoney(l.runningBalance),
+            ]),
+            totals: [
+              { label: "Opening", value: fmtMoney(generalLedger.openingBalance) },
+              { label: "Closing", value: fmtMoney(generalLedger.closingBalance) },
+            ],
+          },
+          `General_Ledger_${generalLedger.account.glCode}_${ts}.pdf`,
+        );
+      } else if (activeTab === "balance-sheet" && balanceSheet) {
+        await downloadReportPdf(
+          {
+            title: "Statement of Financial Position",
+            subtitle: `As of ${endDate}`,
+            columns: [
+              { header: "Section", width: 2 },
+              { header: "Head", width: 4 },
+              { header: "Amount (BDT)", width: 2, align: "right" },
+            ],
+            rows: [
+              ...balanceSheet.assets.current.map((a) => ["Asset (Current)", `${a.glCode} — ${a.accountName}`, fmtMoney(a.amount)]),
+              ...balanceSheet.assets.fixed.map((a) => ["Asset (Fixed)", `${a.glCode} — ${a.accountName}`, fmtMoney(a.amount)]),
+              ...balanceSheet.liabilities.current.map((l) => ["Liability", `${l.glCode} — ${l.accountName}`, fmtMoney(l.amount)]),
+              ...balanceSheet.fundBalance.accounts.map((e) => ["Fund Balance", `${e.glCode} — ${e.accountName}`, fmtMoney(e.amount)]),
+            ],
+            totals: [
+              { label: "Total Assets (BDT)", value: fmtMoney(balanceSheet.assets.total) },
+              { label: "Total Liab. + Funds (BDT)", value: fmtMoney(balanceSheet.totalLiabilitiesAndEquity) },
+              { label: "Status", value: balanceSheet.isBalanced ? "BALANCED" : `OUT OF BALANCE (${balanceSheet.discrepancy})` },
+            ],
+          },
+          `Balance_Sheet_${endDate}_${ts}.pdf`,
+        );
+      } else if (activeTab === "dia-receipts" && receiptsPayments) {
+        await downloadReportPdf(
+          {
+            title: "DIA Receipts & Payments Account",
+            subtitle: period,
+            columns: [
+              { header: "Category", width: 2 },
+              { header: "Head", width: 4 },
+              { header: "Amount (BDT)", width: 2, align: "right" },
+            ],
+            rows: [
+              ...receiptsPayments.openingBalances.map((o) => ["Opening", `${o.glCode} — ${o.accountName}`, fmtMoney(o.balance)]),
+              ...receiptsPayments.receipts.map((r) => ["Receipt", `${r.glCode} — ${r.name}`, fmtMoney(r.amount)]),
+              ...receiptsPayments.payments.map((p) => ["Payment", `${p.glCode} — ${p.name}`, fmtMoney(p.amount)]),
+              ...receiptsPayments.closingBalances.map((c) => ["Closing", `${c.glCode} — ${c.accountName}`, fmtMoney(c.balance)]),
+            ],
+            totals: [
+              { label: "Total Receipts (BDT)", value: fmtMoney(receiptsPayments.totalReceipts) },
+              { label: "Total Payments (BDT)", value: fmtMoney(receiptsPayments.totalPayments) },
+              { label: "Status", value: receiptsPayments.isReconciled ? "RECONCILED" : `DISCREPANCY (${receiptsPayments.reconciliationDiscrepancy})` },
+            ],
+          },
+          `DIA_Receipts_Payments_${startDate}_to_${endDate}_${ts}.pdf`,
+        );
+      } else {
+        toast("Run the report first — no data loaded for PDF export", "warning");
+      }
+    } catch (e) {
+      toast(e instanceof Error ? e.message : "PDF export failed", "error");
+    }
+  };
+
   const glOptions = useMemo(
     () =>
       accounts.map((a) => ({
@@ -353,10 +508,9 @@ export default function ReportsView() {
               <label className="mb-1 block text-xs font-medium text-ink-700">GL Account</label>
               <SearchSelect
                 options={glOptions}
-                value={glOptions.find((o) => o.value === selectedGlId) || null}
-                onChange={(opt) => setSelectedGlId(opt?.value || "")}
+                value={selectedGlId}
+                onChange={(val) => setSelectedGlId(val || "")}
                 placeholder="Select GL Account..."
-                className="text-xs"
               />
             </div>
           )}
@@ -379,11 +533,25 @@ export default function ReportsView() {
             </button>
             <button
               type="button"
-              onClick={() => window.print()}
+              onClick={() => {
+                try {
+                  printElement("printable-report-area", TABS.find((t) => t.id === activeTab)?.label ?? "Report");
+                } catch (e) {
+                  toast(e instanceof Error ? e.message : "Print failed", "error");
+                }
+              }}
               className="flex cursor-pointer items-center gap-1 rounded-xs border border-ink-200 bg-white px-2.5 py-1 text-xs font-medium text-ink-700 hover:bg-ink-50"
             >
               <Printer className="h-3 w-3" />
               <span>Print</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => void handleDownloadPdf()}
+              className="flex cursor-pointer items-center gap-1 rounded-xs border border-ink-200 bg-white px-2.5 py-1 text-xs font-medium text-ink-700 hover:bg-ink-50"
+            >
+              <FileSpreadsheet className="h-3 w-3" />
+              <span>PDF (A4)</span>
             </button>
           </div>
         </div>
