@@ -12,7 +12,8 @@
     "migration:generate": "pnpm run typeorm migration:generate -d src/database/data-source.ts",
     "migration:run": "pnpm run typeorm migration:run -d src/database/data-source.ts",
     "migration:revert": "pnpm run typeorm migration:revert -d src/database/data-source.ts",
-    "seed": "tsx src/database/seed.ts"
+    "seed": "tsx src/database/seed.ts",
+    "seed:accounting": "tsx src/database/seed-accounting.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.2.3",

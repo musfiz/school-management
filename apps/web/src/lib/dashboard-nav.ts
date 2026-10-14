@@ -266,6 +266,68 @@ export const dashboardTree: DashTreeNode[] = [
     ],
   },
 
+  // ── Accounts Management ────────────────────────────────────
+  // Positioned directly under Website Management. Mirrors Phase 8 of
+  // docs/AGENT_IMPLEMENTATION_PLAN.md (frontend workstreams) and the CoA /
+  // fund engine in docs/accounting_architecture_spec.md. Backend (Phases
+  // 1-7) lands under apps/api/src/modules/accounting/.
+  {
+    kind: "group",
+    label: "Accounts Management",
+    icon: RiMoneyDollarCircleLine,
+    children: [
+      {
+        kind: "leaf",
+        label: "Chart of Accounts",
+        href: "/admin/accounting/chart-of-accounts",
+        roles: ["admin", "management"],
+        icon: RiBookOpenLine,
+      },
+      {
+        kind: "leaf",
+        label: "Vouchers",
+        href: "/admin/accounting/vouchers",
+        roles: ["admin", "management"],
+        icon: RiClipboardLine,
+      },
+      {
+        kind: "leaf",
+        label: "Billing & Invoices",
+        href: "/admin/accounting/billing",
+        roles: ["admin", "management"],
+        icon: RiGraduationCapLine,
+      },
+      {
+        kind: "leaf",
+        label: "Fee Collection",
+        href: "/admin/accounting/collection",
+        roles: ["admin", "management"],
+        icon: RiMoneyDollarCircleLine,
+      },
+      {
+        kind: "leaf",
+        label: "Payables & NBR Tax",
+        href: "/admin/accounting/payables-tax",
+        roles: ["admin", "management"],
+        icon: RiBuildingLine,
+      },
+      {
+        kind: "leaf",
+        label: "Payroll & MPO",
+        href: "/admin/accounting/payroll",
+        roles: ["admin", "management"],
+        icon: RiUserLine,
+      },
+      {
+        kind: "leaf",
+        label: "Reports & Audit",
+        href: "/admin/accounting/reports",
+        roles: ["admin", "management"],
+        icon: RiDownloadCloudLine,
+      },
+    ],
+  },
+
   // ── Information ────────────────────────────────────────────────
   {
     kind: "group",
