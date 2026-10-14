@@ -27,6 +27,10 @@ import { StudentInvoice } from './entities/student-invoice.entity';
 import { StudentInvoiceLine } from './entities/student-invoice-line.entity';
 import { StudentCautionDeposit } from './entities/student-caution-deposit.entity';
 import { PaymentCollection } from './entities/payment-collection.entity';
+import { Vendor } from './entities/vendor.entity';
+import { VendorBill } from './entities/vendor-bill.entity';
+import { TaxChallan } from './entities/tax-challan.entity';
+import { TaxChallanItem } from './entities/tax-challan-item.entity';
 dotenv.config();
 
 export const dataSourceOptions: DataSourceOptions = {
@@ -36,7 +40,7 @@ export const dataSourceOptions: DataSourceOptions = {
   username: process.env.DB_USERNAME || 'root',
   password: process.env.DB_PASSWORD || '',
   database: process.env.DB_DATABASE || 'school',
-  entities: [User, MenuItem, SiteSetting, Page, GoverningBodyMember, ExPrincipal, Slider, StaffMember, Teacher, Permission, UserPermission, Module, HeroSection, Notice, Fund, CostCenter, ChartOfAccount, FiscalPeriod, JournalEntry, JournalLine, VoucherSequence, FeeHead, StudentWaiver, StudentInvoice, StudentInvoiceLine, StudentCautionDeposit, PaymentCollection],
+  entities: [User, MenuItem, SiteSetting, Page, GoverningBodyMember, ExPrincipal, Slider, StaffMember, Teacher, Permission, UserPermission, Module, HeroSection, Notice, Fund, CostCenter, ChartOfAccount, FiscalPeriod, JournalEntry, JournalLine, VoucherSequence, FeeHead, StudentWaiver, StudentInvoice, StudentInvoiceLine, StudentCautionDeposit, PaymentCollection, Vendor, VendorBill, TaxChallan, TaxChallanItem],
   migrations: ['src/database/migrations/*.ts'],
   synchronize: false,
   logging: process.env.NODE_ENV === 'development',
