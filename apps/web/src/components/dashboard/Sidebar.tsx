@@ -222,9 +222,16 @@ function FlyoutNode({ node, onNavigate }: { node: DashTreeNode; onNavigate: () =
   const pathname = usePathname();
 
   if (node.kind === "group") {
+    const groupActive = isNodeOrChildActive(node, pathname);
     return (
       <li className="px-1 py-1">
-        <p className="px-2 py-1 text-[11px] font-semibold uppercase tracking-wider text-ink-400">{node.label}</p>
+        <p
+          className={`px-2 py-1 text-[11px] font-semibold uppercase tracking-wider ${
+            groupActive ? "sidebar-flyout-group-active" : "text-ink-400"
+          }`}
+        >
+          {node.label}
+        </p>
         <ul className="space-y-0.5">
           {(node.children ?? []).map((child) => (
             <FlyoutNode key={nodeKey(child, node.label.toLowerCase().replace(/\s+/g, "-"))} node={child} onNavigate={onNavigate} />

@@ -194,6 +194,13 @@ export const dashboardTree: DashTreeNode[] = [
         icon: RiImageLine,
       },
       {
+        kind: "leaf",
+        label: "Notice Board",
+        href: "/admin/notices",
+        roles: ROLES,
+        icon: RiMailLine,
+      },
+      {
         kind: "group",
         label: "About",
         icon: RiInformationLine,
@@ -564,13 +571,6 @@ export const dashboardTree: DashTreeNode[] = [
     label: "Others",
     icon: RiGlobalLine,
     children: [
-      {
-        kind: "leaf",
-        label: "Notice Board",
-        href: "/admin/notices",
-        roles: ROLES,
-        icon: RiMailLine,
-      },
       { kind: "leaf", label: "News", href: "/admin/others/news", roles: ROLES, icon: RiGlobalLine },
       {
         kind: "leaf",

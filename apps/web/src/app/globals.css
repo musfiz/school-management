@@ -241,24 +241,60 @@ html.lang-en {
   align-items: center;
   justify-content: space-between;
   width: 100%;
+  min-height: 32px;
   padding: 3px 8px;
     font-size: 14px;
+  line-height: 20px;
   font-weight: 600;
   color: var(--color-ink-600);
   background: transparent;
   border: none;
   border-radius: 6px;
   cursor: pointer;
-  transition: background-color 0.15s ease, color 0.15s ease;
+  transition: background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .sidebar-group-btn:hover {
-  background-color: var(--color-ink-50);
-  color: var(--color-ink-900);
+  background-color: var(--color-ink-100);
+  color: var(--color-navy-800);
+  box-shadow: inset 3px 0 0 var(--color-ink-300);
+}
+
+.sidebar-group-btn:hover .sidebar-icon-chip {
+  background-color: #ffffff;
+  color: var(--color-navy-700);
+  box-shadow: inset 0 0 0 1px var(--color-ink-200);
+}
+
+/* Hovering an already-active trail step deepens it one notch. */
+.sidebar-group[data-level="0"] > .sidebar-group-btn.active:hover {
+  background-color: var(--color-brand-100);
+}
+.sidebar-group[data-level="1"] > .sidebar-group-btn.active:hover {
+  background-color: var(--color-brand-200);
 }
 
 .sidebar-group-btn.active {
   color: var(--color-navy-800);
+  background-color: var(--color-brand-50);
+  box-shadow: inset 3px 0 0 var(--color-brand-400);
+}
+
+/* ── Three-layer active trail ────────────────────────────────────
+   Level 0 = top parent (e.g. Website Management) → lightest tint.
+   Level 1 = sub-parent (e.g. About)              → deeper tint.
+   Leaf (selected page) L1/L2                     → deepest light tints.
+   The `data-level` comes from Sidebar TreeNode (`li[data-level]`). */
+.sidebar-group[data-level="0"] > .sidebar-group-btn.active {
+  background-color: var(--color-brand-50);
+  color: var(--color-navy-800);
+  box-shadow: inset 3px 0 0 var(--color-brand-300);
+}
+
+.sidebar-group[data-level="1"] > .sidebar-group-btn.active {
+  background-color: var(--color-brand-100);
+  color: var(--color-navy-800);
+  box-shadow: inset 3px 0 0 var(--color-brand-500);
 }
 
 .sidebar-icon-chip {
@@ -275,8 +311,15 @@ html.lang-en {
 }
 
 .sidebar-group-btn.active .sidebar-icon-chip {
-  background-color: var(--color-brand-100);
+  background-color: #ffffff;
   color: var(--color-brand-700);
+  box-shadow: inset 0 0 0 1px var(--color-brand-200);
+}
+
+.sidebar-group[data-level="1"] > .sidebar-group-btn.active .sidebar-icon-chip {
+  background-color: #ffffff;
+  color: var(--color-navy-800);
+  box-shadow: inset 0 0 0 1px var(--color-brand-300);
 }
 
 /* Children container (collapsible, animated height) */
@@ -311,18 +354,45 @@ html.lang-en {
   margin-left: 12px;
 }
 
-/* Leaf link */
+/* Tree connectors — each row gets a horizontal stub from the vertical
+   spine to the menu item (classic treeview). Anchored at 16px = middle
+   of the 32px header row, so sub-parent stubs stay aligned with their
+   own button even when expanded. */
+.sidebar-children-list > li {
+  position: relative;
+}
+
+.sidebar-children-list > li::before {
+  content: "";
+  position: absolute;
+  left: -12px;
+  top: 16px;
+  width: 12px;
+  height: 1.5px;
+  background-color: var(--color-ink-200);
+  pointer-events: none;
+}
+
+/* Active trail tints its own connector stub. */
+.sidebar-children-list > li:has(> .sidebar-leaf-link.active)::before,
+.sidebar-children-list > li:has(> .sidebar-group-btn.active)::before {
+  background-color: var(--color-brand-400);
+}
+
+/* Leaf link — compact height matches group headers (32px) */
 .sidebar-leaf-link {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px 10px;
+  gap: 10px;
+  min-height: 32px;
+  padding: 3px 8px;
   font-size: 13px;
+  line-height: 20px;
   font-weight: 500;
   color: var(--color-ink-500);
   text-decoration: none;
   border-radius: 6px;
-  transition: background-color 0.15s ease, color 0.15s ease;
+  transition: background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .sidebar-leaf-dot {
@@ -335,23 +405,47 @@ html.lang-en {
 }
 
 .sidebar-leaf-link:hover {
-  background-color: var(--color-ink-50);
-  color: var(--color-ink-900);
+  background-color: var(--color-ink-100);
+  color: var(--color-navy-800);
+  box-shadow: inset 3px 0 0 var(--color-ink-300);
+}
+
+.sidebar-leaf-link:hover .sidebar-icon-chip {
+  background-color: #ffffff;
+  color: var(--color-navy-700);
+  box-shadow: inset 0 0 0 1px var(--color-ink-200);
 }
 
 .sidebar-leaf-link:hover .sidebar-leaf-dot {
-  background-color: var(--color-brand-500);
+  background-color: var(--color-brand-600);
+}
+
+.sidebar-leaf-link.active:hover {
+  background-color: var(--color-brand-300);
+  color: var(--color-navy-900);
 }
 
 .sidebar-leaf-link.active {
+  background-color: var(--color-brand-200);
+  color: var(--color-navy-900);
+  font-weight: 600;
+  box-shadow: inset 3px 0 0 var(--color-navy-700), var(--shadow-soft);
+}
+
+/* Nested page (e.g. About Us inside About) sits one step deeper, so it
+   gets a slightly stronger tint than a direct child page. */
+.sidebar-leaf[data-level="2"] > .sidebar-leaf-link.active {
+  background-color: var(--color-brand-300);
+  box-shadow: inset 3px 0 0 var(--color-navy-800), var(--shadow-soft);
+}
+
+.sidebar-leaf-link.active .sidebar-icon-chip {
   background-color: var(--color-navy-800);
   color: #ffffff;
-  font-weight: 600;
-  box-shadow: var(--shadow-soft);
 }
 
 .sidebar-leaf-link.active .sidebar-leaf-dot {
-  background-color: var(--color-gold-400);
+  background-color: var(--color-navy-800);
 }
 
 /* ---------------- Collapsed icon rail ---------------- */
@@ -380,12 +474,13 @@ html.lang-en {
   background: transparent;
   color: var(--color-ink-500);
   cursor: pointer;
-  transition: background-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
+  transition: background-color 0.15s ease, color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
 }
 
 .sidebar-rail-btn:hover {
-  background-color: var(--color-ink-50);
+  background-color: var(--color-ink-100);
   color: var(--color-navy-800);
+  box-shadow: inset 0 0 0 1.5px var(--color-ink-300);
 }
 
 .sidebar-rail-btn:active {
@@ -393,15 +488,16 @@ html.lang-en {
 }
 
 .sidebar-rail-btn.active {
-  background-color: var(--color-navy-800);
-  color: #ffffff;
-  box-shadow: var(--shadow-soft);
+  background-color: var(--color-brand-100);
+  color: var(--color-navy-800);
+  box-shadow: inset 0 0 0 1.5px var(--color-brand-300), var(--shadow-soft);
 }
 
 /* Pinned (clicked/keyboard-opened) submenu keeps the trigger visually live. */
 .sidebar-rail-btn.open {
-  background-color: var(--color-navy-800);
-  color: #ffffff;
+  background-color: var(--color-brand-100);
+  color: var(--color-navy-800);
+  box-shadow: inset 0 0 0 1.5px var(--color-brand-400);
 }
 
 /* Tooltip for rail items — portalled to <body>, positioned by JS, so it is
@@ -470,30 +566,46 @@ html.lang-en {
 .sidebar-flyout-link {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   border-radius: 6px;
-  padding: 6px 10px;
+  min-height: 32px;
+  padding: 3px 10px;
   font-size: 13px;
+  line-height: 20px;
   font-weight: 500;
   color: var(--color-ink-600);
   text-decoration: none;
-  transition: background-color 0.15s ease, color 0.15s ease;
+  transition: background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .sidebar-flyout-link:hover {
-  background-color: var(--color-ink-50);
-  color: var(--color-ink-900);
+  background-color: var(--color-ink-100);
+  color: var(--color-navy-800);
+  box-shadow: inset 3px 0 0 var(--color-ink-300);
+}
+
+.sidebar-flyout-link.active:hover {
+  background-color: var(--color-brand-200);
 }
 
 .sidebar-flyout-link.active {
-  background-color: var(--color-navy-800);
-  color: #ffffff;
+  background-color: var(--color-brand-100);
+  color: var(--color-navy-900);
   font-weight: 600;
+  box-shadow: inset 3px 0 0 var(--color-navy-800);
 }
 
 .sidebar-flyout-link.active span[aria-hidden] {
-  background-color: var(--color-gold-400);
+  background-color: var(--color-navy-800);
   opacity: 1;
+}
+
+/* Sub-parent header inside a rail flyout when one of its pages is open. */
+.sidebar-flyout-group-active {
+  color: var(--color-navy-800);
+  background-color: var(--color-brand-50);
+  border-radius: 6px;
+  box-shadow: inset 3px 0 0 var(--color-brand-500);
 }
 
 .sidebar-collapse-btn {
