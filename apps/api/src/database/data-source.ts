@@ -26,7 +26,7 @@ import { StudentWaiver } from './entities/student-waiver.entity';
 import { StudentInvoice } from './entities/student-invoice.entity';
 import { StudentInvoiceLine } from './entities/student-invoice-line.entity';
 import { StudentCautionDeposit } from './entities/student-caution-deposit.entity';
-
+import { PaymentCollection } from './entities/payment-collection.entity';
 dotenv.config();
 
 export const dataSourceOptions: DataSourceOptions = {
@@ -36,7 +36,7 @@ export const dataSourceOptions: DataSourceOptions = {
   username: process.env.DB_USERNAME || 'root',
   password: process.env.DB_PASSWORD || '',
   database: process.env.DB_DATABASE || 'school',
-  entities: [User, MenuItem, SiteSetting, Page, GoverningBodyMember, ExPrincipal, Slider, StaffMember, Teacher, Permission, UserPermission, Module, HeroSection, Notice, Fund, CostCenter, ChartOfAccount, FiscalPeriod, JournalEntry, JournalLine, VoucherSequence, FeeHead, StudentWaiver, StudentInvoice, StudentInvoiceLine, StudentCautionDeposit],
+  entities: [User, MenuItem, SiteSetting, Page, GoverningBodyMember, ExPrincipal, Slider, StaffMember, Teacher, Permission, UserPermission, Module, HeroSection, Notice, Fund, CostCenter, ChartOfAccount, FiscalPeriod, JournalEntry, JournalLine, VoucherSequence, FeeHead, StudentWaiver, StudentInvoice, StudentInvoiceLine, StudentCautionDeposit, PaymentCollection],
   migrations: ['src/database/migrations/*.ts'],
   synchronize: false,
   logging: process.env.NODE_ENV === 'development',

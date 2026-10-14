@@ -13,6 +13,7 @@ import { StudentWaiver } from '../database/entities/student-waiver.entity';
 import { StudentInvoice } from '../database/entities/student-invoice.entity';
 import { StudentInvoiceLine } from '../database/entities/student-invoice-line.entity';
 import { StudentCautionDeposit } from '../database/entities/student-caution-deposit.entity';
+import { PaymentCollection } from '../database/entities/payment-collection.entity';
 import { ChartOfAccountsService } from './chart-of-accounts.service';
 import { ChartOfAccountsController } from './chart-of-accounts.controller';
 import { VoucherSequenceService } from './voucher-sequence.service';
@@ -20,6 +21,8 @@ import { JournalPostingService } from './journal-posting.service';
 import { VouchersController } from './vouchers.controller';
 import { StudentBillingService } from './student-billing.service';
 import { BillingController } from './billing.controller';
+import { FeeCollectionService } from './fee-collection.service';
+import { CollectionController } from './collection.controller';
 
 @Module({
   imports: [
@@ -37,10 +40,11 @@ import { BillingController } from './billing.controller';
       StudentInvoice,
       StudentInvoiceLine,
       StudentCautionDeposit,
+      PaymentCollection,
     ]),
   ],
-  controllers: [ChartOfAccountsController, VouchersController, BillingController],
-  providers: [ChartOfAccountsService, VoucherSequenceService, JournalPostingService, StudentBillingService],
-  exports: [ChartOfAccountsService, JournalPostingService, VoucherSequenceService, StudentBillingService],
+  controllers: [ChartOfAccountsController, VouchersController, BillingController, CollectionController],
+  providers: [ChartOfAccountsService, VoucherSequenceService, JournalPostingService, StudentBillingService, FeeCollectionService],
+  exports: [ChartOfAccountsService, JournalPostingService, VoucherSequenceService, StudentBillingService, FeeCollectionService],
 })
 export class AccountingModule {}
