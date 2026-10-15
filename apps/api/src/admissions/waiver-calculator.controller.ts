@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, ParseUUIDPipe, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { WaiverCalculatorService } from './waiver-calculator.service';
 import { ApplyLillahDto, CalculateWaiverQueryDto, CreatePresetDto, UpdatePresetDto } from './admissions.dto';
@@ -48,5 +48,11 @@ export class WaiverCalculatorController {
   @ApiOperation({ summary: 'Update / deactivate a waiver preset rule' })
   updatePreset(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdatePresetDto) {
     return this.calc.updateRule(id, dto as Record<string, unknown>);
+  }
+
+  @Delete('waiver-presets/:id')
+  @ApiOperation({ summary: 'Permanently delete a waiver preset rule' })
+  deletePreset(@Param('id', ParseUUIDPipe) id: string) {
+    return this.calc.deleteRule(id);
   }
 }

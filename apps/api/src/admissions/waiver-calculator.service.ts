@@ -240,6 +240,14 @@ export class WaiverCalculatorService {
     return out;
   }
 
+  /** Remove a preset rule permanently. */
+  async deleteRule(id: string): Promise<{ id: string; deleted: boolean }> {
+    const r = await this.rules.findOne({ where: { id } });
+    if (!r) throw new NotFoundException(`Preset #${id} not found`);
+    await this.rules.remove(r);
+    return { id, deleted: true };
+  }
+
   /* ================= internals ================= */
 
   private matches(

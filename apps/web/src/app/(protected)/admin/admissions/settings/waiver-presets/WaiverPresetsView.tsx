@@ -1,11 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Loader2, Sprout } from "lucide-react";
+import { Loader2, Sprout, XCircle } from "lucide-react";
 import { DashCard, DashPageHeader } from "@/components/dashboard/DashPage";
 import AdminPageLoader from "@/components/dashboard/AdminPageLoader";
 import { apiFetch } from "@/lib/api";
-import { toast } from "@/lib/swal";
+import { toast, confirmDialog } from "@/lib/swal";
 import type { WaiverPresetRule } from "@/lib/admissions";
 
 const BTN =
@@ -57,6 +57,27 @@ export default function WaiverPresetsView() {
       setRules((prev) => prev.map((r) => (r.id === rule.id ? { ...r, isActive: !r.isActive } : r)));
     } catch (e) {
       toast(e instanceof Error ? e.message : "Update failed", "error");
+    } finally {
+      setActing(null);
+    }
+  }
+
+  async function deleteRule(rule: WaiverPresetRule) {
+    const confirmed = await confirmDialog({
+      title: `Delete preset "${rule.ruleCode}"`,
+      text: `This will permanently delete the "${rule.ruleCode}" waiver preset rule. This action cannot be undone.`,
+      confirmText: "Delete",
+      danger: true,
+    });
+    if (!confirmed) return;
+    setActing(rule.id);
+    try {
+      await apiFetch(`/api/admissions/waiver-presets/${rule.id}`, {
+        method: "DELETE",
+      });
+      setRules((prev) => prev.filter((r) => r.id !== rule.id));
+    } catch (e) {
+      toast(e instanceof Error ? e.message : "Delete failed", "error");
     } finally {
       setActing(null);
     }
@@ -148,6 +169,15 @@ export default function WaiverPresetsView() {
                         onClick={() => toggle(r)}
                       >
                         {acting === r.id ? "…" : r.isActive ? "Deactivate" : "Activate"}
+                      </button>
+                      <button
+                        type="button"
+                        className={BTN_GHOST}
+                        disabled={acting !== null}
+                        onClick={() => deleteRule(r)}
+                        title="Delete preset"
+                      >
+                        <XCircle className="h-3 w-3" />
                       </button>
                     </td>
                   </tr>

@@ -13,6 +13,7 @@ import { Student } from '../database/entities/student.entity';
 import { StudentEnrollment } from '../database/entities/student-enrollment.entity';
 import { StudentPreviousEducation } from '../database/entities/student-previous-education.entity';
 import { StudentDocument } from '../database/entities/student-document.entity';
+import { RequiredDocumentRule } from "../database/entities/required-document-rule.entity";
 import { AdmissionSequence } from '../database/entities/admission-sequence.entity';
 import { FeeHead } from '../database/entities/fee-head.entity';
 import { StudentInvoice } from '../database/entities/student-invoice.entity';
@@ -30,6 +31,8 @@ import { SubjectEnrollmentService } from './subject-enrollment.service';
 import { SubjectEnrollmentController } from './subject-enrollment.controller';
 import { AdmissionApplicationService } from './admission-application.service';
 import { AdmissionApplicationController } from './admission-application.controller';
+import { RequiredDocumentRuleService } from './required-document-rule.service';
+import { RequiredDocumentRuleController } from './required-document-rule.controller';
 import { StudentOnboardingService } from './student-onboarding.service';
 import { StudentOnboardingController } from './student-onboarding.controller';
 import { StudentLifecycleService } from './student-lifecycle.service';
@@ -60,7 +63,7 @@ import { StudentDocumentsController } from './student-documents.controller';
       AdmissionSequence,
       FeeHead,
       StudentInvoice,
-      StudentCautionDeposit,
+      StudentCautionDeposit, RequiredDocumentRule,
     ]),
   ],
   controllers: [
@@ -72,6 +75,7 @@ import { StudentDocumentsController } from './student-documents.controller';
     StudentLifecycleController,
     AdmissionDashboardController,
     StudentDocumentsController,
+    RequiredDocumentRuleController,
   ],
   providers: [
     FamilyRegistryService,
@@ -85,6 +89,7 @@ import { StudentDocumentsController } from './student-documents.controller';
     RollNumberGeneratorService,
     AdmissionDashboardService,
     StudentDocumentsService,
+    RequiredDocumentRuleService,
   ],
   exports: [
     FamilyRegistryService,

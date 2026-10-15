@@ -1,6 +1,7 @@
 import { DataSource, DataSourceOptions } from 'typeorm';
 import * as dotenv from 'dotenv';
 import { User } from './entities/user.entity';
+import { RequiredDocumentRule } from "./entities/required-document-rule.entity";
 import { MenuItem } from './entities/menu-item.entity';
 import { SiteSetting } from './entities/site-setting.entity';
 import { Page } from './entities/page.entity';
@@ -56,7 +57,7 @@ export const dataSourceOptions: DataSourceOptions = {
   username: process.env.DB_USERNAME || 'root',
   password: process.env.DB_PASSWORD || '',
   database: process.env.DB_DATABASE || 'school',
-  entities: [User, MenuItem, SiteSetting, Page, GoverningBodyMember, ExPrincipal, Slider, StaffMember, Teacher, Permission, UserPermission, Module, HeroSection, Notice, Fund, CostCenter, ChartOfAccount, FiscalPeriod, JournalEntry, JournalLine, VoucherSequence, FeeHead, StudentWaiver, StudentInvoice, StudentInvoiceLine, StudentCautionDeposit, PaymentCollection, Vendor, VendorBill, TaxChallan, TaxChallanItem, PayrollRun, PayslipLine, AdjunctHonorariumBill, AccountingAuditLog, AdmissionCampaign, AdmissionApplication, FamilyProfile, Student, StudentPreviousEducation, StudentEnrollment, StudentDocument, WaiverPresetRule, AcademicSubject, ClassSyllabusSubject, StudentSubjectEnrollment, AdmissionSequence],
+  entities: [User, MenuItem, SiteSetting, Page, GoverningBodyMember, ExPrincipal, Slider, StaffMember, Teacher, Permission, UserPermission, Module, HeroSection, Notice, Fund, CostCenter, ChartOfAccount, FiscalPeriod, JournalEntry, JournalLine, VoucherSequence, FeeHead, StudentWaiver, StudentInvoice, StudentInvoiceLine, StudentCautionDeposit, PaymentCollection, Vendor, VendorBill, TaxChallan, TaxChallanItem, PayrollRun, PayslipLine, AdjunctHonorariumBill, AccountingAuditLog, AdmissionCampaign, AdmissionApplication, FamilyProfile, Student, StudentPreviousEducation, StudentEnrollment, StudentDocument, WaiverPresetRule, RequiredDocumentRule, AcademicSubject, ClassSyllabusSubject, StudentSubjectEnrollment, AdmissionSequence],
   migrations: ['src/database/migrations/*.ts'],
   synchronize: false,
   logging: process.env.NODE_ENV === 'development',
