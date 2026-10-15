@@ -99,6 +99,14 @@ export class StudentWaiver {
   @Column({ name: 'is_active', type: 'boolean', default: true })
   isActive!: boolean;
 
+  /**
+   * Workflow 4 admission scoping: comma-separated billing types this waiver
+   * applies to (e.g. 'ONE_TIME,TERM' one-shot admission part vs 'MONTHLY'
+   * ongoing tuition part). NULL = legacy apply-to-every-line.
+   */
+  @Column({ name: 'scope_billing_types', type: 'varchar', length: 60, nullable: true })
+  scopeBillingTypes?: string | null;
+
   @Column({ name: 'remark', type: 'varchar', length: 255, nullable: true })
   remark?: string | null;
 

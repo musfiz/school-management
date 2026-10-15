@@ -47,7 +47,8 @@ export type SourceModule =
   | 'STUDENT_BILLING'
   | 'MFS_COLLECTION'
   | 'PAYROLL'
-  | 'PROCUREMENT';
+  | 'PROCUREMENT'
+  | 'ADMISSION';
 
 export const SOURCE_MODULES: SourceModule[] = [
   'MANUAL',
@@ -55,6 +56,7 @@ export const SOURCE_MODULES: SourceModule[] = [
   'MFS_COLLECTION',
   'PAYROLL',
   'PROCUREMENT',
+  'ADMISSION',
 ];
 
 /**

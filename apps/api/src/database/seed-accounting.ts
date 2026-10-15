@@ -121,6 +121,7 @@ const ACCOUNTS: AccountSeed[] = [
   { code: '43101', name: 'Zakat Donations Received (Restricted)', type: 'REVENUE', parent: '40000', fund: '02' },
   { code: '43102', name: 'Sadaqah, Fitra & General Donations', type: 'REVENUE', parent: '40000' },
   { code: '44101', name: 'Bank Interest / Mudaraba Profit', type: 'REVENUE', parent: '40000' },
+  { code: '44102', name: 'Sale of Admission Forms', type: 'REVENUE', parent: '40000' },
 
   { code: '51101', name: 'Faculty/Teacher Salaries & Allowances (Institutional Portion)', type: 'EXPENSE', parent: '50000' },
   { code: '51102', name: 'Administrative & Support Staff Salaries', type: 'EXPENSE', parent: '50000' },

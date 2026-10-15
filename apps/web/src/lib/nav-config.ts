@@ -22,11 +22,14 @@ import {
   BookOpenCheck,
   Building2,
   CalendarDays,
+  ClipboardList,
   Cpu,
   FileSpreadsheet,
+  FolderKanban,
   Globe,
   GraduationCap,
   History,
+  IdCard,
   Images,
   Info,
   Landmark,
@@ -38,9 +41,9 @@ import {
   SlidersHorizontal,
   Sparkles,
   UserCog,
+  UserPlus,
   Users,
   ShieldCheck,
-  Wallet,
   Zap,
 } from "lucide-react";
 import type { Role } from "./dashboard-nav";
@@ -69,6 +72,7 @@ export const USER_ROLES: UserRole[] = [
 const ALL: UserRole[] = [...USER_ROLES];
 const FINANCE_FULL: UserRole[] = ["SUPER_ADMIN", "PRINCIPAL", "ACCOUNTANT"];
 const EXAM_FULL: UserRole[] = ["SUPER_ADMIN", "PRINCIPAL", "EXAM_CONTROLLER"];
+const ADMISSION_FULL: UserRole[] = ["SUPER_ADMIN", "PRINCIPAL", "ACCOUNTANT"];
 
 /* ----------------------------------------------------------------------------
    DEV-ONLY (testing): bypasses ALL sidebar + palette role filtering so every
@@ -92,8 +96,6 @@ export interface NavLeaf {
   /** Mock-gate bridge (current Session role). Remove with the mock gate. */
   legacyRoles: Role[];
   badge?: string;
-  /** Accentuated direct link (e.g. Generate & Publish Result). */
-  highlight?: boolean;
   /** Extra path prefixes that mark this leaf active (legacy parent pages). */
   matchPaths?: string[];
   /** Match href exactly (no prefix match) — used by legacy workspace leaves
@@ -352,7 +354,6 @@ export const navItems: NavItem[] = [
     icon: Cpu,
     roles: EXAM_FULL,
     legacyRoles: ["admin", "management"],
-    highlight: true,
     keywords: ["generate", "process", "publish", "result", "compute"],
   },
   {
@@ -434,34 +435,164 @@ export const navItems: NavItem[] = [
       { kind: "leaf", label: "Uniform", href: "/admin/student/uniform", roles: ALL, legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"] },
     ],
   },
+  /* ── Module C: Admission & Enrollment (STUDENT_ADMISSION_PLAN §2/§5) ──
+     Document-wise: one sidebar leaf per plan document/phase output.
+     5-Step Wizard + onboarding engine live inside their pages (2-level rule). */
+  { kind: "section", label: "Admission & Enrollment" },
   {
     kind: "group",
-    label: "Admission",
-    icon: BookOpen,
-    roles: ALL,
-    legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"],
+    label: "Admission Desk",
+    icon: UserPlus,
+    roles: ADMISSION_FULL,
+    legacyRoles: FINANCE_LEGACY,
     children: [
-      { kind: "leaf", label: "Why Study Here", href: "/admin/admission/why-study", roles: ALL, legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"] },
-      { kind: "leaf", label: "How to Apply", href: "/admin/admission/how-to-apply", roles: ALL, legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"] },
-      { kind: "leaf", label: "Admission Test", href: "/admin/admission/admission-test", roles: ALL, legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"] },
-      { kind: "leaf", label: "Policy", href: "/admin/admission/policy", roles: ALL, legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"] },
-      { kind: "leaf", label: "Registration System", href: "/admin/admission/registration-system", roles: ALL, legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"] },
+      {
+        kind: "leaf",
+        label: "Admission Dashboard",
+        href: "/admin/admissions/dashboard",
+        description: "Seats vs admitted, today's admissions, pending fees (Plan §2)",
+        roles: ADMISSION_FULL,
+        legacyRoles: FINANCE_LEGACY,
+        keywords: ["admission dashboard", "seats", "capacity", "today"],
+      },
+      {
+        kind: "leaf",
+        label: "Campaigns & Circulars",
+        href: "/admin/admissions/campaigns",
+        description: "Circulars, seat capacity, eligibility rules, form sale",
+        roles: ADMISSION_FULL,
+        legacyRoles: FINANCE_LEGACY,
+        keywords: ["campaign", "circular", "seats", "eligibility", "prospectus", "form sale"],
+      },
+      {
+        kind: "leaf",
+        label: "Applications Pipeline",
+        href: "/admin/admissions/applications",
+        description: "Applicant pipeline, test marks, merit & waiting list",
+        roles: ADMISSION_FULL,
+        legacyRoles: FINANCE_LEGACY,
+        keywords: ["application", "applicant", "merit", "waiting", "test marks", "shortlist"],
+      },
+      {
+        kind: "leaf",
+        label: "Direct Admission Wizard",
+        href: "/admin/admissions/direct-admission",
+        description: "5-Step wizard: family → student → subjects → waiver → invoice & POS (§4)",
+        roles: ADMISSION_FULL,
+        legacyRoles: FINANCE_LEGACY,
+        badge: "5-Step",
+        keywords: ["direct admission", "wizard", "onboarding", "sibling", "waiver", "pos", "invoice"],
+      },
     ],
   },
   {
     kind: "group",
-    label: "Results (Legacy)",
-    icon: FileSpreadsheet,
-    roles: ALL,
-    legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"],
+    label: "Student Registry",
+    icon: IdCard,
+    roles: ADMISSION_FULL,
+    legacyRoles: FINANCE_LEGACY,
     children: [
-      { kind: "leaf", label: "Exam Results", href: "/admin/results", roles: ALL, legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"] },
-      { kind: "leaf", label: "Academic Results", href: "/admin/results/academic-result", roles: ALL, legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"] },
-      { kind: "leaf", label: "Evaluation Results", href: "/admin/results/evaluation-result", roles: ALL, legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"] },
-      { kind: "leaf", label: "Board Exam Results", href: "/admin/results/board-exam-result", roles: ALL, legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"] },
+      {
+        kind: "leaf",
+        label: "Students Directory",
+        href: "/admin/admissions/students",
+        description: "Master directory, profile, ID card & admission form print (§3.3/§5)",
+        roles: ADMISSION_FULL,
+        legacyRoles: FINANCE_LEGACY,
+        keywords: ["student", "directory", "profile", "id card", "admission form"],
+      },
+      {
+        kind: "leaf",
+        label: "Families Directory",
+        href: "/admin/admissions/families",
+        description: "Parent/guardian master, NID/phone lookup, sibling links (§3.2)",
+        roles: ADMISSION_FULL,
+        legacyRoles: FINANCE_LEGACY,
+        keywords: ["family", "parent", "guardian", "sibling", "nid", "phone"],
+      },
+      {
+        kind: "leaf",
+        label: "Documents & Verification",
+        href: "/admin/admissions/documents",
+        description: "Birth cert, NIDs, TC, marksheet & orphan-cert checklist",
+        roles: ADMISSION_FULL,
+        legacyRoles: FINANCE_LEGACY,
+        keywords: ["document", "verification", "birth cert", "nid", "tc", "marksheet", "checklist"],
+      },
     ],
   },
-
+  {
+    kind: "group",
+    label: "Enrollment Lifecycle",
+    icon: FolderKanban,
+    roles: ADMISSION_FULL,
+    legacyRoles: FINANCE_LEGACY,
+    children: [
+      {
+        kind: "leaf",
+        label: "Enrollments & Sections",
+        href: "/admin/admissions/enrollments",
+        description: "Roll generator, section transfer, residence & quota tags (§3.4)",
+        roles: ADMISSION_FULL,
+        legacyRoles: FINANCE_LEGACY,
+        keywords: ["enrollment", "roll", "section", "transfer", "hostel", "quota"],
+      },
+      {
+        kind: "leaf",
+        label: "Promotion & TC Issue",
+        href: "/admin/admissions/promotion-tc",
+        description: "Session promotion, readmission, TC with dues clearance (§5)",
+        roles: ADMISSION_FULL,
+        legacyRoles: FINANCE_LEGACY,
+        keywords: ["promotion", "tc", "transfer certificate", "readmission", "clearance"],
+      },
+      {
+        kind: "leaf",
+        label: "Previous Education",
+        href: "/admin/admissions/previous-education",
+        description: "SSC/Dakhil/HSC history, board GPA, TC trail (§3.3)",
+        roles: ADMISSION_FULL,
+        legacyRoles: FINANCE_LEGACY,
+        keywords: ["previous", "ssc", "dakhil", "hsc", "board", "gpa", "history"],
+      },
+    ],
+  },
+  {
+    kind: "group",
+    label: "Admission Settings",
+    icon: ClipboardList,
+    roles: ["SUPER_ADMIN", "PRINCIPAL"],
+    legacyRoles: ["admin", "management"],
+    children: [
+      {
+        kind: "leaf",
+        label: "ID & Roll Formats",
+        href: "/admin/admissions/settings/id-formats",
+        description: "Student ID + roll sequence builder with row-lock safety (§Phase 1)",
+        roles: ["SUPER_ADMIN", "PRINCIPAL"],
+        legacyRoles: ["admin", "management"],
+        keywords: ["id format", "roll", "sequence", "builder"],
+      },
+      {
+        kind: "leaf",
+        label: "Quota & Waiver Presets",
+        href: "/admin/admissions/settings/waiver-presets",
+        description: "Merit, sibling, freedom-fighter, orphan/Lillah presets (§4)",
+        roles: ["SUPER_ADMIN", "PRINCIPAL"],
+        legacyRoles: ["admin", "management"],
+        keywords: ["quota", "waiver", "preset", "merit", "sibling", "lillah", "scholarship"],
+      },
+      {
+        kind: "leaf",
+        label: "Required Documents",
+        href: "/admin/admissions/settings/documents",
+        description: "Per-class required-document checklist (§2 settings)",
+        roles: ["SUPER_ADMIN", "PRINCIPAL"],
+        legacyRoles: ["admin", "management"],
+        keywords: ["required", "document", "checklist", "settings"],
+      },
+    ],
+  },
   /* ── Website & information (About flattened: was a 3rd level) ── */
   { kind: "section", label: "Website & Information" },
   {
@@ -532,19 +663,6 @@ export const navItems: NavItem[] = [
 
   /* ── System ── */
   { kind: "section", label: "System" },
-  {
-    kind: "group",
-    label: "Fees (Legacy)",
-    icon: Wallet,
-    roles: ["SUPER_ADMIN", "PRINCIPAL"],
-    legacyRoles: ["admin", "management"],
-    children: [
-      { kind: "leaf", label: "Fee Collection", href: "/admin/fees/collection", roles: ["SUPER_ADMIN", "PRINCIPAL"], legacyRoles: ["admin", "management"] },
-      { kind: "leaf", label: "Fee Reports", href: "/admin/fees/reports", roles: ["SUPER_ADMIN", "PRINCIPAL"], legacyRoles: ["admin", "management"] },
-      { kind: "leaf", label: "Tuition Fees", href: "/admin/student/tuition-fees", roles: ALL, legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"] },
-      { kind: "leaf", label: "Mobile Banking", href: "/admin/student/mobile-banking", roles: ALL, legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"] },
-    ],
-  },
   {
     kind: "group",
     label: "Account",

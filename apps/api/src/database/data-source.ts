@@ -35,6 +35,18 @@ import { PayrollRun } from './entities/payroll-run.entity';
 import { PayslipLine } from './entities/payslip-line.entity';
 import { AdjunctHonorariumBill } from './entities/adjunct-honorarium-bill.entity';
 import { AccountingAuditLog } from './entities/accounting-audit-log.entity';
+import { AdmissionCampaign } from './entities/admission-campaign.entity';
+import { AdmissionApplication } from './entities/admission-application.entity';
+import { FamilyProfile } from './entities/family-profile.entity';
+import { Student } from './entities/student.entity';
+import { StudentPreviousEducation } from './entities/student-previous-education.entity';
+import { StudentEnrollment } from './entities/student-enrollment.entity';
+import { StudentDocument } from './entities/student-document.entity';
+import { WaiverPresetRule } from './entities/waiver-preset-rule.entity';
+import { AcademicSubject } from './entities/academic-subject.entity';
+import { ClassSyllabusSubject } from './entities/class-syllabus-subject.entity';
+import { StudentSubjectEnrollment } from './entities/student-subject-enrollment.entity';
+import { AdmissionSequence } from './entities/admission-sequence.entity';
 dotenv.config();
 
 export const dataSourceOptions: DataSourceOptions = {
@@ -44,7 +56,7 @@ export const dataSourceOptions: DataSourceOptions = {
   username: process.env.DB_USERNAME || 'root',
   password: process.env.DB_PASSWORD || '',
   database: process.env.DB_DATABASE || 'school',
-  entities: [User, MenuItem, SiteSetting, Page, GoverningBodyMember, ExPrincipal, Slider, StaffMember, Teacher, Permission, UserPermission, Module, HeroSection, Notice, Fund, CostCenter, ChartOfAccount, FiscalPeriod, JournalEntry, JournalLine, VoucherSequence, FeeHead, StudentWaiver, StudentInvoice, StudentInvoiceLine, StudentCautionDeposit, PaymentCollection, Vendor, VendorBill, TaxChallan, TaxChallanItem, PayrollRun, PayslipLine, AdjunctHonorariumBill, AccountingAuditLog],
+  entities: [User, MenuItem, SiteSetting, Page, GoverningBodyMember, ExPrincipal, Slider, StaffMember, Teacher, Permission, UserPermission, Module, HeroSection, Notice, Fund, CostCenter, ChartOfAccount, FiscalPeriod, JournalEntry, JournalLine, VoucherSequence, FeeHead, StudentWaiver, StudentInvoice, StudentInvoiceLine, StudentCautionDeposit, PaymentCollection, Vendor, VendorBill, TaxChallan, TaxChallanItem, PayrollRun, PayslipLine, AdjunctHonorariumBill, AccountingAuditLog, AdmissionCampaign, AdmissionApplication, FamilyProfile, Student, StudentPreviousEducation, StudentEnrollment, StudentDocument, WaiverPresetRule, AcademicSubject, ClassSyllabusSubject, StudentSubjectEnrollment, AdmissionSequence],
   migrations: ['src/database/migrations/*.ts'],
   synchronize: false,
   logging: process.env.NODE_ENV === 'development',

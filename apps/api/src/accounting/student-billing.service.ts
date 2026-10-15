@@ -263,6 +263,18 @@ export class StudentBillingService {
     );
   }
 
+  /**
+   * Workflow 4 entry: same build inside an OUTER (onboarding) transaction.
+   * The caller owns atomicity — no nested transaction is opened here.
+   */
+  async createInvoiceIn(
+    m: EntityManager,
+    dto: CreateInvoiceDto,
+    actorId: string,
+  ): Promise<StudentInvoice> {
+    return this.buildInvoice(m, dto.studentId, dto, actorId);
+  }
+
   async bulkGenerate(dto: BulkInvoiceDto, actorId: string) {
     const created: StudentInvoice[] = [];
     const skipped: Array<{ studentId: string; reason: string }> = [];
@@ -715,11 +727,19 @@ export class StudentBillingService {
       gross = gross.toDecimalPlaces(2);
 
       // Caution heads never take waivers (liability, not revenue).
+      // Scoped admission waivers (Workflow 4 scope_billing_types) only hit
+      // matching billing types; NULL scope = legacy apply-everywhere.
       let waiverTotal = new Decimal(0);
       const perWaiver: Array<{ waiver: StudentWaiver; amount: Decimal; contraId: string }> = [];
       if (!head.isCautionDeposit) {
         let remaining = gross;
         for (const w of activeWaivers) {
+          if (
+            w.scopeBillingTypes &&
+            !w.scopeBillingTypes.split(',').map((s) => s.trim().toUpperCase()).includes(head.billingType)
+          ) {
+            continue;
+          }
           if (remaining.lte(0)) break;
           let amt = gross.times(new Decimal(w.percent)).div(100).toDecimalPlaces(2);
           if (w.fixedCapAmount != null) amt = Decimal.min(amt, new Decimal(w.fixedCapAmount));
@@ -803,6 +823,19 @@ export class StudentBillingService {
         debitAmount: '0.00', creditAmount: hit.amt.toFixed(2),
         lineMemo: `${hit.memo} ${dto.billingPeriod}`,
       });
+    }
+
+    // Control accounts (AR 11401, caution liabilities 21401/21402, advances)
+    // require a STUDENT sub-ledger on their leg — e.g. a caution-deposit head
+    // credits 21402, which would otherwise be rejected by the posting engine.
+    const controlIds = new Set(
+      (await glRepo.find({ where: { isControlAccount: true } })).map((a) => a.id),
+    );
+    for (const line of lines) {
+      if (controlIds.has(line.glAccountId) && !line.subledgerId) {
+        line.subledgerType = 'STUDENT';
+        line.subledgerId = studentId;
+      }
     }
 
     const journal = await this.posting.postSystemJournal(m, {

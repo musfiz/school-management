@@ -122,6 +122,18 @@ export class FeeCollectionService {
     );
   }
 
+  /**
+   * Workflow 4 entry: same posting inside an OUTER (onboarding)
+   * transaction. The caller owns atomicity — no nested transaction here.
+   */
+  async collectIn(
+    m: EntityManager,
+    dto: CollectFeeDto,
+    actorId: string,
+  ): Promise<PaymentCollection> {
+    return this.postCollection(m, dto, actorId);
+  }
+
   /* ================= MFS webhook (idempotent) ================= */
 
   async webhook(

@@ -330,7 +330,7 @@ export class JournalPostingService {
       voucherType: 'JOURNAL' | 'RECEIVE' | 'PAYMENT' | 'CONTRA';
       transactionDate: string;
       narration: string;
-      sourceModule: 'STUDENT_BILLING' | 'MFS_COLLECTION' | 'PAYROLL' | 'PROCUREMENT' | 'MANUAL';
+      sourceModule: 'STUDENT_BILLING' | 'MFS_COLLECTION' | 'PAYROLL' | 'PROCUREMENT' | 'ADMISSION' | 'MANUAL';
       sourceReferenceId?: string | null;
       actorId: string;
       lines: JournalLineDto[];
