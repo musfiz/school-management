@@ -462,7 +462,7 @@ export default function ReportsView() {
 
       {/* Filter Toolbar */}
       <DashCard title="Filter & Period Selection">
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-6 items-end">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 2xl:grid-cols-6 items-end">
           {activeTab !== "balance-sheet" && (
             <DatePickerField
               label="From Date"
@@ -481,7 +481,7 @@ export default function ReportsView() {
             minDate={activeTab === "balance-sheet" ? undefined : startDate || undefined}
           />
 
-          <div>
+          <div className="min-w-0">
             <label className="mb-1 block text-xs font-medium text-ink-700">Fund</label>
             <SearchSelect
               options={fundOptions}
@@ -492,7 +492,7 @@ export default function ReportsView() {
             />
           </div>
 
-          <div>
+          <div className="min-w-0">
             <label className="mb-1 block text-xs font-medium text-ink-700">Cost Center / Dept</label>
             <SearchSelect
               options={centerOptions}
@@ -504,7 +504,7 @@ export default function ReportsView() {
           </div>
 
           {activeTab === "general-ledger" && (
-            <div className="md:col-span-2">
+            <div className="min-w-0 sm:col-span-2 2xl:col-span-2">
               <label className="mb-1 block text-xs font-medium text-ink-700">GL Account</label>
               <SearchSelect
                 options={glOptions}
@@ -515,7 +515,7 @@ export default function ReportsView() {
             </div>
           )}
 
-          <div className="flex items-center gap-1.5 md:col-span-2">
+          <div className="flex flex-wrap items-center gap-1.5 sm:col-span-2 2xl:col-span-2">
             <button
               type="button"
               onClick={() => fetchReport()}

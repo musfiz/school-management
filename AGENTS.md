@@ -79,7 +79,9 @@ This block is written and re-added by `turbo` before repository-scoped commands 
   with `isClearable` (empty string = All/none), `isDisabled`, `ariaLabel`.
   It portals the menu to `document.body` (escapes modals/cards) and already
   matches the flat `rounded-xs`/32px control style — do not restyle it
-  per-page. Put your own `<label>` above it like other filter fields.
+  per-page. Long placeholders/values stay on one line with `...` ellipsis
+  and show the full text via native `title` tooltip (built into the shared
+  component). Put your own `<label>` above it like other filter fields.
 - **All date inputs use `DatePickerField` (react-datepicker) — never
   `<input type="date">`.** In new or edited dashboard code, every date
   (filters, transaction/invoice dates) must be `@/components/ui/DatePicker`.
@@ -126,11 +128,20 @@ shell. New pages must copy it; edited pages must converge to it.
   with an icon (`h-3.5 w-3.5`) + label, active = `bg-brand-600 text-white`,
   inactive = `bg-ink-100 text-ink-700 hover:bg-ink-200`.
 - **Filter card.** `DashCard` titled `"Filter …"` containing
-  `grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-6 items-end`. Every
+  `grid grid-cols-1 gap-3 sm:grid-cols-2 2xl:grid-cols-6 items-end`.
+  Never use `md:`/`lg:`/`xl:grid-cols-6` — at a 1300px viewport the sidebar
+  leaves ~1000px of content, so 6 columns squeeze each filter to ~160px and
+  break long `SearchSelect` placeholders/values (e.g. Fund). Keep 2 columns
+  from `sm` up to `2xl` (1536px); the 6-column single row only applies on
+  very wide screens. Every field wrapper gets `min-w-0` so long labels
+  (e.g. "Cost Center / Dept") and react-select text truncate instead of
+  blowing out the grid. Normal fields span 1 col; wide fields (e.g. GL
+  Account) use `sm:col-span-2 2xl:col-span-2`. Action buttons sit in a
+  `flex flex-wrap items-center gap-1.5 sm:col-span-2 2xl:col-span-2` cell
+  (`flex-wrap` so Run/CSV/Print/PDF never overflow a narrow cell). Every
   field has `<label className="mb-1 block text-xs font-medium
   text-ink-700">` above its control (`DatePickerField` renders its own label
-  via the `label` prop instead). Action buttons sit in a
-  `flex items-center gap-1.5` cell in the same grid row.
+  via the `label` prop instead).
 - **KPI tiles.** `grid grid-cols-2 gap-3 sm:grid-cols-4` of
   `rounded-xs border border-ink-200 bg-white p-3`: label
   `text-[11px] font-medium uppercase text-ink-500`, value
