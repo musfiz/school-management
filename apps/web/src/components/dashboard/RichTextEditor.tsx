@@ -20,6 +20,7 @@ import {
   Unlink,
 } from "lucide-react";
 import { useEffect } from "react";
+import { promptDialog } from "@/lib/swal";
 
 interface RichTextEditorProps {
   value: string;
@@ -72,10 +73,19 @@ export default function RichTextEditor({
     return null;
   }
 
-  function setLink() {
+  async function setLink() {
     if (!editor) return;
     const previousUrl = editor.getAttributes("link").href;
-    const url = window.prompt("Enter URL:", previousUrl);
+    const url = await promptDialog({
+      title: "Insert link",
+      text: "Leave empty and confirm to remove the link.",
+      input: "url",
+      inputValue: previousUrl ?? "",
+      placeholder: "https://example.com",
+      confirmText: "Apply link",
+      icon: "question",
+      required: false,
+    });
 
     if (url === null) return;
     if (url === "") {
@@ -87,7 +97,7 @@ export default function RichTextEditor({
 
   return (
     <div
-      className={`overflow-hidden rounded-md border border-ink-200 bg-white transition-colors focus-within:border-brand-400 ${className}`}
+      className={`overflow-hidden rounded-xs cursor-pointer border border-ink-200 bg-white transition-colors focus-within:border-brand-400 ${className}`}
     >
       {/* Toolbar */}
       <div className="flex flex-wrap items-center gap-1 border-b border-ink-200 bg-ink-50/80 p-1.5 text-ink-700">
@@ -95,9 +105,7 @@ export default function RichTextEditor({
           type="button"
           onClick={() => editor.chain().focus().toggleBold().run()}
           disabled={!editor.can().chain().focus().toggleBold().run()}
-          className={`rounded p-1.5 transition-colors hover:bg-ink-200 ${
-            editor.isActive("bold") ? "bg-ink-200 text-ink-900" : ""
-          }`}
+          className={`rounded-xs p-1.5 transition-colors hover:bg-ink-200 ${ editor.isActive("bold") ? "bg-ink-200 text-ink-900" : "" }`}
           title="Bold"
         >
           <Bold className="h-4 w-4" />
@@ -106,9 +114,7 @@ export default function RichTextEditor({
           type="button"
           onClick={() => editor.chain().focus().toggleItalic().run()}
           disabled={!editor.can().chain().focus().toggleItalic().run()}
-          className={`rounded p-1.5 transition-colors hover:bg-ink-200 ${
-            editor.isActive("italic") ? "bg-ink-200 text-ink-900" : ""
-          }`}
+          className={`rounded-xs p-1.5 transition-colors hover:bg-ink-200 ${ editor.isActive("italic") ? "bg-ink-200 text-ink-900" : "" }`}
           title="Italic"
         >
           <Italic className="h-4 w-4" />
@@ -116,9 +122,7 @@ export default function RichTextEditor({
         <button
           type="button"
           onClick={() => editor.chain().focus().toggleUnderline().run()}
-          className={`rounded p-1.5 transition-colors hover:bg-ink-200 ${
-            editor.isActive("underline") ? "bg-ink-200 text-ink-900" : ""
-          }`}
+          className={`rounded-xs p-1.5 transition-colors hover:bg-ink-200 ${ editor.isActive("underline") ? "bg-ink-200 text-ink-900" : "" }`}
           title="Underline"
         >
           <UnderlineIcon className="h-4 w-4" />
@@ -129,9 +133,7 @@ export default function RichTextEditor({
         <button
           type="button"
           onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
-          className={`rounded p-1.5 transition-colors hover:bg-ink-200 ${
-            editor.isActive("heading", { level: 1 }) ? "bg-ink-200 text-ink-900" : ""
-          }`}
+          className={`rounded-xs p-1.5 transition-colors hover:bg-ink-200 ${ editor.isActive("heading", { level: 1 }) ? "bg-ink-200 text-ink-900" : "" }`}
           title="Heading 1"
         >
           <Heading1 className="h-4 w-4" />
@@ -139,9 +141,7 @@ export default function RichTextEditor({
         <button
           type="button"
           onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-          className={`rounded p-1.5 transition-colors hover:bg-ink-200 ${
-            editor.isActive("heading", { level: 2 }) ? "bg-ink-200 text-ink-900" : ""
-          }`}
+          className={`rounded-xs p-1.5 transition-colors hover:bg-ink-200 ${ editor.isActive("heading", { level: 2 }) ? "bg-ink-200 text-ink-900" : "" }`}
           title="Heading 2"
         >
           <Heading2 className="h-4 w-4" />
@@ -149,9 +149,7 @@ export default function RichTextEditor({
         <button
           type="button"
           onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
-          className={`rounded p-1.5 transition-colors hover:bg-ink-200 ${
-            editor.isActive("heading", { level: 3 }) ? "bg-ink-200 text-ink-900" : ""
-          }`}
+          className={`rounded-xs p-1.5 transition-colors hover:bg-ink-200 ${ editor.isActive("heading", { level: 3 }) ? "bg-ink-200 text-ink-900" : "" }`}
           title="Heading 3"
         >
           <Heading3 className="h-4 w-4" />
@@ -162,9 +160,7 @@ export default function RichTextEditor({
         <button
           type="button"
           onClick={() => editor.chain().focus().toggleBulletList().run()}
-          className={`rounded p-1.5 transition-colors hover:bg-ink-200 ${
-            editor.isActive("bulletList") ? "bg-ink-200 text-ink-900" : ""
-          }`}
+          className={`rounded-xs p-1.5 transition-colors hover:bg-ink-200 ${ editor.isActive("bulletList") ? "bg-ink-200 text-ink-900" : "" }`}
           title="Bullet List"
         >
           <List className="h-4 w-4" />
@@ -172,9 +168,7 @@ export default function RichTextEditor({
         <button
           type="button"
           onClick={() => editor.chain().focus().toggleOrderedList().run()}
-          className={`rounded p-1.5 transition-colors hover:bg-ink-200 ${
-            editor.isActive("orderedList") ? "bg-ink-200 text-ink-900" : ""
-          }`}
+          className={`rounded-xs p-1.5 transition-colors hover:bg-ink-200 ${ editor.isActive("orderedList") ? "bg-ink-200 text-ink-900" : "" }`}
           title="Ordered List"
         >
           <ListOrdered className="h-4 w-4" />
@@ -182,9 +176,7 @@ export default function RichTextEditor({
         <button
           type="button"
           onClick={() => editor.chain().focus().toggleBlockquote().run()}
-          className={`rounded p-1.5 transition-colors hover:bg-ink-200 ${
-            editor.isActive("blockquote") ? "bg-ink-200 text-ink-900" : ""
-          }`}
+          className={`rounded-xs p-1.5 transition-colors hover:bg-ink-200 ${ editor.isActive("blockquote") ? "bg-ink-200 text-ink-900" : "" }`}
           title="Blockquote"
         >
           <Quote className="h-4 w-4" />
@@ -195,9 +187,7 @@ export default function RichTextEditor({
         <button
           type="button"
           onClick={setLink}
-          className={`rounded p-1.5 transition-colors hover:bg-ink-200 ${
-            editor.isActive("link") ? "bg-ink-200 text-ink-900" : ""
-          }`}
+          className={`rounded-xs p-1.5 transition-colors hover:bg-ink-200 ${ editor.isActive("link") ? "bg-ink-200 text-ink-900" : "" }`}
           title="Add Link"
         >
           <LinkIcon className="h-4 w-4" />
@@ -206,7 +196,7 @@ export default function RichTextEditor({
           <button
             type="button"
             onClick={() => editor.chain().focus().unsetLink().run()}
-            className="rounded p-1.5 transition-colors hover:bg-ink-200 text-red-600"
+            className="rounded-xs p-1.5 transition-colors hover:bg-ink-200 text-red-600"
             title="Remove Link"
           >
             <Unlink className="h-4 w-4" />
@@ -218,7 +208,7 @@ export default function RichTextEditor({
             type="button"
             onClick={() => editor.chain().focus().undo().run()}
             disabled={!editor.can().chain().focus().undo().run()}
-            className="rounded p-1.5 transition-colors hover:bg-ink-200 disabled:opacity-30"
+            className="rounded-xs p-1.5 transition-colors hover:bg-ink-200 disabled:opacity-30"
             title="Undo"
           >
             <Undo className="h-4 w-4" />
@@ -227,7 +217,7 @@ export default function RichTextEditor({
             type="button"
             onClick={() => editor.chain().focus().redo().run()}
             disabled={!editor.can().chain().focus().redo().run()}
-            className="rounded p-1.5 transition-colors hover:bg-ink-200 disabled:opacity-30"
+            className="rounded-xs p-1.5 transition-colors hover:bg-ink-200 disabled:opacity-30"
             title="Redo"
           >
             <Redo className="h-4 w-4" />

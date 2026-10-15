@@ -140,68 +140,8 @@ function tokenize(html: string): Token[] {
     const selfClose = /\/\s*$/.test(full);
     // Parse attributes: name[="value"] pairs (quoted or unquoted).
     const attrs: Record<string, string> = {};
-    const attrRe = /([a-zA-Z][a-zA-Z0-9:_-]*)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>`]+)))?/g;
-    let am: RegExpExecArray | null;
-    while ((am = attrRe.exec(attrsRaw)) !== null) {
-      const name = am[1].toLowerCase();
-      const value = am[2] ?? am[3] ?? am[4] ?? "";
-      attrs[name] = value;
-    }
-    tokens.push({ type: "open", tag: rawTag, attrs, selfClose });
-  }
-  if (last < html.length) tokens.push({ type: "text", value: html.slice(last) });
-  return tokens;
-}
-
-/** Rebuild a safe HTML string from the token stream. */
-export function sanitizeHtml(html: string): string {
-  const tokens = tokenize(html);
-  const out: string[] = [];
-  const stack: string[] = [];
-  let suppressed = 0; // >0 while inside a dropped (unknown) container element
-
-  for (const token of tokens) {
-    // While suppressing a dropped subtree (e.g. <script>…</script>), ignore
-    // everything — text, nested opens/closes — until the subtree closes.
-    if (suppressed > 0) {
-      if (token.type === "open" && !VOID_TAGS.has(token.tag)) suppressed++;
-      else if (token.type === "close") suppressed--;
-      continue;
-    }
-
-    if (token.type === "text") {
-      out.push(escText(token.value));
-      continue;
-    }
-
-    if (token.type === "open") {
-      const isAllowed = ALLOWED_TAGS.has(token.tag);
-      if (!isAllowed) {
-        // Drop the element; if it's a non-void container, drop its whole
-        // subtree too (e.g. <script>, <style>).
-        if (!VOID_TAGS.has(token.tag)) suppressed = 1;
-        continue;
-      }
-      const safeAttrs = allowedAttrs(token.tag, token.attrs);
-      const attrStr = Object.entries(safeAttrs)
-        .map(([k, v]) => `${k}="${v}"`)
-        .join(" ");
-      if (VOID_TAGS.has(token.tag)) {
-        out.push(`<${token.tag}${attrStr ? " " + attrStr : ""}/>`);
-      } else {
-        out.push(`<${token.tag}${attrStr ? " " + attrStr : ""}>`);
-        stack.push(token.tag);
-      }
-      continue;
-    }
-
-    // close
-    const idx = stack.lastIndexOf(token.tag);
-    if (idx === -1) continue; // unmatched close — drop
-    // Close the tag and any still-open descendants above it.
-    while (stack.length > idx) out.push(`</${stack.pop()}>`);
-  }
-  // Close any tags left open.
-  while (stack.length) out.push(`</${stack.pop()}>`);
+    const attrRe = /([a-zA-Z][a-zA-Z0-9:_-]*)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>`]+)))?/g; let am: RegExpExecArray | null; while ((am = attrRe.exec(attrsRaw)) !== null) { const name = am[1].toLowerCase(); const value = am[2] ?? am[3] ?? am[4] ?? ""; attrs[name] = value; } tokens.push({ type: "open", tag: rawTag, attrs, selfClose }); } if (last < html.length) tokens.push({ type: "text", value: html.slice(last) }); return tokens;
+} /** Rebuild a safe HTML string from the token stream. */
+export function sanitizeHtml(html: string): string { const tokens = tokenize(html); const out: string[] = []; const stack: string[] = []; let suppressed = 0; // >0 while inside a dropped (unknown) container element for (const token of tokens) { // While suppressing a dropped subtree (e.g. <script>…</script>), ignore // everything — text, nested opens/closes — until the subtree closes. if (suppressed > 0) { if (token.type === "open" && !VOID_TAGS.has(token.tag)) suppressed++; else if (token.type === "close") suppressed--; continue; } if (token.type === "text") { out.push(escText(token.value)); continue; } if (token.type === "open") { const isAllowed = ALLOWED_TAGS.has(token.tag); if (!isAllowed) { // Drop the element; if it's a non-void container, drop its whole // subtree too (e.g. <script>, <style>). if (!VOID_TAGS.has(token.tag)) suppressed = 1; continue; } const safeAttrs = allowedAttrs(token.tag, token.attrs); const attrStr = Object.entries(safeAttrs) .map(([k, v]) => `${k}="${v}"`) .join(" "); if (VOID_TAGS.has(token.tag)) { out.push(`<${token.tag}${attrStr ? " " + attrStr : ""}/>`); } else { out.push(`<${token.tag}${attrStr ? " " + attrStr : ""}>`); stack.push(token.tag); } continue; } // close const idx = stack.lastIndexOf(token.tag); if (idx === -1) continue; // unmatched close — drop // Close the tag and any still-open descendants above it. while (stack.length > idx) out.push(`</${stack.pop()}>`); } // Close any tags left open. while (stack.length) out.push(`</${stack.pop()}>`);
   return out.join("");
 }

@@ -5,25 +5,23 @@ import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
-  dashboardTree,
-  filterTreeForRole,
   defaultOpenGroups,
-  isNodeOrChildActive,
-  nodeKey,
-  roleLabels,
-  type DashTreeNode,
-  type Role,
-} from "@/lib/dashboard-nav";
+  filterNavForRole,
+  isGroupActive,
+  isLeafActive,
+  navItems,
+  navKey,
+  type NavGroup,
+  type NavItem,
+  type NavLeaf,
+} from "@/lib/nav-config";
+import { roleLabels, type Role } from "@/lib/dashboard-nav";
+export type { Role };
 import { RiGraduationCapLine, RiArrowDownSLine, RiSidebarFoldLine, RiSidebarUnfoldLine } from "react-icons/ri";
-import type { IconType } from "react-icons";
+import type { LucideIcon } from "lucide-react";
 
-function iconFor(icon: IconType | undefined): IconType {
-  return icon ?? RiGraduationCapLine;
-}
-
-function isLeafActive(leaf: DashTreeNode, pathname: string): boolean {
-  if (!leaf.href) return false;
-  return leaf.href === "/admin" ? pathname === "/admin" : pathname.startsWith(leaf.href);
+function iconFor(icon: LucideIcon | undefined): LucideIcon {
+  return (icon ?? RiGraduationCapLine) as unknown as LucideIcon;
 }
 
 const COLLAPSE_STORAGE_KEY = "dashboard:sidebar-collapsed";
@@ -100,77 +98,74 @@ function useAnchoredPosition(
 }
 
 /* ------------------------------------------------------------------ */
-/*  Expanded mode — inline accordion tree                             */
+/*  Expanded mode — inline accordion tree (max 2 levels)               */
 /* ------------------------------------------------------------------ */
 
-function TreeNode({
-  node,
-  parentKey,
-  level,
+function LeafLink({ leaf, pathname }: { leaf: NavLeaf; pathname: string }) {
+  const active = isLeafActive(leaf, pathname);
+  const LeafIcon = iconFor(leaf.icon);
+  return (
+    <li className="sidebar-leaf">
+      <Link
+        href={leaf.href}
+        aria-current={active ? "page" : undefined}
+        title={leaf.description ?? leaf.label}
+        className={`sidebar-leaf-link ${active ? "active" : ""} ${leaf.highlight ? "sidebar-leaf-highlight" : ""}`}
+      >
+        <span className="sidebar-icon-chip">
+          <LeafIcon className="h-4 w-4 shrink-0" />
+        </span>
+        <span className="min-w-0 flex-1 truncate">{leaf.label}</span>
+        {leaf.badge && <span className="sidebar-leaf-badge">{leaf.badge}</span>}
+      </Link>
+    </li>
+  );
+}
+
+function GroupNode({
+  group,
   open,
   toggle,
 }: {
-  node: DashTreeNode;
-  parentKey: string | null;
-  level: number;
+  group: NavGroup;
   open: Set<string>;
   toggle: (key: string, parentKey: string | null) => void;
 }) {
   const pathname = usePathname();
-  const key = nodeKey(node, parentKey);
+  const key = navKey(group.label, null);
   const isOpen = open.has(key);
-  const Icon = iconFor(node.icon);
-  const isGroup = node.kind === "group";
-
-  // Group header (collapsible section)
-  if (isGroup) {
-    const active = isNodeOrChildActive(node, pathname);
-    const children = node.children ?? [];
-
-    return (
-      <li className="sidebar-group" data-level={level}>
-        <button
-          type="button"
-          onClick={() => toggle(key, parentKey)}
-          aria-expanded={isOpen}
-          className={`sidebar-group-btn ${active ? "active" : ""}`}
-        >
-          <span className="flex min-w-0 items-center gap-2.5">
-            <span className="sidebar-icon-chip">
-              <Icon className="h-4 w-4 shrink-0" />
-            </span>
-            <span className="flex-1 truncate text-left">{node.label}</span>
-          </span>
-          <RiArrowDownSLine
-            className={`h-3.5 w-3.5 shrink-0 text-ink-400 transition-transform duration-200 ${
-              isOpen ? "rotate-0" : "-rotate-90"
-            }`}
-          />
-        </button>
-
-        <div className={`sidebar-children ${isOpen ? "open" : ""}`}>
-          <ul className="sidebar-children-list">
-            {children.map((child) => (
-              <TreeNode key={nodeKey(child, key)} node={child} parentKey={key} level={level + 1} open={open} toggle={toggle} />
-            ))}
-          </ul>
-        </div>
-      </li>
-    );
-  }
-
-  // Leaf node (actual link)
-  const active = isLeafActive(node, pathname);
-  const LeafIcon = iconFor(node.icon);
+  const Icon = iconFor(group.icon);
+  const active = isGroupActive(group, pathname);
 
   return (
-    <li className="sidebar-leaf" data-level={level}>
-      <Link href={node.href ?? "/"} aria-current={active ? "page" : undefined} className={`sidebar-leaf-link ${active ? "active" : ""}`}>
-        <span className="sidebar-icon-chip">
-          <LeafIcon className="h-4 w-4 shrink-0" />
+    <li className="sidebar-group">
+      <button
+        type="button"
+        onClick={() => toggle(key, null)}
+        aria-expanded={isOpen}
+        className={`sidebar-group-btn ${active ? "active" : ""}`}
+      >
+        <span className="flex min-w-0 items-center gap-2.5">
+          <span className="sidebar-icon-chip">
+            <Icon className="h-4 w-4 shrink-0" />
+          </span>
+          <span className="flex-1 truncate text-left">{group.label}</span>
         </span>
-        <span className="truncate">{node.label}</span>
-      </Link>
+        <RiArrowDownSLine
+          className={`h-3.5 w-3.5 shrink-0 text-ink-400 transition-transform duration-200 ${
+            isOpen ? "rotate-0" : "-rotate-90"
+          }`}
+        />
+      </button>
+
+      <div className={`sidebar-children ${isOpen ? "open" : ""}`}>
+        {/* Strict 2-level rule: group children are direct page links only. */}
+        <ul className="sidebar-children-list">
+          {group.children.map((child) => (
+            <LeafLink key={navKey(child.label, key)} leaf={child} pathname={pathname} />
+          ))}
+        </ul>
+      </div>
     </li>
   );
 }
@@ -218,40 +213,21 @@ function RailTooltip({ label, anchorRef, show }: { label: string; anchorRef: Rea
   );
 }
 
-function FlyoutNode({ node, onNavigate }: { node: DashTreeNode; onNavigate: () => void }) {
+function FlyoutLeaf({ leaf, onNavigate }: { leaf: NavLeaf; onNavigate: () => void }) {
   const pathname = usePathname();
-
-  if (node.kind === "group") {
-    const groupActive = isNodeOrChildActive(node, pathname);
-    return (
-      <li className="px-1 py-1">
-        <p
-          className={`px-2 py-1 text-[11px] font-semibold uppercase tracking-wider ${
-            groupActive ? "sidebar-flyout-group-active" : "text-ink-400"
-          }`}
-        >
-          {node.label}
-        </p>
-        <ul className="space-y-0.5">
-          {(node.children ?? []).map((child) => (
-            <FlyoutNode key={nodeKey(child, node.label.toLowerCase().replace(/\s+/g, "-"))} node={child} onNavigate={onNavigate} />
-          ))}
-        </ul>
-      </li>
-    );
-  }
-
-  const active = isLeafActive(node, pathname);
+  const active = isLeafActive(leaf, pathname);
   return (
     <li>
       <Link
-        href={node.href ?? "/"}
+        href={leaf.href}
         onClick={onNavigate}
         aria-current={active ? "page" : undefined}
-        className={`sidebar-flyout-link ${active ? "active" : ""}`}
+        title={leaf.description ?? leaf.label}
+        className={`sidebar-flyout-link ${active ? "active" : ""} ${leaf.highlight ? "sidebar-leaf-highlight" : ""}`}
       >
         <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-current opacity-40" aria-hidden />
-        <span className="truncate">{node.label}</span>
+        <span className="min-w-0 flex-1 truncate">{leaf.label}</span>
+        {leaf.badge && <span className="sidebar-leaf-badge">{leaf.badge}</span>}
       </Link>
     </li>
   );
@@ -260,14 +236,14 @@ function FlyoutNode({ node, onNavigate }: { node: DashTreeNode; onNavigate: () =
 /** Portalled submenu for a rail group. Bridges the rail→card gap with a
  *  transparent padding box so the pointer never crosses a dead zone. */
 function RailFlyout({
-  node,
+  group,
   anchorRef,
   panelRef,
   onEnter,
   onLeave,
   onNavigate,
 }: {
-  node: DashTreeNode;
+  group: NavGroup;
   anchorRef: React.RefObject<HTMLElement | null>;
   panelRef: React.RefObject<HTMLDivElement | null>;
   onEnter: () => void;
@@ -301,12 +277,12 @@ function RailFlyout({
         className={`sidebar-flyout-card ${ready ? "ready" : ""}`}
         style={{ minWidth: RAIL_CARD_MIN, maxWidth: RAIL_CARD_MAX }}
         role="menu"
-        aria-label={node.label}
+        aria-label={group.label}
       >
-        <p className="border-b border-ink-100 px-3 py-2 text-xs font-semibold text-ink-800">{node.label}</p>
+        <p className="border-b border-ink-100 px-3 py-2 text-xs font-semibold text-ink-800">{group.label}</p>
         <ul className="scroll-slim sidebar-flyout-scroll py-1.5" style={{ maxHeight: `calc(100vh - ${OVERLAY_PAD * 2}px)` }}>
-          {(node.children ?? []).map((child) => (
-            <FlyoutNode key={nodeKey(child, node.label.toLowerCase().replace(/\s+/g, "-"))} node={child} onNavigate={onNavigate} />
+          {group.children.map((child) => (
+            <FlyoutLeaf key={navKey(child.label, group.label)} leaf={child} onNavigate={onNavigate} />
           ))}
         </ul>
       </div>
@@ -321,7 +297,7 @@ function RailItem({
   openKey,
   setOpenKey,
 }: {
-  node: DashTreeNode;
+  node: NavLeaf | NavGroup;
   active: boolean;
   /** Key of the single rail item allowed to show a flyout right now. */
   openKey: string | null;
@@ -335,7 +311,7 @@ function RailItem({
   const [tooltip, setTooltip] = useState(false);
   const tooltipTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const key = nodeKey(node, null);
+  const key = navKey(node.label, null);
   const Icon = iconFor(node.icon);
   const isGroup = node.kind === "group";
   const open = isGroup && openKey === key;
@@ -433,7 +409,7 @@ function RailItem({
       >
         <Link
           ref={anchorRef as React.RefObject<HTMLAnchorElement>}
-          href={node.href ?? "/"}
+          href={(node as NavLeaf).href}
           aria-current={active ? "page" : undefined}
           aria-label={node.label}
           className={`sidebar-rail-btn ${active ? "active" : ""}`}
@@ -445,6 +421,7 @@ function RailItem({
     );
   }
 
+  const group = node as NavGroup;
   return (
     <li
       className="relative"
@@ -481,7 +458,7 @@ function RailItem({
       <RailTooltip label={node.label} anchorRef={anchorRef} show={tooltip && !open} />
       {open && (
         <RailFlyout
-          node={node}
+          group={group}
           anchorRef={anchorRef}
           panelRef={flyoutRef}
           onEnter={() => {
@@ -507,13 +484,32 @@ export default function Sidebar({ role, name }: { role: Role; name?: string }) {
   const pathname = usePathname();
   const mounted = useMounted();
 
-  const items = useMemo(() => filterTreeForRole(dashboardTree, role), [role]);
+  const items: NavItem[] = useMemo(() => filterNavForRole(navItems, role), [role]);
 
   const [open, setOpen] = useState<Set<string>>(() => defaultOpenGroups(items, pathname));
   const [collapsed, setCollapsed] = useState(false);
   // Key of the rail item whose flyout is open. Lifted here so sliding the
   // pointer across the rail swaps panels instead of stacking them.
   const [openKey, setOpenKey] = useState<string | null>(null);
+
+  // Auto-expand the parent group whenever the route changes to one of its
+  // children (deep links, palette jumps, browser back/forward). User-closed
+  // groups stay closed unless they own the active route.
+  useEffect(() => {
+    const active = defaultOpenGroups(items, pathname);
+    if (active.size === 0) return;
+    setOpen((prev) => {
+      let changed = false;
+      const next = new Set(prev);
+      active.forEach((k) => {
+        if (!next.has(k)) {
+          next.add(k);
+          changed = true;
+        }
+      });
+      return changed ? next : prev;
+    });
+  }, [items, pathname]);
 
   useEffect(() => {
     setCollapsed(window.localStorage.getItem(COLLAPSE_STORAGE_KEY) === "1");
@@ -541,17 +537,15 @@ export default function Sidebar({ role, name }: { role: Role; name?: string }) {
         if (parent === parentKey) next.delete(k);
       });
 
-      if (!wasOpen) {
-        next.add(key);
-        // Collapse descendants
-        const prefix = `${key}/`;
-        Array.from(next).forEach((k) => {
-          if (k.startsWith(prefix)) next.delete(k);
-        });
-      }
+      if (!wasOpen) next.add(key);
       return next;
     });
   }, []);
+
+  const railNodes = useMemo(
+    () => items.filter((n): n is NavLeaf | NavGroup => n.kind !== "section"),
+    [items],
+  );
 
   return (
     <aside
@@ -563,7 +557,7 @@ export default function Sidebar({ role, name }: { role: Role; name?: string }) {
     >
       {/* Brand header */}
       <div className="flex h-16 shrink-0 items-center gap-2.5 border-b border-ink-200 px-4">
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-navy-900 text-gold-400 shadow-sm">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xs bg-navy-900 text-gold-400 shadow-sm">
           <RiGraduationCapLine className="h-4.5 w-4.5" />
         </span>
         {!collapsed && (
@@ -583,21 +577,33 @@ export default function Sidebar({ role, name }: { role: Role; name?: string }) {
       >
         {collapsed ? (
           <ul className="sidebar-rail">
-            {items.map((node) => (
+            {railNodes.map((node) => (
               <RailItem
-              key={nodeKey(node, null)}
-              node={node}
-              active={isNodeOrChildActive(node, pathname)}
-              openKey={openKey}
-              setOpenKey={setOpenKey}
-            />
+                key={navKey(node.label, null)}
+                node={node}
+                active={node.kind === "leaf" ? isLeafActive(node, pathname) : isGroupActive(node, pathname)}
+                openKey={openKey}
+                setOpenKey={setOpenKey}
+              />
             ))}
           </ul>
         ) : (
           <ul className="sidebar-nav">
-            {items.map((node) => (
-              <TreeNode key={nodeKey(node, null)} node={node} parentKey={null} level={0} open={open} toggle={toggle} />
-            ))}
+            {items.map((item) => {
+              if (item.kind === "section") {
+                return (
+                  <li key={navKey(item.label, null)} aria-hidden={false}>
+                    <p className="px-2 pb-1 pt-3 text-[11px] font-bold uppercase tracking-wider text-brand-700 first:pt-0">
+                      {item.label}
+                    </p>
+                  </li>
+                );
+              }
+              if (item.kind === "leaf") {
+                return <LeafLink key={navKey(item.label, null)} leaf={item} pathname={pathname} />;
+              }
+              return <GroupNode key={navKey(item.label, null)} group={item} open={open} toggle={toggle} />;
+            })}
           </ul>
         )}
       </nav>

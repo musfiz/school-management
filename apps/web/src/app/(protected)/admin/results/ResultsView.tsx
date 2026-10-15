@@ -13,7 +13,7 @@ export default function ResultsView() {
         </p>
         <a
           href="/result/exam-result"
-          className="mt-4 inline-flex items-center gap-2 rounded-sm bg-navy-800 px-5 py-3 text-sm font-semibold text-white hover:bg-navy-900"
+          className="mt-4 inline-flex items-center gap-2 rounded-xs bg-navy-800 px-5 py-3 text-sm font-semibold text-white hover:bg-navy-900"
         >
           Open result lookup
         </a>

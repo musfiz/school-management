@@ -55,6 +55,22 @@ export const overviewByRole: Record<Role, RoleOverview> = {
       { label: "Notices", href: "/admin/notices" },
     ],
   },
+  accountant: {
+    greeting: "Accounts workspace",
+    subtitle: "Vouchers, billing, collections and financial reports.",
+    stats: [
+      { value: "0", label: "Pending vouchers" },
+      { value: "0", label: "Unpaid invoices" },
+      { value: "0", label: "Due collections" },
+      { value: "FY 2026-27", label: "Open period" },
+    ],
+    quickActions: [
+      { label: "New voucher", href: "/admin/accounting/vouchers" },
+      { label: "Chart of accounts", href: "/admin/accounting/chart-of-accounts" },
+      { label: "Fee collection", href: "/admin/accounting/collection" },
+      { label: "Reports", href: "/admin/accounting/reports" },
+    ],
+  },
   teacher: {
     greeting: "Teacher workspace",
     subtitle: "Your classes, attendance, and student results.",

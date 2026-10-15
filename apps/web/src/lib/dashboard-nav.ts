@@ -25,17 +25,19 @@ import {
   RiDownloadCloudLine,
   RiInformationLine,
   RiShieldKeyholeLine,
+  RiShieldCheckLine,
   RiKey2Line,
   RiUserSettingsLine as RiUserPermissionLine,
 } from "react-icons/ri";
 
-export type Role = "admin" | "management" | "teacher" | "student" | "guardian";
+export type Role = "admin" | "management" | "accountant" | "teacher" | "student" | "guardian";
 
-export const ROLES: Role[] = ["admin", "management", "teacher", "student", "guardian"];
+export const ROLES: Role[] = ["admin", "management", "accountant", "teacher", "student", "guardian"];
 
 export const roleLabels: Record<Role, string> = {
   admin: "Administrator",
   management: "Management",
+  accountant: "Accountant",
   teacher: "Teacher",
   student: "Student",
   guardian: "Guardian",
@@ -44,6 +46,7 @@ export const roleLabels: Record<Role, string> = {
 export const roleDescriptions: Record<Role, string> = {
   admin: "Full control over the school portal, users and settings.",
   management: "Oversee academics, staff and institutional reporting.",
+  accountant: "Handle vouchers, billing, collections and accounting reports.",
   teacher: "Manage classes, students, attendance and results.",
   student: "View your profile, results, routine and notices.",
   guardian: "Track your child's progress, fees and notices.",
@@ -262,6 +265,75 @@ export const dashboardTree: DashTreeNode[] = [
             icon: RiClipboardLine,
           },
         ],
+      },
+    ],
+  },
+
+  // ── Accounts Management ────────────────────────────────────
+  // Positioned directly under Website Management. Mirrors Phase 8 of
+  // docs/AGENT_IMPLEMENTATION_PLAN.md (frontend workstreams) and the CoA /
+  // fund engine in docs/accounting_architecture_spec.md. Backend (Phases
+  // 1-7) lands under apps/api/src/modules/accounting/.
+  {
+    kind: "group",
+    label: "Accounts Management",
+    icon: RiMoneyDollarCircleLine,
+    children: [
+      {
+        kind: "leaf",
+        label: "Chart of Accounts",
+        href: "/admin/accounting/chart-of-accounts",
+        roles: ["admin", "management", "accountant"],
+        icon: RiBookOpenLine,
+      },
+      {
+        kind: "leaf",
+        label: "Vouchers",
+        href: "/admin/accounting/vouchers",
+        roles: ["admin", "management", "accountant"],
+        icon: RiClipboardLine,
+      },
+      {
+        kind: "leaf",
+        label: "Billing & Invoices",
+        href: "/admin/accounting/billing",
+        roles: ["admin", "management", "accountant"],
+        icon: RiGraduationCapLine,
+      },
+      {
+        kind: "leaf",
+        label: "Fee Collection",
+        href: "/admin/accounting/collection",
+        roles: ["admin", "management", "accountant"],
+        icon: RiMoneyDollarCircleLine,
+      },
+      {
+        kind: "leaf",
+        label: "Payables & NBR Tax",
+        href: "/admin/accounting/payables-tax",
+        roles: ["admin", "management", "accountant"],
+        icon: RiBuildingLine,
+      },
+      {
+        kind: "leaf",
+        label: "Payroll & MPO",
+        href: "/admin/accounting/payroll",
+        roles: ["admin", "management", "accountant"],
+        icon: RiUserLine,
+      },
+      {
+        kind: "leaf",
+        label: "Financial Reports",
+        href: "/admin/accounting/reports",
+        roles: ["admin", "management", "accountant"],
+        icon: RiDownloadCloudLine,
+      },
+      {
+        kind: "leaf",
+        label: "Audit Trail",
+        href: "/admin/accounting/audit",
+        roles: ["admin", "management", "accountant"],
+        icon: RiShieldCheckLine,
       },
     ],
   },

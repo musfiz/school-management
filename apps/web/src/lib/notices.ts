@@ -1,5 +1,5 @@
 export interface NoticeItem {
-  id: number;
+  id: string;
   title: string;
   titleBn?: string | null;
   slug?: string | null;

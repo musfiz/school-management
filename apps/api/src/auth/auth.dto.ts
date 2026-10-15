@@ -30,7 +30,7 @@ export class RegisterDto {
 
 export class AuthUserDto {
   @ApiProperty()
-  id!: number;
+  id!: string;
 
   @ApiProperty()
   name!: string;

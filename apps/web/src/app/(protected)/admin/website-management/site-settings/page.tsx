@@ -53,7 +53,7 @@ function Field({
 }
 
 const inputClass =
-  "w-full rounded-md border border-ink-200 px-3 py-2 text-sm outline-none focus:border-brand-400";
+  "w-full rounded-xs cursor-pointer border border-ink-200 px-3 py-1 text-sm outline-none focus:border-brand-400";
 
 /** One card per translatable field — English and Bangla side by side. */
 function BilingualCard({
@@ -214,7 +214,7 @@ export default function SiteSettingsPage() {
             type="button"
             onClick={handleSave}
             disabled={saving}
-            className="flex items-center gap-1.5 rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white disabled:opacity-60 hover:bg-brand-700"
+            className="flex items-center gap-1.5 rounded-xs bg-brand-600 px-3 py-2 text-sm font-semibold text-white disabled:opacity-60 hover:bg-brand-700"
           >
             {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
             Save
@@ -315,11 +315,7 @@ export default function SiteSettingsPage() {
                       key={opt.value}
                       type="button"
                       onClick={() => patch({ headerDisplay: opt.value })}
-                      className={`rounded-md border px-2 py-2 text-left text-xs transition-colors ${
-                        settings.headerDisplay === opt.value
-                          ? "border-brand-500 bg-brand-50 text-brand-700"
-                          : "border-ink-200 text-ink-600 hover:bg-ink-50"
-                      }`}
+                      className={`rounded-xs border px-2 py-2 text-left text-xs transition-colors ${ settings.headerDisplay === opt.value ? "border-brand-500 bg-brand-50 text-brand-700" : "border-ink-200 text-ink-600 hover:bg-ink-50" }`}
                     >
                       <span className="block font-semibold">{opt.label}</span>
                       <span className="text-[11px] text-ink-500">{opt.hint}</span>

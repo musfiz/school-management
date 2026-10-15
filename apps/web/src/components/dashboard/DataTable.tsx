@@ -33,7 +33,7 @@ export default function DataTable<TData>({
   });
 
   return (
-    <div className="scroll-slim overflow-x-auto rounded-lg border border-ink-200 shadow-soft">
+    <div className="scroll-slim overflow-x-auto rounded-xs border border-ink-200 shadow-soft">
       <table className="w-full border-collapse text-sm">
         <thead className="bg-ink-50">
           {table.getHeaderGroups().map((headerGroup) => (
@@ -62,9 +62,7 @@ export default function DataTable<TData>({
             table.getRowModel().rows.map((row, i) => (
               <tr
                 key={row.id}
-                className={`transition-colors hover:bg-brand-50/40 ${
-                  i % 2 === 1 ? "bg-ink-50/40" : "bg-white"
-                }`}
+                className={`transition-colors hover:bg-brand-50/40 ${ i % 2 === 1 ? "bg-ink-50/40" : "bg-white" }`}
               >
                 {row.getVisibleCells().map((cell) => (
                   <td key={cell.id} className="px-4 py-3 align-middle">

@@ -92,14 +92,14 @@ export default function Header({
             {/* Public portal: primary CTA (gold), more prominent. */}
             <Link
               href="/site/login"
-              className="inline-flex items-center gap-1.5 rounded-sm bg-gold-500 px-3 py-1 text-xs font-semibold text-navy-900 transition-colors hover:bg-gold-400"
+              className="inline-flex items-center gap-1.5 rounded-xs bg-gold-500 px-3 py-1 text-xs font-semibold text-navy-900 transition-colors hover:bg-gold-400"
             >
               Student / parent sign in
             </Link>
             {/* Staff portal: outline, secondary. */}
             <Link
               href="/login"
-              className="hidden items-center gap-1.5 rounded-sm border border-navy-700 px-3 py-1 text-xs font-semibold text-navy-100 transition-colors hover:border-navy-500 hover:bg-navy-800 hover:text-white sm:inline-flex"
+              className="hidden items-center gap-1.5 rounded-xs border border-navy-700 px-3 py-1 text-xs font-semibold text-navy-100 transition-colors hover:border-navy-500 hover:bg-navy-800 hover:text-white sm:inline-flex"
             >
               Sign in
             </Link>
@@ -120,7 +120,7 @@ export default function Header({
             </ul>
 
             <div
-              className="flex items-center rounded-sm border border-navy-700 p-0.5 text-[11px] font-semibold"
+              className="flex items-center rounded-xs border border-navy-700 p-0.5 text-[11px] font-semibold"
               role="group"
               aria-label={t("language")}
             >
@@ -128,9 +128,7 @@ export default function Header({
                 type="button"
                 onClick={() => setLocale("en")}
                 aria-pressed={locale === "en"}
-                className={`rounded-sm px-2 py-0.5 transition-colors ${
-                  locale === "en" ? "bg-white text-navy-900" : "text-navy-200 hover:text-white"
-                }`}
+                className={`rounded-xs px-2 py-0.5 transition-colors ${ locale === "en" ? "bg-white text-navy-900" : "text-navy-200 hover:text-white" }`}
               >
                 EN
               </button>
@@ -139,9 +137,7 @@ export default function Header({
                 type="button"
                 onClick={() => setLocale("bn")}
                 aria-pressed={locale === "bn"}
-                className={`rounded-sm px-2 py-0.5 transition-colors ${
-                  locale === "bn" ? "bg-white text-navy-900" : "text-navy-200 hover:text-white"
-                }`}
+                className={`rounded-xs px-2 py-0.5 transition-colors ${ locale === "bn" ? "bg-white text-navy-900" : "text-navy-200 hover:text-white" }`}
               >
                 বাং
               </button>
@@ -149,7 +145,7 @@ export default function Header({
 
             <Link
               href="/admission/how-to-apply"
-              className="rounded-sm bg-gold-500 px-3 py-1 text-xs font-semibold text-navy-900 transition-colors hover:bg-gold-400"
+              className="rounded-xs bg-gold-500 px-3 py-1 text-xs font-semibold text-navy-900 transition-colors hover:bg-gold-400"
             >
               {t("onlineApply")}
             </Link>
@@ -172,7 +168,7 @@ export default function Header({
                 priority
                 unoptimized={isExternalImage(settings.logoUrl)}
                 sizes="(max-width: 640px) 112px, 160px"
-                className="h-14 w-auto rounded-sm object-contain sm:h-12"
+                className="h-14 w-auto rounded-xs object-contain sm:h-12"
               />
             </Link>
           )}
@@ -212,11 +208,7 @@ export default function Header({
                 <li key={item.href} className="group relative">
                   <Link
                     href={item.href}
-                    className={`flex items-center gap-1 px-3 py-3 text-sm font-medium transition-colors ${
-                      isActive(item.href)
-                        ? "bg-navy-900 text-white"
-                        : "text-navy-100 hover:bg-navy-700 hover:text-white"
-                    }`}
+                    className={`flex items-center gap-1 px-3 py-3 text-sm font-medium transition-colors ${ isActive(item.href) ? "bg-navy-900 text-white" : "text-navy-100 hover:bg-navy-700 hover:text-white" }`}
                     aria-current={isActive(item.href) ? "page" : undefined}
                   >
                     {labelFor(item)}
@@ -225,7 +217,7 @@ export default function Header({
 
                   {item.children && (
                     <div className="invisible absolute left-0 top-full z-50 w-64 pt-2 opacity-0 transition-all duration-150 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100">
-                      <ul className="overflow-hidden rounded-sm border border-ink-200 bg-white p-1.5 shadow-card">
+                      <ul className="overflow-hidden rounded-xs border border-ink-200 bg-white p-1.5 shadow-card">
                         {item.children.map((child) => (
                           <li key={child.href}>
                             <Link
@@ -233,11 +225,7 @@ export default function Header({
                               onClick={(e) => {
                                 (e.currentTarget as HTMLElement).blur();
                               }}
-                              className={`block rounded-sm px-3 py-2 text-sm transition-colors ${
-                                isActive(child.href)
-                                  ? "bg-navy-50 font-semibold text-navy-800"
-                                  : "text-ink-700 hover:bg-ink-100"
-                              }`}
+                              className={`block rounded-xs px-3 py-2 text-sm transition-colors ${ isActive(child.href) ? "bg-navy-50 font-semibold text-navy-800" : "text-ink-700 hover:bg-ink-100" }`}
                               aria-current={isActive(child.href) ? "page" : undefined}
                             >
                               {labelFor(child)}
@@ -254,11 +242,7 @@ export default function Header({
               <li>
                 <Link
                   href={noticeHref}
-                  className={`flex items-center gap-1 px-3 py-3 text-sm font-medium transition-colors ${
-                    isActive(noticeHref)
-                      ? "bg-navy-900 text-white"
-                      : "text-navy-100 hover:bg-navy-700 hover:text-white"
-                  }`}
+                  className={`flex items-center gap-1 px-3 py-3 text-sm font-medium transition-colors ${ isActive(noticeHref) ? "bg-navy-900 text-white" : "text-navy-100 hover:bg-navy-700 hover:text-white" }`}
                   aria-current={isActive(noticeHref) ? "page" : undefined}
                 >
                   Notice
@@ -271,7 +255,7 @@ export default function Header({
           <button
             type="button"
             onClick={() => setMobileOpen((v) => !v)}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-sm text-navy-100 hover:bg-navy-700 lg:hidden"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-xs text-navy-100 hover:bg-navy-700 lg:hidden"
             aria-expanded={mobileOpen}
             aria-label="Toggle navigation menu"
           >
@@ -294,13 +278,11 @@ export default function Header({
                             setOpenAccordion((cur) => (cur === item.label ? null : item.label))
                           }
                           aria-expanded={openAccordion === item.label}
-                          className="flex w-full items-center justify-between rounded-sm px-3 py-2.5 text-left text-sm font-medium text-navy-50 hover:bg-navy-700"
+                          className="flex w-full items-center justify-between rounded-xs px-3 py-2.5 text-left text-sm font-medium text-navy-50 hover:bg-navy-700"
                         >
                           {labelFor(item)}
                           <ChevronDown
-                            className={`h-4 w-4 transition-transform ${
-                              openAccordion === item.label ? "rotate-180" : ""
-                            }`}
+                            className={`h-4 w-4 transition-transform ${ openAccordion === item.label ? "rotate-180" : "" }`}
                           />
                         </button>
                         {openAccordion === item.label && (
@@ -310,11 +292,7 @@ export default function Header({
                                 <Link
                                   href={child.href}
                                   onClick={() => setMobileOpen(false)}
-                                  className={`block rounded-sm px-3 py-2 text-sm ${
-                                    isActive(child.href)
-                                      ? "bg-navy-900 font-semibold text-white"
-                                      : "text-navy-100"
-                                  }`}
+                                  className={`block rounded-xs px-3 py-2 text-sm ${ isActive(child.href) ? "bg-navy-900 font-semibold text-white" : "text-navy-100" }`}
                                 >
                                   {labelFor(child)}
                                 </Link>
@@ -327,11 +305,7 @@ export default function Header({
                       <Link
                         href={item.href}
                         onClick={() => setMobileOpen(false)}
-                        className={`block rounded-sm px-3 py-2.5 text-sm font-medium ${
-                          isActive(item.href)
-                            ? "bg-navy-900 font-semibold text-white"
-                            : "text-navy-50"
-                        }`}
+                        className={`block rounded-xs px-3 py-2.5 text-sm font-medium ${ isActive(item.href) ? "bg-navy-900 font-semibold text-white" : "text-navy-50" }`}
                       >
                         {labelFor(item)}
                       </Link>
@@ -342,9 +316,7 @@ export default function Header({
                   <Link
                     href={noticeHref}
                     onClick={() => setMobileOpen(false)}
-                    className={`block rounded-sm px-3 py-2.5 text-sm font-medium ${
-                      isActive(noticeHref) ? "bg-navy-900 font-semibold text-white" : "text-navy-50"
-                    }`}
+                    className={`block rounded-xs px-3 py-2.5 text-sm font-medium ${ isActive(noticeHref) ? "bg-navy-900 font-semibold text-white" : "text-navy-50" }`}
                   >
                     Notice
                   </Link>
@@ -353,7 +325,7 @@ export default function Header({
                   <Link
                     href="/site/login"
                     onClick={() => setMobileOpen(false)}
-                    className="block rounded-sm bg-gold-500 px-3 py-2.5 text-center text-sm font-semibold text-navy-900"
+                    className="block rounded-xs bg-gold-500 px-3 py-2.5 text-center text-sm font-semibold text-navy-900"
                   >
                     Student / parent sign in
                   </Link>
@@ -362,7 +334,7 @@ export default function Header({
                   <Link
                     href="/login"
                     onClick={() => setMobileOpen(false)}
-                    className="block rounded-sm border border-navy-600 px-3 py-2.5 text-center text-sm font-semibold text-navy-100"
+                    className="block rounded-xs border border-navy-600 px-3 py-2.5 text-center text-sm font-semibold text-navy-100"
                   >
                     Sign in
                   </Link>

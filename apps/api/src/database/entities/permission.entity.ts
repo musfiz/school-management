@@ -13,8 +13,8 @@ import { Module } from './module.entity';
  *  module so the matrix can show a module → permissions hierarchy. */
 @Entity('permissions')
 export class Permission {
-  @PrimaryGeneratedColumn('increment')
-  id!: number;
+  @PrimaryGeneratedColumn('uuid')
+  id!: string;
 
   @Column({ name: 'name', type: 'varchar', length: 100, unique: true })
   name!: string;
@@ -22,8 +22,8 @@ export class Permission {
   @Column({ name: 'description', type: 'varchar', length: 255, nullable: true })
   description?: string;
 
-  @Column({ name: 'module_id', type: 'int', nullable: true })
-  module_id?: number | null;
+  @Column({ name: 'module_id', type: 'char', length: '36', nullable: true })
+  module_id?: string | null;
 
   @ManyToOne(() => Module, { onDelete: 'SET NULL', nullable: true })
   @JoinColumn({ name: 'module_id' })

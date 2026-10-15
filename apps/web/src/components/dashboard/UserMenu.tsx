@@ -103,11 +103,11 @@ export default function UserMenu({
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="menu"
         aria-expanded={open}
-        className="flex items-center gap-2.5 rounded-sm border border-ink-200 bg-white px-2 py-1.5 text-sm font-medium text-ink-700 transition-colors hover:bg-ink-100"
+        className="flex items-center gap-2.5 rounded-xs border border-ink-200 bg-white px-2 py-1.5 text-sm font-medium text-ink-700 transition-colors hover:bg-ink-100"
       >
         <span
           aria-hidden
-          className="flex h-8 w-8 items-center justify-center rounded-sm bg-navy-800 text-xs font-bold text-white"
+          className="flex h-8 w-8 items-center justify-center rounded-xs bg-navy-800 text-xs font-bold text-white"
         >
           {initialsOf(name)}
         </span>
@@ -120,9 +120,7 @@ export default function UserMenu({
           </span>
         </span>
         <ChevronDown
-          className={`h-4 w-4 text-ink-500 transition-transform ${
-            open ? "rotate-180" : ""
-          }`}
+          className={`h-4 w-4 text-ink-500 transition-transform ${ open ? "rotate-180" : "" }`}
         />
       </button>
 
@@ -130,7 +128,7 @@ export default function UserMenu({
         <div
           role="menu"
           aria-label="User menu"
-          className="absolute right-0 z-40 mt-2 w-64 origin-top-right rounded-sm border border-ink-200 bg-white shadow-card"
+          className="absolute right-0 z-40 mt-2 w-64 origin-top-right rounded-xs border border-ink-200 bg-white shadow-card"
         >
           <div className="border-b border-ink-200 px-4 py-3">
             <p className="text-sm font-semibold text-navy-800">{name}</p>
@@ -179,7 +177,7 @@ export default function UserMenu({
               type="button"
               onClick={onSignOut}
               disabled={isPending}
-              className="flex w-full items-center gap-3 rounded-sm px-3 py-2 text-left text-sm font-semibold text-red-600 hover:bg-red-50 disabled:opacity-60"
+              className="flex w-full items-center gap-3 rounded-xs px-3 py-2 text-left text-sm font-semibold text-red-600 hover:bg-red-50 disabled:opacity-60"
             >
               <LogOut className="h-4 w-4" />
               {isPending ? "Signing out…" : "Sign out"}

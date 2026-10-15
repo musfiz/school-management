@@ -16,24 +16,24 @@ import {
 } from "./dashboard-nav";
 
 export interface Permission {
-  id: number;
+  id: string;
   name: string;
   description?: string | null;
-  module_id?: number | null;
+  module_id?: string | null;
   /** Populated when the backend joins the module relation. */
-  module?: { id: number; name: string } | null;
+  module?: { id: string; name: string } | null;
   created_at?: string;
 }
 
 export interface UserPermissionAssignment {
-  user_id: number;
-  permission_id: number;
-  assigned_by: number | null;
+  user_id: string;
+  permission_id: string;
+  assigned_by: string | null;
   assigned_at: string;
 }
 
 export interface UserSummary {
-  id: number;
+  id: string;
   name: string;
   email: string;
   role: string;
@@ -117,7 +117,7 @@ export function listPermissions(): Promise<Permission[]> {
 export function createPermission(input: {
   name: string;
   description?: string;
-  module_id?: number | null;
+  module_id?: string | null;
 }): Promise<Permission> {
   return apiFetch<Permission>("/api/permissions", {
     method: "POST",
@@ -131,12 +131,12 @@ export function listUsers(): Promise<UserSummary[]> {
   return apiFetch<UserSummary[]>("/api/users");
 }
 
-export function getUserPermissions(userId: number): Promise<string[]> {
+export function getUserPermissions(userId: string): Promise<string[]> {
   return apiFetch<string[]>(`/api/permissions/users/${userId}`);
 }
 
 export function setUserPermissions(
-  userId: number,
+  userId: string,
   permissions: string[],
 ): Promise<void> {
   return apiFetch<void>(`/api/permissions/users/${userId}`, {
@@ -146,7 +146,7 @@ export function setUserPermissions(
 }
 
 export function assignPermission(
-  userId: number,
+  userId: string,
   permission: string,
 ): Promise<UserPermissionAssignment> {
   return apiFetch<UserPermissionAssignment>(
@@ -159,7 +159,7 @@ export function assignPermission(
 }
 
 export function revokePermission(
-  userId: number,
+  userId: string,
   permission: string,
 ): Promise<void> {
   return apiFetch<void>(`/api/permissions/users/${userId}/revoke`, {

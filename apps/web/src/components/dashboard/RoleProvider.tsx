@@ -12,7 +12,7 @@ import type { Role } from "@/lib/dashboard-nav";
 interface RoleContextValue {
   role: Role | null;
   name: string | null;
-  id: number | null;
+  id: string | null;
   setRole: (role: Role) => void;
   clearRole: () => void;
 }
@@ -20,7 +20,7 @@ interface RoleContextValue {
 const RoleContext = createContext<RoleContextValue | null>(null);
 
 interface RoleProviderInitial {
-  id: number;
+  id: string;
   name: string;
   email: string;
   role: Role;
@@ -35,7 +35,7 @@ export function RoleProvider({
 }) {
   const [role, setRoleState] = useState<Role | null>(initial?.role ?? null);
   const [name, setName] = useState<string | null>(initial?.name ?? null);
-  const [id, setId] = useState<number | null>(initial?.id ?? null);
+  const [id, setId] = useState<string | null>(initial?.id ?? null);
 
   // These setters exist for development conveniences (e.g. role-switcher).
   // In production the session flows: server validates JWT → /api/auth/login

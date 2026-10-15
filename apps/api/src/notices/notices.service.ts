@@ -32,7 +32,7 @@ export class NoticesService {
       .getMany();
   }
 
-  async findOne(id: number): Promise<Notice> {
+  async findOne(id: string): Promise<Notice> {
     const notice = await this.noticeRepo.findOne({ where: { id } });
     if (!notice) {
       throw new NotFoundException(`Notice #${id} not found`);
@@ -58,7 +58,7 @@ export class NoticesService {
     return this.noticeRepo.save(notice);
   }
 
-  async update(id: number, dto: UpdateNoticeDto): Promise<Notice> {
+  async update(id: string, dto: UpdateNoticeDto): Promise<Notice> {
     const notice = await this.findOne(id);
     Object.assign(notice, dto);
     if (dto.title && !dto.slug) {
@@ -67,7 +67,7 @@ export class NoticesService {
     return this.noticeRepo.save(notice);
   }
 
-  async remove(id: number): Promise<void> {
+  async remove(id: string): Promise<void> {
     const notice = await this.findOne(id);
     await this.noticeRepo.remove(notice);
   }

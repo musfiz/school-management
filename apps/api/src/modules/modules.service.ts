@@ -23,7 +23,7 @@ export class ModulesService {
     return this.repo.save(this.repo.create(dto));
   }
 
-  async update(id: number, dto: UpdateModuleDto): Promise<Module> {
+  async update(id: string, dto: UpdateModuleDto): Promise<Module> {
     const module = await this.repo.findOne({ where: { id } });
     if (!module) throw new NotFoundException(`Module ${id} not found`);
     if (dto.name && dto.name !== module.name) {
@@ -35,7 +35,7 @@ export class ModulesService {
     return this.repo.save(this.repo.merge(module, dto));
   }
 
-  async remove(id: number): Promise<{ id: number }> {
+  async remove(id: string): Promise<{ id: string }> {
     const module = await this.repo.findOne({ where: { id } });
     if (!module) throw new NotFoundException(`Module ${id} not found`);
     await this.repo.remove(module);

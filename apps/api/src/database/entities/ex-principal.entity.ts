@@ -6,8 +6,8 @@ import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateCol
  *  office in `tenure` instead ("1990 – 1998"). */
 @Entity('ex_principals')
 export class ExPrincipal {
-  @PrimaryGeneratedColumn('increment')
-  id!: number;
+  @PrimaryGeneratedColumn('uuid')
+  id!: string;
 
   @Column({ name: 'name', type: 'varchar', length: 150 })
   name!: string;

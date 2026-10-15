@@ -26,7 +26,7 @@ export { SESSION_COOKIE };
 const ONE_WEEK = 60 * 60 * 24 * 7;
 
 export interface Session {
-  id: number;
+  id: string;
   name: string;
   email: string;
   role: Role;
@@ -111,7 +111,7 @@ async function decodeToken(): Promise<Session | null> {
   const claims = verifyJwt(token, secret);
   if (!claims) return null;
   return {
-    id: parseInt(claims.sub, 10),
+    id: claims.sub,
     email: claims.email,
     role: claims.role as Role,
     name: claims.name ?? claims.email.split("@")[0] ?? "User",

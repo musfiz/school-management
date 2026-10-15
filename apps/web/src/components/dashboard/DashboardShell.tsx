@@ -3,6 +3,7 @@
 import { RoleProvider } from "./RoleProvider";
 import Sidebar from "./Sidebar";
 import Topbar from "./Topbar";
+import CommandPalette from "./CommandPalette";
 import type { Session } from "@/lib/auth";
 
 /**
@@ -25,6 +26,7 @@ export default function DashboardShell({
     <RoleProvider initial={session}>
       <div className={`flex min-h-screen flex-col bg-ink-50 lg:flex-row ${className ?? ""}`}>
         <Sidebar role={session.role} name={session.name} />
+        <CommandPalette role={session.role} />
         <div className="flex min-h-screen flex-1 flex-col">
           <Topbar name={session.name} email={session.email} role={session.role} />
           <main className="flex-1 px-2 py-1 sm:px-3 lg:py-2">{children}</main>

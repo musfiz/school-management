@@ -13,7 +13,7 @@ import { confirmDialog, toast } from "@/lib/swal";
 import type { Slider } from "@/lib/sliders";
 
 interface FormState {
-  id: number | null;
+  id: string | null;
   imageUrl: string;
   titleEn: string;
   titleBn: string;
@@ -33,7 +33,7 @@ const EMPTY_FORM: FormState = {
 const MIN_SORT_ORDER = 1;
 
 const INPUT_BASE =
-  "w-full rounded-md border bg-white px-3 py-2 text-sm outline-none transition-colors focus:border-brand-400";
+  "w-full rounded-xs cursor-pointer border bg-white px-3 py-1 text-sm outline-none transition-colors focus:border-brand-400";
 
 export default function SlidersPage() {
   const [slides, setSlides] = useState<Slider[]>([]);
@@ -177,10 +177,10 @@ export default function SlidersPage() {
               width={120}
               height={68}
               unoptimized={isExternalImage(s.imageUrl)}
-              className="h-[68px] w-[120px] rounded-md object-cover"
+              className="h-[68px] w-[120px] rounded-xs object-cover"
             />
           ) : (
-            <span className="flex h-[68px] w-[120px] items-center justify-center rounded-md bg-ink-100 text-2xl font-semibold text-ink-400">
+            <span className="flex h-[68px] w-[120px] items-center justify-center rounded-xs bg-ink-100 text-2xl font-semibold text-ink-400">
               ?
             </span>
           );
@@ -211,9 +211,7 @@ export default function SlidersPage() {
             <button
               type="button"
               onClick={() => toggleActive(row.original)}
-              className={`rounded p-1.5 hover:bg-ink-50 ${
-                row.original.isActive ? "text-emerald-600" : "text-ink-400"
-              }`}
+              className={`rounded-xs p-1.5 hover:bg-ink-50 ${ row.original.isActive ? "text-emerald-600" : "text-ink-400" }`}
               aria-label={row.original.isActive ? "Hide slide" : "Show slide"}
               title={row.original.isActive ? "Hide from site" : "Show on site"}
             >
@@ -222,7 +220,7 @@ export default function SlidersPage() {
             <button
               type="button"
               onClick={() => openEditForm(row.original)}
-              className="rounded p-1.5 text-brand-600 hover:bg-brand-50"
+              className="rounded-xs p-1.5 text-brand-600 hover:bg-brand-50"
               aria-label="Edit"
             >
               <Pencil className="h-4 w-4" />
@@ -230,7 +228,7 @@ export default function SlidersPage() {
             <button
               type="button"
               onClick={() => handleDelete(row.original)}
-              className="rounded p-1.5 text-red-600 hover:bg-red-50"
+              className="rounded-xs p-1.5 text-red-600 hover:bg-red-50"
               aria-label="Delete"
             >
               <Trash2 className="h-4 w-4" />
@@ -253,7 +251,7 @@ export default function SlidersPage() {
           <button
             type="button"
             onClick={openAddForm}
-            className="flex items-center gap-1.5 rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white hover:bg-brand-700"
+            className="flex items-center gap-1.5 rounded-xs bg-brand-600 px-3 py-2 text-sm font-semibold text-white hover:bg-brand-700"
           >
             <Plus className="h-4 w-4" />
             Add slide
@@ -270,7 +268,7 @@ export default function SlidersPage() {
             <button
               type="button"
               onClick={closeForm}
-              className="rounded p-1 text-ink-400 hover:bg-ink-50 hover:text-ink-700"
+              className="rounded-xs p-1 text-ink-400 hover:bg-ink-50 hover:text-ink-700"
               aria-label="Close form"
             >
               <X className="h-4 w-4" />
@@ -338,7 +336,7 @@ export default function SlidersPage() {
                       type="checkbox"
                       checked={form.isActive}
                       onChange={(e) => setForm((prev) => ({ ...prev, isActive: e.target.checked }))}
-                      className="h-4 w-4 rounded border-ink-300 text-brand-600"
+                      className="h-4 w-4 rounded-xs border-ink-300 text-brand-600"
                     />
                     <span className="text-sm font-medium text-ink-700">
                       Active (visible on the public site)
@@ -353,7 +351,7 @@ export default function SlidersPage() {
                 type="button"
                 onClick={handleSubmit}
                 disabled={saving}
-                className="flex items-center gap-1.5 rounded-md bg-brand-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60 hover:bg-brand-700"
+                className="flex items-center gap-1.5 rounded-xs bg-brand-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60 hover:bg-brand-700"
               >
                 {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                 Save
@@ -361,7 +359,7 @@ export default function SlidersPage() {
               <button
                 type="button"
                 onClick={closeForm}
-                className="rounded-md px-4 py-2 text-sm font-semibold text-ink-700 hover:bg-ink-50"
+                className="rounded-xs px-4 py-2 text-sm font-semibold text-ink-700 hover:bg-ink-50"
               >
                 Cancel
               </button>

@@ -49,7 +49,7 @@ export function AboutPreview({
                 "Free tuition with support for those who need it",
               ].map((item) => (
                 <li key={item} className="flex items-start gap-3 text-ink-700">
-                  <span className="mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-sm bg-gold-500 text-navy-900">
+                  <span className="mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-xs bg-gold-500 text-navy-900">
                     <ArrowRightIcon className="h-3 w-3" />
                   </span>
                   {item}
@@ -58,7 +58,7 @@ export function AboutPreview({
             </ul>
             <Link
               href="/about/about-us"
-              className="mt-8 inline-flex items-center gap-2 rounded-sm bg-navy-800 px-6 py-3.5 text-sm font-semibold text-white shadow-soft transition-colors hover:bg-navy-900"
+              className="mt-8 inline-flex items-center gap-2 rounded-xs bg-navy-800 px-6 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-navy-900"
             >
               Learn our story
               <ArrowRightIcon className="h-4 w-4" />
@@ -74,7 +74,7 @@ export function AboutPreview({
             ].map((s) => (
               <div
                 key={s.l}
-                className="rounded-sm border border-ink-200 bg-ink-50 p-6 text-center shadow-soft"
+                className="rounded-xs border border-ink-200 bg-ink-50 p-6 text-center shadow-soft"
               >
                 <p className="font-display text-3xl font-extrabold text-brand-600">{s.v}</p>
                 <p className="mt-1 text-sm font-medium text-ink-500">{s.l}</p>
@@ -98,13 +98,13 @@ export function AboutPreview({
               (locale === "bn" && principalSpeech.contentBn) || principalSpeech.contentEn || "";
 
             return (
-              <div className="relative overflow-hidden rounded-xl border border-navy-100 bg-linear-to-br from-white via-navy-50/20 to-gold-50/20 p-6 shadow-card transition-all hover:shadow-lg sm:p-8 lg:p-10">
+              <div className="relative overflow-hidden rounded-xs border border-navy-100 bg-linear-to-br from-white via-navy-50/20 to-gold-50/20 p-6 shadow-card transition-all hover:shadow-lg sm:p-8 lg:p-10">
                 <div className="absolute top-0 left-0 h-1 w-full bg-linear-to-r from-navy-800 via-brand-600 to-gold-500" />
                 <div className="grid items-center gap-8 lg:grid-cols-12 lg:gap-12">
                   {/* Left: Principal Image */}
                   <div className="flex justify-center lg:col-span-4">
                     {principalSpeech.imageUrl ? (
-                      <div className="group relative aspect-4/5 w-full max-w-72 overflow-hidden rounded-xl border-2 border-white shadow-card ring-1 ring-navy-100 sm:max-w-80">
+                      <div className="group relative aspect-4/5 w-full max-w-72 overflow-hidden rounded-xs border-2 border-white shadow-card ring-1 ring-navy-100 sm:max-w-80">
                         <Image
                           src={resolveImageUrl(principalSpeech.imageUrl)}
                           alt={speechTitle}
@@ -114,7 +114,7 @@ export function AboutPreview({
                         />
                       </div>
                     ) : (
-                      <div className="flex aspect-4/5 w-full max-w-72 items-center justify-center rounded-xl border border-dashed border-ink-300 bg-ink-50 text-ink-400 sm:max-w-80">
+                      <div className="flex aspect-4/5 w-full max-w-72 items-center justify-center rounded-xs border border-dashed border-ink-300 bg-ink-50 text-ink-400 sm:max-w-80">
                         <span className="text-sm font-medium">
                           {locale === "bn" ? "কোন ছবি নেই" : "No Principal Photo"}
                         </span>
@@ -125,7 +125,7 @@ export function AboutPreview({
                   {/* Right: Principal Speech Content */}
                   <div className="lg:col-span-8">
                     {speechTitle && (
-                      <span className="inline-flex items-center gap-2 rounded-md border border-gold-300 bg-gold-50/90 px-3.5 py-1.5 font-display text-sm font-bold tracking-wide text-gold-900 shadow-xs sm:text-base">
+                      <span className="inline-flex items-center gap-2 rounded-xs border border-gold-300 bg-gold-50/90 px-3.5 py-1.5 font-display text-sm font-bold tracking-wide text-gold-900 shadow-xs sm:text-base">
                         <span className="h-2 w-2 rounded-full bg-gold-500 ring-2 ring-gold-200" />
                         {speechTitle}
                       </span>
@@ -144,7 +144,7 @@ export function AboutPreview({
                     <div className="mt-6">
                       <Link
                         href="/about/principal-speech"
-                        className="inline-flex items-center gap-2 rounded-sm bg-navy-800 px-5 py-3 text-sm font-semibold text-white shadow-soft transition-colors hover:bg-navy-900"
+                        className="inline-flex items-center gap-2 rounded-xs bg-navy-800 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-navy-900"
                       >
                         {locale === "bn" ? "সম্পূর্ণ বক্তব্য পড়ুন" : "Read full speech"}
                         <ArrowRightIcon className="h-4 w-4" />
@@ -167,13 +167,13 @@ export function AboutPreview({
               (locale === "bn" && aboutUs.contentBn) || aboutUs.contentEn || "";
 
             return (
-              <div className="relative overflow-hidden rounded-xl border border-navy-100 bg-linear-to-br from-white via-ink-50/30 to-brand-50/20 p-6 shadow-card transition-all hover:shadow-lg sm:p-8 lg:p-10">
+              <div className="relative overflow-hidden rounded-xs border border-navy-100 bg-linear-to-br from-white via-ink-50/30 to-brand-50/20 p-6 shadow-card transition-all hover:shadow-lg sm:p-8 lg:p-10">
                 <div className="absolute top-0 left-0 h-1 w-full bg-linear-to-r from-gold-500 via-brand-600 to-navy-800" />
                 <div className="grid items-center gap-8 lg:grid-cols-12 lg:gap-12">
                   {/* Left Side: About Us Content */}
                   <div className="order-2 lg:order-1 lg:col-span-7">
                     {aboutTitle && (
-                      <span className="inline-flex items-center gap-2 rounded-md border border-brand-200 bg-brand-50 px-3.5 py-1.5 font-display text-sm font-bold tracking-wide text-brand-900 shadow-xs sm:text-base">
+                      <span className="inline-flex items-center gap-2 rounded-xs border border-brand-200 bg-brand-50 px-3.5 py-1.5 font-display text-sm font-bold tracking-wide text-brand-900 shadow-xs sm:text-base">
                         <span className="h-2 w-2 rounded-full bg-brand-600 ring-2 ring-brand-200" />
                         {aboutTitle}
                       </span>
@@ -192,7 +192,7 @@ export function AboutPreview({
                     <div className="mt-6">
                       <Link
                         href="/about/about-us"
-                        className="inline-flex items-center gap-2 rounded-sm bg-navy-800 px-5 py-3 text-sm font-semibold text-white shadow-soft transition-colors hover:bg-navy-900"
+                        className="inline-flex items-center gap-2 rounded-xs bg-navy-800 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-navy-900"
                       >
                         {locale === "bn" ? "বিস্তারিত পড়ুন" : "Read more"}
                         <ArrowRightIcon className="h-4 w-4" />
@@ -203,7 +203,7 @@ export function AboutPreview({
                   {/* Right Side: 16:9 Image */}
                   <div className="order-1 flex justify-center lg:order-2 lg:col-span-5">
                     {aboutUs.imageUrl ? (
-                      <div className="group relative aspect-video w-full overflow-hidden rounded-xl border-2 border-white shadow-card ring-1 ring-navy-100">
+                      <div className="group relative aspect-video w-full overflow-hidden rounded-xs border-2 border-white shadow-card ring-1 ring-navy-100">
                         <Image
                           src={resolveImageUrl(aboutUs.imageUrl)}
                           alt={aboutTitle}
@@ -213,7 +213,7 @@ export function AboutPreview({
                         />
                       </div>
                     ) : (
-                      <div className="flex aspect-video w-full items-center justify-center rounded-xl border border-dashed border-ink-300 bg-ink-50 text-ink-400">
+                      <div className="flex aspect-video w-full items-center justify-center rounded-xs border border-dashed border-ink-300 bg-ink-50 text-ink-400">
                         <span className="text-sm font-medium">
                           {locale === "bn" ? "কোন ছবি নেই" : "No Image"}
                         </span>
@@ -260,7 +260,7 @@ export function NoticeBoard({
         </Link>
       </div>
 
-      <ul className="mt-8 divide-y divide-ink-200 overflow-hidden rounded-sm border border-ink-200 bg-white shadow-soft">
+      <ul className="mt-8 divide-y divide-ink-200 overflow-hidden rounded-xs border border-ink-200 bg-white shadow-soft">
         {items.map((n) => {
           const isDynamic = "createdAt" in n || "publishDate" in n;
           const rawDate = isDynamic
@@ -287,7 +287,7 @@ export function NoticeBoard({
                     })
                   : "—"}
               </span>
-              <span className="hidden shrink-0 rounded-sm bg-navy-50 px-2.5 py-1 text-xs font-semibold text-navy-700 sm:inline">
+              <span className="hidden shrink-0 rounded-xs bg-navy-50 px-2.5 py-1 text-xs font-semibold text-navy-700 sm:inline">
                 {n.category}
               </span>
               <Link

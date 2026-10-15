@@ -1,10 +1,10 @@
 import { Entity, PrimaryColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 
-/** Singleton row (id is always 1) for the homepage Hero section settings */
+/** Singleton row (fixed UUID id) for the homepage Hero section settings */
 @Entity('hero_sections')
 export class HeroSection {
-  @PrimaryColumn({ type: 'int', default: 1 })
-  id!: number;
+  @PrimaryColumn({ type: 'char', length: '36' })
+  id!: string;
 
   @Column({ name: 'is_visible', type: 'boolean', default: true })
   isVisible!: boolean;

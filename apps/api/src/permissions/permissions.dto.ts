@@ -1,9 +1,9 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsArray,
-  IsInt,
   IsOptional,
   IsString,
+  IsUUID,
   MaxLength,
   MinLength,
 } from 'class-validator';
@@ -25,12 +25,12 @@ export class CreatePermissionDto {
   description?: string;
 
   @ApiPropertyOptional({
-    example: 1,
+    example: '3fa85f64-5717-4562-b3fc-2c963f66afa6',
     description: 'Optional module this permission belongs to',
   })
   @IsOptional()
-  @IsInt()
-  module_id?: number;
+  @IsUUID()
+  module_id?: string;
 }
 
 export class AssignPermissionDto {

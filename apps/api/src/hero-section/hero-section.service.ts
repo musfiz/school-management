@@ -4,8 +4,10 @@ import { Repository } from 'typeorm';
 import { HeroSection } from '../database/entities/hero-section.entity';
 import { UpdateHeroSectionDto } from './hero-section.dto';
 
+const SINGLETON_ID = '00000000-0000-0000-0000-000000000001';
+
 const DEFAULT_HERO_SECTION: Partial<HeroSection> = {
-  id: 1,
+  id: SINGLETON_ID,
   isVisible: true,
   admissionYear: `${new Date().getFullYear()}–${new Date().getFullYear() + 1}`,
   tagline1: 'Building Tomorrow’s Leaders',
@@ -30,7 +32,7 @@ export class HeroSectionService {
   ) {}
 
   async find(): Promise<HeroSection> {
-    let row = await this.repo.findOne({ where: { id: 1 } });
+    let row = await this.repo.findOne({ where: { id: SINGLETON_ID } });
     if (!row) {
       row = this.repo.create(DEFAULT_HERO_SECTION);
       await this.repo.save(row);
@@ -40,7 +42,7 @@ export class HeroSectionService {
 
   async update(dto: UpdateHeroSectionDto): Promise<HeroSection> {
     const existing = await this.find();
-    const updated = this.repo.merge(existing, dto, { id: 1 });
+    const updated = this.repo.merge(existing, dto, { id: SINGLETON_ID });
     return this.repo.save(updated);
   }
 }

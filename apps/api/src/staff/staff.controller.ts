@@ -4,7 +4,7 @@ import {
   Delete,
   Get,
   Param,
-  ParseIntPipe,
+  ParseUUIDPipe,
   Patch,
   Post,
   UseGuards,
@@ -43,7 +43,7 @@ export class StaffController {
   @Roles(UserRole.ADMIN, UserRole.MANAGEMENT)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update a staff member' })
-  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateStaffMemberDto) {
+  update(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateStaffMemberDto) {
     return this.staffService.update(id, dto);
   }
 
@@ -52,7 +52,7 @@ export class StaffController {
   @Roles(UserRole.ADMIN, UserRole.MANAGEMENT)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Remove a staff member' })
-  remove(@Param('id', ParseIntPipe) id: number) {
+  remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.staffService.remove(id);
   }
 }

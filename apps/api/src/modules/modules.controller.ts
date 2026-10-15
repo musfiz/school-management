@@ -4,7 +4,7 @@ import {
   Delete,
   Get,
   Param,
-  ParseIntPipe,
+  ParseUUIDPipe,
   Patch,
   Post,
   UseGuards,
@@ -38,13 +38,13 @@ export class ModulesController {
 
   @Patch(':id')
   @ApiOperation({ summary: 'Update a module' })
-  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateModuleDto) {
+  update(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateModuleDto) {
     return this.modulesService.update(id, dto);
   }
 
   @Delete(':id')
   @ApiOperation({ summary: 'Remove a module' })
-  remove(@Param('id', ParseIntPipe) id: number) {
+  remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.modulesService.remove(id);
   }
 }

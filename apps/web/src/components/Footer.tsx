@@ -36,7 +36,7 @@ export default function Footer({ settings }: { settings: PublicSiteSettings }) {
               width={48}
               height={48}
               unoptimized={isExternalImage(settings.logoUrl)}
-              className="h-12 w-12 rounded-sm"
+              className="h-12 w-12 rounded-xs"
             />
             <span className="font-display text-base font-extrabold text-white">
               {settings.siteName}
@@ -53,7 +53,7 @@ export default function Footer({ settings }: { settings: PublicSiteSettings }) {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={label}
-                  className="flex h-9 w-9 items-center justify-center rounded-sm border border-white/15 text-ink-200 transition-colors hover:border-gold-400 hover:text-gold-300"
+                  className="flex h-9 w-9 items-center justify-center rounded-xs border border-white/15 text-ink-200 transition-colors hover:border-gold-400 hover:text-gold-300"
                 >
                   <Icon className="h-4 w-4" />
                 </a>

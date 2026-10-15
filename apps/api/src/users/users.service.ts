@@ -27,7 +27,7 @@ export class UsersService {
     });
   }
 
-  async findOne(id: number): Promise<User> {
+  async findOne(id: string): Promise<User> {
     const user = await this.usersRepository.findOne({
       where: { id },
       select: ['id', 'name', 'email', 'role', 'phone', 'isActive', 'isVerified', 'lastLoginAt', 'created_at'],
@@ -44,22 +44,22 @@ export class UsersService {
     return this.usersRepository.findOne({ where: { email } });
   }
 
-  async findByIdWithPassword(id: number): Promise<User | null> {
+  async findByIdWithPassword(id: string): Promise<User | null> {
     return this.usersRepository.findOne({ where: { id } });
   }
 
-  async update(id: number, updateUserDto: UpdateUserDto): Promise<User> {
+  async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
     const user = await this.findOne(id);
     Object.assign(user, updateUserDto);
     return this.usersRepository.save(user);
   }
 
-  async remove(id: number): Promise<void> {
+  async remove(id: string): Promise<void> {
     const user = await this.findOne(id);
     await this.usersRepository.remove(user);
   }
 
-  async updateLastLogin(id: number): Promise<void> {
+  async updateLastLogin(id: string): Promise<void> {
     await this.usersRepository.update(id, { lastLoginAt: new Date() });
   }
 }

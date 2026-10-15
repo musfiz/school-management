@@ -166,7 +166,7 @@ export const results: ResultRow[] = Array.from({ length: 120 }, (_, i) => {
   const gpa = Number((3.0 + (i % 20) * 0.1).toFixed(2));
   const grade = gpa >= 5 ? "A+" : gpa >= 4 ? "A" : gpa >= 3.5 ? "A-" : gpa >= 3 ? "B" : "C";
   return {
-    id: i + 1,
+    id: `r${i + 1}`,
     name: `Student ${i + 1}`,
     class: ["VI", "VII", "VIII", "IX", "X"][i % 5],
     roll: 1001 + i,

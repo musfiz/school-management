@@ -74,9 +74,9 @@ export default function PdfUploader({
     <div className="space-y-2">
       <span className="block text-sm font-medium text-ink-700">{label}</span>
       {value ? (
-        <div className="flex items-center justify-between gap-3 rounded-lg border border-ink-200 bg-ink-50 p-3">
+        <div className="flex items-center justify-between gap-3 rounded-xs border border-ink-200 bg-ink-50 p-3">
           <div className="flex min-w-0 items-center gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-red-100 text-red-600">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xs bg-red-100 text-red-600">
               <FileText className="h-5 w-5" />
             </div>
             <div className="min-w-0">
@@ -96,7 +96,7 @@ export default function PdfUploader({
               type="button"
               onClick={() => fileInputRef.current?.click()}
               disabled={uploading}
-              className="rounded-md border border-ink-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-ink-700 hover:bg-ink-100"
+              className="rounded-xs border border-ink-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-ink-700 hover:bg-ink-100"
             >
               Change
             </button>
@@ -104,7 +104,7 @@ export default function PdfUploader({
               type="button"
               onClick={() => onChange("")}
               disabled={uploading}
-              className="rounded-md p-1.5 text-red-600 hover:bg-red-50"
+              className="rounded-xs p-1.5 text-red-600 hover:bg-red-50"
               aria-label="Remove PDF"
             >
               <Trash2 className="h-4 w-4" />
@@ -117,7 +117,7 @@ export default function PdfUploader({
           tabIndex={0}
           onClick={() => fileInputRef.current?.click()}
           onKeyDown={(e) => e.key === "Enter" && fileInputRef.current?.click()}
-          className="flex cursor-pointer items-center justify-center gap-2 rounded-lg border-2 border-dashed border-ink-300 bg-ink-50 px-4 py-4 text-ink-600 transition-colors hover:border-brand-400 hover:bg-brand-50/20"
+          className="flex cursor-pointer items-center justify-center gap-2 rounded-xs border-2 border-dashed border-ink-300 bg-ink-50 px-4 py-4 text-ink-600 transition-colors hover:border-brand-400 hover:bg-brand-50/20"
         >
           {uploading ? (
             <Loader2 className="h-5 w-5 animate-spin text-brand-600" />

@@ -13,7 +13,7 @@ import { confirmDialog, toast } from "@/lib/swal";
 import type { StaffMember } from "@/lib/staff";
 
 interface FormState {
-  id: number | null;
+  id: string | null;
   name: string;
   nameBn: string;
   designation: string;
@@ -37,7 +37,7 @@ const EMPTY_FORM: FormState = {
 const MIN_SORT_ORDER = 1;
 
 const INPUT_BASE =
-  "w-full rounded-md border bg-white px-3 py-2 text-sm outline-none transition-colors focus:border-brand-400";
+  "w-full rounded-xs cursor-pointer border bg-white px-3 py-1 text-sm outline-none transition-colors focus:border-brand-400";
 
 export default function StaffPage() {
   const [members, setMembers] = useState<StaffMember[]>([]);
@@ -168,10 +168,10 @@ export default function StaffPage() {
               width={100}
               height={150}
               unoptimized={isExternalImage(m.imageUrl)}
-              className="h-[150px] w-[100px] rounded-md object-cover"
+              className="h-[150px] w-[100px] rounded-xs object-cover"
             />
           ) : (
-            <span className="flex h-[150px] w-[100px] items-center justify-center rounded-md bg-ink-100 text-2xl font-semibold text-ink-400">
+            <span className="flex h-[150px] w-[100px] items-center justify-center rounded-xs bg-ink-100 text-2xl font-semibold text-ink-400">
               {m.name.slice(0, 1).toUpperCase()}
             </span>
           );
@@ -187,7 +187,7 @@ export default function StaffPage() {
             <button
               type="button"
               onClick={() => openEditForm(row.original)}
-              className="rounded p-1.5 text-brand-600 hover:bg-brand-50"
+              className="rounded-xs p-1.5 text-brand-600 hover:bg-brand-50"
               aria-label="Edit"
             >
               <Pencil className="h-4 w-4" />
@@ -195,7 +195,7 @@ export default function StaffPage() {
             <button
               type="button"
               onClick={() => handleDelete(row.original)}
-              className="rounded p-1.5 text-red-600 hover:bg-red-50"
+              className="rounded-xs p-1.5 text-red-600 hover:bg-red-50"
               aria-label="Delete"
             >
               <Trash2 className="h-4 w-4" />
@@ -218,7 +218,7 @@ export default function StaffPage() {
           <button
             type="button"
             onClick={openAddForm}
-            className="flex items-center gap-1.5 rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white hover:bg-brand-700"
+            className="flex items-center gap-1.5 rounded-xs bg-brand-600 px-3 py-2 text-sm font-semibold text-white hover:bg-brand-700"
           >
             <Plus className="h-4 w-4" />
             Add staff member
@@ -235,7 +235,7 @@ export default function StaffPage() {
             <button
               type="button"
               onClick={closeForm}
-              className="rounded p-1 text-ink-400 hover:bg-ink-50 hover:text-ink-700"
+              className="rounded-xs p-1 text-ink-400 hover:bg-ink-50 hover:text-ink-700"
               aria-label="Close form"
             >
               <X className="h-4 w-4" />
@@ -316,7 +316,7 @@ export default function StaffPage() {
                 type="button"
                 onClick={handleSubmit}
                 disabled={saving}
-                className="flex items-center gap-1.5 rounded-md bg-brand-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60 hover:bg-brand-700"
+                className="flex items-center gap-1.5 rounded-xs bg-brand-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60 hover:bg-brand-700"
               >
                 {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                 Save
@@ -324,7 +324,7 @@ export default function StaffPage() {
               <button
                 type="button"
                 onClick={closeForm}
-                className="rounded-md px-4 py-2 text-sm font-semibold text-ink-700 hover:bg-ink-50"
+                className="rounded-xs px-4 py-2 text-sm font-semibold text-ink-700 hover:bg-ink-50"
               >
                 Cancel
               </button>

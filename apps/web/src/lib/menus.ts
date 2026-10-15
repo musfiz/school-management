@@ -3,7 +3,7 @@ import { mainNav, type NavItem } from "@/lib/navigation";
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3031";
 
 interface PublicMenuNode {
-  id: number;
+  id: string;
   labelEn: string;
   labelBn: string | null;
   href: string;

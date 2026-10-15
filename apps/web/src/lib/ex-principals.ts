@@ -1,7 +1,7 @@
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3031";
 
 export interface ExPrincipal {
-  id: number;
+  id: string;
   name: string;
   nameBn: string | null;
   tenure: string | null;

@@ -83,7 +83,7 @@ function UserMultiSelect({
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="flex min-h-10.5 w-full items-center gap-1.5 rounded-md border border-ink-200 bg-white px-3 py-2 text-left text-sm shadow-sm outline-none focus:border-brand-400"
+        className="flex min-h-10.5 w-full items-center gap-1.5 rounded-xs cursor-pointer border border-ink-200 bg-white px-3 py-1 text-left text-sm outline-none focus:border-brand-400"
       >
         <Users className="h-4 w-4 shrink-0 text-ink-400" />
         {selected.length === 0 ? (
@@ -93,7 +93,7 @@ function UserMultiSelect({
             {selected.map((u) => (
               <span
                 key={u.id}
-                className="flex items-center gap-1 rounded bg-brand-50 px-2 py-0.5 text-xs font-semibold text-brand-700"
+                className="flex items-center gap-1 rounded-xs bg-brand-50 px-2 py-0.5 text-xs font-semibold text-brand-700"
               >
                 {u.name}
                 <span
@@ -109,7 +109,7 @@ function UserMultiSelect({
                       onToggle(u);
                     }
                   }}
-                  className="ml-0.5 rounded hover:bg-brand-100"
+                  className="ml-0.5 rounded-xs hover:bg-brand-100"
                 >
                   <X className="h-3 w-3" />
                 </span>
@@ -122,7 +122,7 @@ function UserMultiSelect({
 
       {/* Dropdown */}
       {open && (
-        <div className="absolute left-0 right-0 top-full z-30 mt-1 overflow-hidden rounded-md border border-ink-200 bg-white shadow-lg">
+        <div className="absolute left-0 right-0 top-full z-30 mt-1 overflow-hidden rounded-xs border border-ink-200 bg-white shadow-lg">
           <div className="relative border-b border-ink-100 p-2">
             <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-400" />
             <input
@@ -130,7 +130,7 @@ function UserMultiSelect({
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search by name, email, role…"
-              className="w-full rounded border border-ink-200 py-1.5 pl-8 pr-3 text-sm outline-none focus:border-brand-400"
+              className="w-full rounded-xs cursor-pointer border border-ink-200 py-1.5 pl-8 pr-3 text-sm outline-none focus:border-brand-400"
             />
           </div>
           {selected.length > 0 && (
@@ -157,16 +157,10 @@ function UserMultiSelect({
                     <button
                       type="button"
                       onClick={() => onToggle(u)}
-                      className={`flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm transition-colors ${
-                        isSel ? "bg-brand-50" : "hover:bg-ink-50"
-                      }`}
+                      className={`flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm transition-colors ${ isSel ? "bg-brand-50" : "hover:bg-ink-50" }`}
                     >
                       <span
-                        className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border ${
-                          isSel
-                            ? "border-brand-600 bg-brand-600 text-white"
-                            : "border-ink-300"
-                        }`}
+                        className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-xs border ${ isSel ? "border-brand-600 bg-brand-600 text-white" : "border-ink-300" }`}
                       >
                         {isSel && <Check className="h-3 w-3" />}
                       </span>
@@ -178,7 +172,7 @@ function UserMultiSelect({
                           {u.email}
                         </span>
                       </span>
-                      <span className="shrink-0 rounded bg-ink-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-ink-600">
+                      <span className="shrink-0 rounded-xs bg-ink-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-ink-600">
                         {u.role}
                       </span>
                     </button>
@@ -223,7 +217,7 @@ function ModuleSelect({
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="flex h-10.5 w-full items-center gap-2 rounded-md border border-ink-200 bg-white px-3 text-left text-sm shadow-sm outline-none focus:border-brand-400"
+        className="flex h-10.5 w-full items-center gap-2 rounded-xs cursor-pointer border border-ink-200 bg-white px-3 text-left text-sm outline-none focus:border-brand-400"
       >
         <LayoutGrid className="h-4 w-4 shrink-0 text-ink-400" />
         <span className={value === "all" ? "text-ink-400" : "text-ink-900"}>
@@ -233,7 +227,7 @@ function ModuleSelect({
       </button>
 
       {open && (
-        <div className="absolute left-0 right-0 top-full z-30 mt-1 overflow-hidden rounded-md border border-ink-200 bg-white shadow-lg">
+        <div className="absolute left-0 right-0 top-full z-30 mt-1 overflow-hidden rounded-xs border border-ink-200 bg-white shadow-lg">
           <ul className="max-h-60 overflow-y-auto">
             <li>
               <button
@@ -242,9 +236,7 @@ function ModuleSelect({
                   onChange("all");
                   setOpen(false);
                 }}
-                className={`flex w-full items-center gap-2 px-3 py-2 text-left text-sm ${
-                  value === "all" ? "bg-brand-50 font-semibold" : "hover:bg-ink-50"
-                }`}
+                className={`flex w-full items-center gap-2 px-3 py-2 text-left text-sm ${ value === "all" ? "bg-brand-50 font-semibold" : "hover:bg-ink-50" }`}
               >
                 All Modules
               </button>
@@ -257,11 +249,7 @@ function ModuleSelect({
                     onChange(label);
                     setOpen(false);
                   }}
-                  className={`flex w-full items-center gap-2 px-3 py-2 text-left text-sm ${
-                    value === label
-                      ? "bg-brand-50 font-semibold"
-                      : "hover:bg-ink-50"
-                  }`}
+                  className={`flex w-full items-center gap-2 px-3 py-2 text-left text-sm ${ value === label ? "bg-brand-50 font-semibold" : "hover:bg-ink-50" }`}
                 >
                   {label}
                 </button>
@@ -289,7 +277,7 @@ export default function UserPermissionsView() {
   /** Currently checked permission names in the matrix. */
   const [checked, setChecked] = useState<Selection>(new Set());
   /** Permission names each selected user already had (for diffing on save). */
-  const [original, setOriginal] = useState<Map<number, Set<string>>>(new Map());
+  const [original, setOriginal] = useState<Map<string, Set<string>>>(new Map());
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -345,10 +333,10 @@ export default function UserPermissionsView() {
         const entries = await Promise.all(
           selectedUsers.map(async (u) => {
             const perms = await getUserPermissions(u.id);
-            return [u.id, perms] as [number, string[]];
+            return [u.id, perms] as [string, string[]];
           }),
         );
-        const origMap = new Map<number, Set<string>>();
+        const origMap = new Map<string, Set<string>>();
         const union = new Set<string>();
         for (const [id, perms] of entries) {
           origMap.set(id, new Set(perms));
@@ -439,7 +427,7 @@ export default function UserPermissionsView() {
         "success",
       );
       // Refresh originals
-      const newOrig = new Map<number, Set<string>>();
+      const newOrig = new Map<string, Set<string>>();
       for (const u of selectedUsers) newOrig.set(u.id, new Set(validNames));
       setOriginal(newOrig);
     } catch (err) {
@@ -459,7 +447,7 @@ export default function UserPermissionsView() {
       <DashPageHeader title="User Permissions" />
 
       {error && (
-        <div className="mb-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+        <div className="mb-4 rounded-xs border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           {error}
         </div>
       )}
@@ -514,7 +502,7 @@ export default function UserPermissionsView() {
                   type="button"
                   onClick={handleSave}
                   disabled={saving}
-                  className="flex items-center gap-1.5 rounded-md bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-60"
+                  className="flex items-center gap-1.5 rounded-xs bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-60"
                 >
                   {saving ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -527,7 +515,7 @@ export default function UserPermissionsView() {
 
               {grouped.map(([module, pages]) => (
                 <DashCard key={module} title={module}>
-                  <div className="scroll-slim overflow-x-auto rounded-lg border border-ink-200">
+                  <div className="scroll-slim overflow-x-auto rounded-xs border border-ink-200">
                     <table className="w-full min-w-175 border-collapse text-sm">
                       <thead>
                         <tr className="bg-ink-50">
@@ -586,11 +574,7 @@ export default function UserPermissionsView() {
                                         onChange={() =>
                                           toggleOne(verb, page.slug)
                                         }
-                                        className={`h-4 w-4 rounded border-ink-300 text-brand-600 focus:ring-brand-500 ${
-                                          disabled
-                                            ? "cursor-not-allowed opacity-40"
-                                            : ""
-                                        }`}
+                                        className={`h-4 w-4 rounded-xs border-ink-300 text-brand-600 ${ disabled ? "cursor-not-allowed opacity-40" : "" }`}
                                       />
                                     </label>
                                   </td>

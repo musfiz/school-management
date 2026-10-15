@@ -10,8 +10,8 @@ import {
  *  module → permissions parent/child hierarchy. */
 @Entity('modules')
 export class Module {
-  @PrimaryGeneratedColumn('increment')
-  id!: number;
+  @PrimaryGeneratedColumn('uuid')
+  id!: string;
 
   @Column({ name: 'name', type: 'varchar', length: 100, unique: true })
   name!: string;

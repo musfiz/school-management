@@ -1,6 +1,8 @@
 "use client";
 
+import { Search } from "lucide-react";
 import { roleLabels, type Role } from "@/lib/dashboard-nav";
+import { openCommandPalette } from "./CommandPalette";
 import UserMenu from "./UserMenu";
 
 export default function Topbar({
@@ -24,6 +26,18 @@ export default function Topbar({
             · {name}
           </span>
         )}
+        <button
+          type="button"
+          onClick={openCommandPalette}
+          title="Quick navigation (Ctrl+K)"
+          className="hidden cursor-pointer items-center gap-2 rounded-xs border border-ink-200 bg-white px-2.5 py-1 text-xs text-ink-400 transition-colors hover:border-brand-400 hover:text-ink-600 md:flex"
+        >
+          <Search className="h-3.5 w-3.5" />
+          <span>Jump to…</span>
+          <kbd className="rounded-xs border border-ink-200 bg-ink-50 px-1 font-mono text-[10px]">
+            Ctrl K
+          </kbd>
+        </button>
       </div>
       <UserMenu name={name} email={email} role={role} />
     </header>

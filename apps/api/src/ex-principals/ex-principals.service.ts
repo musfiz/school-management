@@ -19,13 +19,13 @@ export class ExPrincipalsService {
     return this.repo.save(this.repo.create(dto));
   }
 
-  async update(id: number, dto: UpdateExPrincipalDto): Promise<ExPrincipal> {
+  async update(id: string, dto: UpdateExPrincipalDto): Promise<ExPrincipal> {
     const principal = await this.repo.findOne({ where: { id } });
     if (!principal) throw new NotFoundException(`Ex-principal ${id} not found`);
     return this.repo.save(this.repo.merge(principal, dto));
   }
 
-  async remove(id: number): Promise<{ id: number }> {
+  async remove(id: string): Promise<{ id: string }> {
     const principal = await this.repo.findOne({ where: { id } });
     if (!principal) throw new NotFoundException(`Ex-principal ${id} not found`);
     await this.repo.remove(principal);

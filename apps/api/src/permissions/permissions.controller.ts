@@ -5,7 +5,7 @@ import {
   Put,
   Body,
   Param,
-  ParseIntPipe,
+  ParseUUIDPipe,
   UseGuards,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
@@ -45,16 +45,16 @@ export class PermissionsController {
 
   @Get('users/:id')
   @ApiOperation({ summary: "List a user's permissions" })
-  getUserPermissions(@Param('id', ParseIntPipe) id: number) {
+  getUserPermissions(@Param('id', ParseUUIDPipe) id: string) {
     return this.permissionsService.getUserPermissions(id);
   }
 
   @Put('users/:id')
   @ApiOperation({ summary: "Replace a user's permissions" })
   setUserPermissions(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: SetUserPermissionsDto,
-    @CurrentUser('id') assignedBy: number,
+    @CurrentUser('id') assignedBy: string,
   ) {
     return this.permissionsService.setUserPermissions(
       id,
@@ -66,9 +66,9 @@ export class PermissionsController {
   @Post('users/:id/assign')
   @ApiOperation({ summary: 'Assign a single permission to a user' })
   assignPermission(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: AssignPermissionDto,
-    @CurrentUser('id') assignedBy: number,
+    @CurrentUser('id') assignedBy: string,
   ) {
     return this.permissionsService.assignPermission(
       id,
@@ -80,7 +80,7 @@ export class PermissionsController {
   @Post('users/:id/revoke')
   @ApiOperation({ summary: 'Revoke a single permission from a user' })
   revokePermission(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: AssignPermissionDto,
   ) {
     return this.permissionsService.revokePermission(id, dto.permission);

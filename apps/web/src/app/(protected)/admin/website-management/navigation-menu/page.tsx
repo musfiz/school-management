@@ -29,7 +29,7 @@ let tmpCounter = 0;
 const tmpId = () => `tmp-${++tmpCounter}`;
 
 interface ApiNode {
-  id?: number;
+  id?: string;
   labelEn: string;
   labelBn?: string | null;
   href: string;
@@ -147,14 +147,14 @@ function MenuRow({
 
   return (
     <li
-      className={`rounded-md border border-ink-200 bg-white p-2.5 ${node.isVisible ? "" : "opacity-50"}`}
+      className={`rounded-xs border border-ink-200 bg-white p-2.5 ${node.isVisible ? "" : "opacity-50"}`}
     >
       <div className="flex flex-wrap items-center gap-2">
         {hasChildren ? (
           <button
             type="button"
             onClick={() => onToggleCollapse(node.id)}
-            className="rounded p-1.5 text-ink-500 hover:bg-ink-50"
+            className="rounded-xs p-1.5 text-ink-500 hover:bg-ink-50"
             aria-label={isOpen ? "Collapse sub-items" : "Expand sub-items"}
             aria-expanded={isOpen}
           >
@@ -167,26 +167,26 @@ function MenuRow({
           value={node.labelEn}
           onChange={(e) => onChange((t) => update(t, node.id, { labelEn: e.target.value }))}
           placeholder="Label (English)"
-          className="w-36 rounded border border-ink-200 px-2 py-1.5 text-sm font-semibold outline-none focus:border-brand-400"
+          className="w-36 rounded-xs cursor-pointer border border-ink-200 px-2 py-1.5 text-sm font-semibold outline-none focus:border-brand-400"
         />
         <input
           value={node.labelBn}
           onChange={(e) => onChange((t) => update(t, node.id, { labelBn: e.target.value }))}
           placeholder="লেবেল (বাংলা)"
-          className="w-36 rounded border border-ink-200 px-2 py-1.5 text-sm outline-none focus:border-brand-400"
+          className="w-36 rounded-xs cursor-pointer border border-ink-200 px-2 py-1.5 text-sm outline-none focus:border-brand-400"
         />
         <input
           value={node.href}
           onChange={(e) => onChange((t) => update(t, node.id, { href: e.target.value }))}
           placeholder="/href"
-          className="w-40 flex-1 rounded border border-ink-200 px-2 py-1.5 text-sm text-ink-600 outline-none focus:border-brand-400"
+          className="w-40 flex-1 rounded-xs cursor-pointer border border-ink-200 px-2 py-1.5 text-sm text-ink-600 outline-none focus:border-brand-400"
         />
         <div className="ml-auto flex items-center gap-1">
           <button
             type="button"
             disabled={index === 0}
             onClick={() => onChange((t) => move(t, node.id, -1))}
-            className="rounded p-1.5 text-ink-500 disabled:opacity-30 hover:bg-ink-50"
+            className="rounded-xs p-1.5 text-ink-500 disabled:opacity-30 hover:bg-ink-50"
             aria-label="Move up"
           >
             <ChevronUp className="h-4 w-4" />
@@ -195,7 +195,7 @@ function MenuRow({
             type="button"
             disabled={index === total - 1}
             onClick={() => onChange((t) => move(t, node.id, 1))}
-            className="rounded p-1.5 text-ink-500 disabled:opacity-30 hover:bg-ink-50"
+            className="rounded-xs p-1.5 text-ink-500 disabled:opacity-30 hover:bg-ink-50"
             aria-label="Move down"
           >
             <ChevronDown className="h-4 w-4" />
@@ -204,7 +204,7 @@ function MenuRow({
             <button
               type="button"
               onClick={() => onChange((t) => addChild(t, node.id))}
-              className="rounded p-1.5 text-brand-600 hover:bg-brand-50"
+              className="rounded-xs p-1.5 text-brand-600 hover:bg-brand-50"
               aria-label="Add sub-item"
             >
               <Plus className="h-4 w-4" />
@@ -213,7 +213,7 @@ function MenuRow({
           <button
             type="button"
             onClick={() => onChange((t) => update(t, node.id, { isVisible: !node.isVisible }))}
-            className={`rounded p-1.5 hover:bg-ink-50 ${node.isVisible ? "text-emerald-600" : "text-ink-400"}`}
+            className={`rounded-xs p-1.5 hover:bg-ink-50 ${node.isVisible ? "text-emerald-600" : "text-ink-400"}`}
             aria-label={node.isVisible ? "Active — click to hide" : "Inactive — click to show"}
             title={node.isVisible ? "Active (visible on site)" : "Inactive (hidden from site)"}
           >
@@ -222,7 +222,7 @@ function MenuRow({
           <button
             type="button"
             onClick={handleDelete}
-            className="rounded p-1.5 text-red-600 hover:bg-red-50"
+            className="rounded-xs p-1.5 text-red-600 hover:bg-red-50"
             aria-label="Delete"
           >
             <Trash2 className="h-4 w-4" />
@@ -328,7 +328,7 @@ export default function NavigationMenuPage() {
             type="button"
             onClick={handleSave}
             disabled={saving}
-            className="flex items-center gap-1.5 rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white disabled:opacity-60 hover:bg-brand-700"
+            className="flex items-center gap-1.5 rounded-xs bg-brand-600 px-3 py-2 text-sm font-semibold text-white disabled:opacity-60 hover:bg-brand-700"
           >
             {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
             Save
@@ -341,12 +341,12 @@ export default function NavigationMenuPage() {
       {loading ? (
         <AdminPageLoader />
       ) : tree.length === 0 ? (
-        <div className="rounded-md border border-dashed border-ink-300 p-6 text-center">
+        <div className="rounded-xs border border-dashed border-ink-300 p-6 text-center">
           <p className="mb-3 text-sm text-ink-500">No menu saved yet for this location.</p>
           <button
             type="button"
             onClick={importFromSite}
-            className="rounded-md border border-ink-200 px-3 py-2 text-sm font-semibold text-ink-700 hover:bg-ink-50"
+            className="rounded-xs border border-ink-200 px-3 py-2 text-sm font-semibold text-ink-700 hover:bg-ink-50"
           >
             Import current site menu
           </button>
@@ -383,7 +383,7 @@ export default function NavigationMenuPage() {
             },
           ])
         }
-        className="mt-4 flex items-center gap-1.5 rounded-md border border-dashed border-ink-300 px-3 py-2 text-sm font-semibold text-ink-600 hover:border-brand-400 hover:text-brand-600"
+        className="mt-4 flex items-center gap-1.5 rounded-xs border border-dashed border-ink-300 px-3 py-2 text-sm font-semibold text-ink-600 hover:border-brand-400 hover:text-brand-600"
       >
         <Plus className="h-4 w-4" /> Add top-level item
       </button>

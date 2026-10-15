@@ -94,7 +94,7 @@ export interface DownloadItem {
 }
 
 export interface ResultRow {
-  id: number;
+  id: string;
   name: string;
   class: string;
   roll: number;

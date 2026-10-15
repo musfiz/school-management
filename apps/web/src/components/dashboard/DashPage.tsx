@@ -19,17 +19,24 @@ export function DashPageHeader({
 
 export function DashCard({
   title,
+  action,
   children,
   className = "",
 }: {
   title?: string;
+  action?: ReactNode;
   children: ReactNode;
   className?: string;
 }) {
   return (
-    <div className={`rounded-sm border border-ink-200 bg-white p-4 shadow-soft ${className}`}>
-      {title && (
-        <h2 className="mb-3 font-display text-base font-bold text-navy-900">{title}</h2>
+    <div className={`rounded-xs border border-ink-200 bg-white p-4 shadow-soft ${className}`}>
+      {(title || action) && (
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+          {title && (
+            <h2 className="font-display text-base font-bold text-navy-900">{title}</h2>
+          )}
+          {action && <div className="flex items-center gap-2">{action}</div>}
+        </div>
       )}
       {children}
     </div>
@@ -42,7 +49,7 @@ export function StatGrid({ items }: { items: { value: string; label: string }[] 
       {items.map((s) => (
         <div
           key={s.label}
-          className="rounded-sm border border-ink-200 bg-white p-4 shadow-soft"
+          className="rounded-xs border border-ink-200 bg-white p-4 shadow-soft"
         >
           <p className="font-display text-2xl font-extrabold text-navy-800">
             {s.value}
