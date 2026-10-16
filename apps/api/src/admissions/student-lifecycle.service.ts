@@ -1,13 +1,8 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, EntityManager, In, Repository } from 'typeorm';
 import Decimal from 'decimal.js';
-import { Student } from '../database/entities/student.entity';
-import { StudentEnrollment } from '../database/entities/student-enrollment.entity';
-import { StudentPreviousEducation } from '../database/entities/student-previous-education.entity';
-import { StudentDocument } from '../database/entities/student-document.entity';
-import { StudentInvoice } from '../database/entities/student-invoice.entity';
-import { StudentCautionDeposit } from '../database/entities/student-caution-deposit.entity';
+import { PrismaService } from '../prisma/prisma.service';
+import { Prisma } from '../generated/prisma/client';
+import { toDateOnly, toDateValue } from '../prisma/wire';
 import { RollNumberGeneratorService } from './common/roll-number-generator.service';
 
 export interface StudentListFilters {
@@ -47,14 +42,8 @@ export interface StudentClearance {
 @Injectable()
 export class StudentLifecycleService {
   constructor(
-    private readonly dataSource: DataSource,
+    private readonly prisma: PrismaService,
     private readonly rolls: RollNumberGeneratorService,
-    @InjectRepository(Student) private readonly students: Repository<Student>,
-    @InjectRepository(StudentEnrollment) private readonly enrollments: Repository<StudentEnrollment>,
-    @InjectRepository(StudentPreviousEducation) private readonly prevEdus: Repository<StudentPreviousEducation>,
-    @InjectRepository(StudentDocument) private readonly documents: Repository<StudentDocument>,
-    @InjectRepository(StudentInvoice) private readonly invoices: Repository<StudentInvoice>,
-    @InjectRepository(StudentCautionDeposit) private readonly cautions: Repository<StudentCautionDeposit>,
   ) {}
 
   /* ================= directory ================= */
@@ -72,41 +61,48 @@ export class StudentLifecycleService {
       filters.quotaTag ||
       filters.residenceType
     ) {
-      const eqb = this.enrollments
-        .createQueryBuilder('e')
-        .select('DISTINCT e.studentId', 'sid')
-        .where('e.isActive = :active', { active: true });
-      if (filters.academicSessionId) eqb.andWhere('e.academicSessionId = :as', { as: filters.academicSessionId });
-      if (filters.classOrDeptId) eqb.andWhere('e.classOrDeptId = :cd', { cd: filters.classOrDeptId });
-      if (filters.sectionOrBatchId) eqb.andWhere('e.sectionOrBatchId = :sb', { sb: filters.sectionOrBatchId });
-      if (filters.academicGroup) eqb.andWhere('e.academicGroup = :ag', { ag: filters.academicGroup });
-      if (filters.quotaTag) eqb.andWhere('e.quotaTag = :qt', { qt: filters.quotaTag });
-      if (filters.residenceType) eqb.andWhere('e.residenceType = :rt', { rt: filters.residenceType });
-      const raw = await eqb.getRawMany<{ sid: string }>();
-      idsFromEnroll = raw.map((r) => r.sid);
+      const eqb: Prisma.StudentEnrollmentsWhereInput = { isActive: true };
+      if (filters.academicSessionId) eqb.academicSessionId = filters.academicSessionId;
+      if (filters.classOrDeptId) eqb.classOrDeptId = filters.classOrDeptId;
+      if (filters.sectionOrBatchId) eqb.sectionOrBatchId = filters.sectionOrBatchId;
+      if (filters.academicGroup) eqb.academicGroup = filters.academicGroup;
+      if (filters.quotaTag) eqb.quotaTag = filters.quotaTag;
+      if (filters.residenceType) eqb.residenceType = filters.residenceType;
+      const raw = await this.prisma.studentEnrollments.findMany({
+        where: eqb,
+        select: { studentId: true },
+        distinct: ['studentId'],
+      });
+      idsFromEnroll = raw.map((r) => r.studentId);
       if (idsFromEnroll.length === 0) return [];
     }
 
-    const qb = this.students
-      .createQueryBuilder('s')
-      .orderBy('s.createdAt', 'DESC')
-      // fee-due is computed from invoices after the fetch, so scan a wider
-      // window and slice to `limit` once the filter is applied.
-      .take(filters.feeDue ? 1000 : limit);
-    if (idsFromEnroll) qb.andWhere('s.id IN (:...ids)', { ids: idsFromEnroll });
-    if (filters.status) qb.andWhere('s.currentStatus = :st', { st: filters.status });
+    const where: Prisma.StudentsWhereInput = {};
+    if (idsFromEnroll) where.id = { in: idsFromEnroll };
+    if (filters.status) where.currentStatus = filters.status;
     if (filters.search?.trim()) {
-      qb.andWhere(
-        '(s.fullNameEn LIKE :q OR s.fullNameBn LIKE :q OR s.studentUniqueId LIKE :q OR s.birthRegNo LIKE :q)',
-        { q: `%${filters.search.trim()}%` },
-      );
+      const q = filters.search.trim();
+      where.OR = [
+        { fullNameEn: { contains: q } },
+        { fullNameBn: { contains: q } },
+        { studentUniqueId: { contains: q } },
+        { birthRegNo: { contains: q } },
+      ];
     }
-    const students = await qb.getMany();
+    // fee-due is computed from invoices after the fetch, so scan a wider
+    // window and slice to `limit` once the filter is applied.
+    const students = await this.prisma.students.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      take: filters.feeDue ? 1000 : limit,
+    });
     if (students.length === 0) return [];
 
     const studentIds = students.map((s) => s.id);
     const [enrollments, balances] = await Promise.all([
-      this.enrollments.find({ where: { studentId: In(studentIds), isActive: true } }),
+      this.prisma.studentEnrollments.findMany({
+        where: { studentId: { in: studentIds }, isActive: true },
+      }),
       this.bulkBalances(studentIds),
     ]);
 
@@ -120,7 +116,7 @@ export class StudentLifecycleService {
         fullNameBn: s.fullNameBn ?? null,
         gender: s.gender,
         currentStatus: s.currentStatus,
-        admissionDate: s.admissionDate,
+        admissionDate: toDateOnly(s.admissionDate),
         photoUrl: s.photoUrl ?? null,
         arBalance,
         feeDue: new Decimal(arBalance).gt(0),
@@ -151,16 +147,21 @@ export class StudentLifecycleService {
    */
   async filterOptions() {
     const distinct = async (column: 'academicSessionId' | 'classOrDeptId' | 'sectionOrBatchId') => {
-      const qb = this.enrollments
-        .createQueryBuilder('e')
-        .select(`e.${column}`, 'v')
-        .addSelect('COUNT(*)', 'c')
-        .where('e.isActive = :active', { active: true });
-      if (column === 'sectionOrBatchId') qb.andWhere('e.sectionOrBatchId IS NOT NULL');
-      const raw = await qb.groupBy(`e.${column}`).orderBy(`e.${column}`, 'ASC').getRawMany<{ v: string; c: string }>();
+      const where: Prisma.StudentEnrollmentsWhereInput = { isActive: true };
+      if (column === 'sectionOrBatchId') where.sectionOrBatchId = { not: null };
+      const raw = await this.prisma.studentEnrollments.groupBy({
+        by: [column],
+        where,
+        _count: { _all: true },
+      });
       return raw
-        .filter((r) => r.v != null)
-        .map((r) => ({ value: r.v, label: `${r.v} (${r.c})`, count: Number(r.c) }));
+        .filter((r) => r[column] != null)
+        .map((r) => ({
+          value: r[column] as string,
+          label: `${r[column]} (${r._count._all})`,
+          count: r._count._all,
+        }))
+        .sort((a, b) => (a.value < b.value ? -1 : a.value > b.value ? 1 : 0));
     };
     const [sessions, classes, sections] = await Promise.all([
       distinct('academicSessionId'),
@@ -171,17 +172,24 @@ export class StudentLifecycleService {
   }
 
   async getProfile(studentId: string) {
-    const student = await this.students.findOne({ where: { id: studentId }, relations: ['familyProfile'] });
+    const student = await this.prisma.students.findUnique({
+      where: { id: studentId },
+      include: { familyProfiles: true },
+    });
     if (!student) throw new NotFoundException(`Student #${studentId} not found`);
     const [enrollments, previousEducations, documents, balances] = await Promise.all([
-      this.enrollments.find({ where: { studentId }, order: { createdAt: 'DESC' } }),
-      this.prevEdus.find({ where: { studentId } }),
-      this.documents.find({ where: { studentId } }),
+      this.prisma.studentEnrollments.findMany({
+        where: { studentId },
+        orderBy: { createdAt: 'desc' },
+      }),
+      this.prisma.studentPreviousEducations.findMany({ where: { studentId } }),
+      this.prisma.studentDocuments.findMany({ where: { studentId } }),
       this.bulkBalances([studentId]),
     ]);
+    const { familyProfiles, ...studentRest } = student;
     return {
-      student,
-      family: student.familyProfile ?? null,
+      student: { ...studentRest, familyProfile: familyProfiles ?? null },
+      family: familyProfiles ?? null,
       enrollments,
       previousEducations,
       documents,
@@ -191,14 +199,14 @@ export class StudentLifecycleService {
 
   /* ================= TC clearance + issue ================= */
 
-  async clearance(studentId: string, manager?: EntityManager): Promise<StudentClearance> {
-    const repo = manager?.getRepository(Student) ?? this.students;
-    const student = await repo.findOne({ where: { id: studentId } });
+  async clearance(studentId: string, tx?: Prisma.TransactionClient): Promise<StudentClearance> {
+    const db = tx ?? this.prisma;
+    const student = await db.students.findUnique({ where: { id: studentId } });
     if (!student) throw new NotFoundException(`Student #${studentId} not found`);
 
-    const balances = await this.bulkBalances([studentId], manager);
+    const balances = await this.bulkBalances([studentId], tx);
     const arBalance = balances.get(studentId) ?? '0.00';
-    const cautionHeld = await this.cautionHeld(studentId, manager);
+    const cautionHeld = await this.cautionHeld(studentId, tx);
 
     const blockers: string[] = [];
     if (new Decimal(arBalance).gt(0)) blockers.push(`Outstanding student AR balance ${arBalance} BDT`);
@@ -228,41 +236,49 @@ export class StudentLifecycleService {
     dto: { tcNumber?: string; issueDate?: string; remark?: string; overrideReason?: string },
     _actorId: string,
   ) {
-    return this.dataSource.transaction('REPEATABLE READ', async (m) => {
-      const clear = await this.clearance(studentId, m);
-      const override = (dto.overrideReason ?? '').trim();
-      if (clear.blockers.length > 0 && !override) {
-        throw new BadRequestException(
-          `TC blocked for ${clear.studentUniqueId}: ${clear.blockers.join('; ')}. Clear dues or pass overrideReason to waive.`,
-        );
-      }
-      if (override && override.length < 3) {
-        throw new BadRequestException('overrideReason must be at least 3 characters');
-      }
-      const student = await m.getRepository(Student).findOne({ where: { id: studentId } });
-      if (!student) throw new NotFoundException(`Student #${studentId} not found`);
+    return this.prisma.$transaction(
+      async (tx) => {
+        const clear = await this.clearance(studentId, tx);
+        const override = (dto.overrideReason ?? '').trim();
+        if (clear.blockers.length > 0 && !override) {
+          throw new BadRequestException(
+            `TC blocked for ${clear.studentUniqueId}: ${clear.blockers.join('; ')}. Clear dues or pass overrideReason to waive.`,
+          );
+        }
+        if (override && override.length < 3) {
+          throw new BadRequestException('overrideReason must be at least 3 characters');
+        }
+        const student = await tx.students.findUnique({ where: { id: studentId } });
+        if (!student) throw new NotFoundException(`Student #${studentId} not found`);
 
-      student.currentStatus = 'TC_ISSUED';
-      student.tcNumber = (dto.tcNumber ?? '').trim() || student.tcNumber || `TC-${student.studentUniqueId}`;
-      student.tcIssueDate = (dto.issueDate ?? new Date().toISOString()).slice(0, 10);
-      student.tcRemark =
-        (dto.remark ?? '').trim() ||
-        (clear.blockers.length > 0 ? `Dues waived: ${override}` : 'Dues clear at issue');
-      await m.getRepository(Student).save(student);
-      await m.getRepository(StudentEnrollment).update({ studentId, isActive: true }, { isActive: false });
+        const tcNumber = (dto.tcNumber ?? '').trim() || student.tcNumber || `TC-${student.studentUniqueId}`;
+        const tcIssueDate = toDateValue((dto.issueDate ?? new Date().toISOString()).slice(0, 10));
+        const tcRemark =
+          (dto.remark ?? '').trim() ||
+          (clear.blockers.length > 0 ? `Dues waived: ${override}` : 'Dues clear at issue');
+        await tx.students.update({
+          where: { id: studentId },
+          data: { currentStatus: 'TC_ISSUED', tcNumber, tcIssueDate, tcRemark },
+        });
+        await tx.studentEnrollments.updateMany({
+          where: { studentId, isActive: true },
+          data: { isActive: false },
+        });
 
-      return {
-        studentId,
-        studentUniqueId: student.studentUniqueId,
-        status: student.currentStatus,
-        tcNumber: student.tcNumber,
-        tcIssueDate: student.tcIssueDate,
-        arBalance: clear.arBalance,
-        cautionHeld: clear.cautionHeld,
-        duesWaived: clear.blockers.length > 0,
-        overrideReason: override || null,
-      };
-    });
+        return {
+          studentId,
+          studentUniqueId: student.studentUniqueId,
+          status: 'TC_ISSUED',
+          tcNumber,
+          tcIssueDate: toDateOnly(tcIssueDate),
+          arBalance: clear.arBalance,
+          cautionHeld: clear.cautionHeld,
+          duesWaived: clear.blockers.length > 0,
+          overrideReason: override || null,
+        };
+      },
+      { isolationLevel: 'RepeatableRead' },
+    );
   }
 
   /* ================= promotion / readmission / section transfer ================= */
@@ -282,126 +298,140 @@ export class StudentLifecycleService {
     }
     if (!dto.studentIds?.length) throw new BadRequestException('Select at least one student');
 
-    return this.dataSource.transaction('REPEATABLE READ', async (m) => {
-      const studentsRepo = m.getRepository(Student);
-      const enrollRepo = m.getRepository(StudentEnrollment);
-      const rows: Array<{ studentId: string; studentUniqueId: string; enrollmentId: string; classRollNo: number }> = [];
-      const skipped: Array<{ studentId: string; reason: string }> = [];
+    return this.prisma.$transaction(
+      async (tx) => {
+        const rows: Array<{ studentId: string; studentUniqueId: string; enrollmentId: string; classRollNo: number }> = [];
+        const skipped: Array<{ studentId: string; reason: string }> = [];
 
-      for (const studentId of Array.from(new Set(dto.studentIds))) {
-        try {
-          const student = await studentsRepo.findOne({ where: { id: studentId } });
-          if (!student) throw new Error('Student not found');
-          if (student.currentStatus !== 'ACTIVE') throw new Error(`Status is ${student.currentStatus}`);
-          const current = await enrollRepo.findOne({ where: { studentId, isActive: true } });
-          const roll = await this.rolls.nextRoll(
-            m,
-            dto.targetSessionId,
-            dto.targetClassOrDeptId,
-            dto.sectionOrBatchId ?? null,
-          );
-          if (current) {
-            current.isActive = false;
-            await enrollRepo.save(current);
-          }
-          const saved = await enrollRepo.save(
-            enrollRepo.create({
+        for (const studentId of Array.from(new Set(dto.studentIds))) {
+          try {
+            const student = await tx.students.findUnique({ where: { id: studentId } });
+            if (!student) throw new Error('Student not found');
+            if (student.currentStatus !== 'ACTIVE') throw new Error(`Status is ${student.currentStatus}`);
+            const current = await tx.studentEnrollments.findFirst({
+              where: { studentId, isActive: true },
+            });
+            const roll = await this.rolls.nextRoll(
+              tx,
+              dto.targetSessionId,
+              dto.targetClassOrDeptId,
+              dto.sectionOrBatchId ?? null,
+            );
+            if (current) {
+              await tx.studentEnrollments.update({
+                where: { id: current.id },
+                data: { isActive: false },
+              });
+            }
+            const saved = await tx.studentEnrollments.create({
+              data: {
+                studentId,
+                academicSessionId: dto.targetSessionId,
+                institutionType: (dto.institutionType ?? current?.institutionType ?? 'SCHOOL').trim().toUpperCase(),
+                classOrDeptId: dto.targetClassOrDeptId,
+                shiftId: current?.shiftId ?? null,
+                sectionOrBatchId: dto.sectionOrBatchId ?? null,
+                academicGroup: (dto.academicGroup ?? current?.academicGroup ?? 'GENERAL').trim().toUpperCase(),
+                classRollNo: roll,
+                enrollmentType: type,
+                residenceType: current?.residenceType ?? 'DAY_SCHOLAR',
+                quotaTag: current?.quotaTag ?? 'NONE',
+                isActive: true,
+              },
+            });
+            rows.push({
               studentId,
-              academicSessionId: dto.targetSessionId,
-              institutionType: (dto.institutionType ?? current?.institutionType ?? 'SCHOOL').trim().toUpperCase(),
-              classOrDeptId: dto.targetClassOrDeptId,
-              shiftId: current?.shiftId ?? null,
-              sectionOrBatchId: dto.sectionOrBatchId ?? null,
-              academicGroup: (dto.academicGroup ?? current?.academicGroup ?? 'GENERAL').trim().toUpperCase(),
-              classRollNo: roll,
-              enrollmentType: type,
-              residenceType: current?.residenceType ?? 'DAY_SCHOLAR',
-              quotaTag: current?.quotaTag ?? 'NONE',
-              isActive: true,
-            }),
-          );
-          rows.push({
-            studentId,
-            studentUniqueId: student.studentUniqueId,
-            enrollmentId: saved.id,
-            classRollNo: saved.classRollNo,
-          });
-        } catch (e) {
-          skipped.push({ studentId, reason: e instanceof Error ? e.message : 'Failed' });
+              studentUniqueId: student.studentUniqueId,
+              enrollmentId: saved.id,
+              classRollNo: saved.classRollNo,
+            });
+          } catch (e) {
+            skipped.push({ studentId, reason: e instanceof Error ? e.message : 'Failed' });
+          }
         }
-      }
-      return { enrollmentType: type, promoted: rows.length, skipped, rows };
-    });
+        return { enrollmentType: type, promoted: rows.length, skipped, rows };
+      },
+      { isolationLevel: 'RepeatableRead' },
+    );
   }
 
   async transferSection(
     studentId: string,
     dto: { academicSessionId?: string; sectionOrBatchId?: string | null; shiftId?: string | null; academicGroup?: string | null },
   ) {
-    return this.dataSource.transaction('REPEATABLE READ', async (m) => {
-      const student = await m.getRepository(Student).findOne({ where: { id: studentId } });
-      if (!student) throw new NotFoundException(`Student #${studentId} not found`);
-      const repo = m.getRepository(StudentEnrollment);
-      const en = await repo.findOne({ where: { studentId, isActive: true } });
-      if (!en) throw new BadRequestException('No active enrollment to transfer');
+    return this.prisma.$transaction(
+      async (tx) => {
+        const student = await tx.students.findUnique({ where: { id: studentId } });
+        if (!student) throw new NotFoundException(`Student #${studentId} not found`);
+        const en = await tx.studentEnrollments.findFirst({
+          where: { studentId, isActive: true },
+        });
+        if (!en) throw new BadRequestException('No active enrollment to transfer');
 
-      const targetSession = dto.academicSessionId ?? en.academicSessionId;
-      const targetSection = dto.sectionOrBatchId !== undefined ? dto.sectionOrBatchId : en.sectionOrBatchId;
-      const roll = await this.rolls.nextRoll(m, targetSession, en.classOrDeptId, targetSection ?? null);
+        const targetSession = dto.academicSessionId ?? en.academicSessionId;
+        const targetSection = dto.sectionOrBatchId !== undefined ? dto.sectionOrBatchId : en.sectionOrBatchId;
+        const roll = await this.rolls.nextRoll(tx, targetSession, en.classOrDeptId, targetSection ?? null);
 
-      en.academicSessionId = targetSession;
-      en.sectionOrBatchId = targetSection ?? null;
-      if (dto.shiftId !== undefined) en.shiftId = dto.shiftId;
-      if (dto.academicGroup !== undefined) en.academicGroup = (dto.academicGroup ?? 'GENERAL').trim().toUpperCase();
-      en.classRollNo = roll;
-      try {
-        await repo.save(en);
-      } catch (e) {
-        throw new BadRequestException(
-          `Section transfer collision — retry (${e instanceof Error ? e.message : e})`,
-        );
-      }
-      return {
-        studentId,
-        studentUniqueId: student.studentUniqueId,
-        enrollmentId: en.id,
-        academicSessionId: en.academicSessionId,
-        sectionOrBatchId: en.sectionOrBatchId,
-        classRollNo: en.classRollNo,
-      };
-    });
+        const data: Prisma.StudentEnrollmentsUpdateInput = {
+          academicSessionId: targetSession,
+          sectionOrBatchId: targetSection ?? null,
+          classRollNo: roll,
+        };
+        if (dto.shiftId !== undefined) data.shiftId = dto.shiftId;
+        if (dto.academicGroup !== undefined) data.academicGroup = (dto.academicGroup ?? 'GENERAL').trim().toUpperCase();
+        try {
+          await tx.studentEnrollments.update({ where: { id: en.id }, data });
+        } catch (e) {
+          throw new BadRequestException(
+            `Section transfer collision — retry (${e instanceof Error ? e.message : e})`,
+          );
+        }
+        return {
+          studentId,
+          studentUniqueId: student.studentUniqueId,
+          enrollmentId: en.id,
+          academicSessionId: targetSession,
+          sectionOrBatchId: targetSection ?? null,
+          classRollNo: roll,
+        };
+      },
+      { isolationLevel: 'RepeatableRead' },
+    );
   }
 
   /* ================= internals ================= */
 
   /** Outstanding AR per student = Σ(net + fine − paid) over non-reversed invoices, floored at 0. */
-  private async bulkBalances(studentIds: string[], manager?: EntityManager): Promise<Map<string, string>> {
+  private async bulkBalances(
+    studentIds: string[],
+    tx?: Prisma.TransactionClient,
+  ): Promise<Map<string, string>> {
     const map = new Map<string, string>();
     if (studentIds.length === 0) return map;
-    const repo = manager?.getRepository(StudentInvoice) ?? this.invoices;
-    const raw = await repo
-      .createQueryBuilder('inv')
-      .select('inv.studentId', 'sid')
-      .addSelect('SUM(inv.netAmount + inv.lateFineAmount - inv.paidAmount)', 'bal')
-      .where('inv.studentId IN (:...ids)', { ids: studentIds })
-      .andWhere('inv.status != :rev', { rev: 'REVERSED' })
-      .groupBy('inv.studentId')
-      .getRawMany<{ sid: string; bal: string | null }>();
+    const db = tx ?? this.prisma;
+    const raw = await db.$queryRaw<{ sid: string; bal: string | number | null }[]>(Prisma.sql`
+      SELECT inv.student_id AS sid,
+             SUM(inv.net_amount + inv.late_fine_amount - inv.paid_amount) AS bal
+      FROM student_invoices inv
+      WHERE inv.student_id IN (${Prisma.join(studentIds)})
+        AND inv.status <> ${'REVERSED'}
+      GROUP BY inv.student_id
+    `);
     for (const r of raw) {
-      const bal = new Decimal(r.bal ?? 0);
+      const bal = new Decimal(String(r.bal ?? 0));
       map.set(r.sid, (bal.gt(0) ? bal : new Decimal(0)).toFixed(2));
     }
     return map;
   }
 
-  private async cautionHeld(studentId: string, manager?: EntityManager): Promise<string> {
-    const repo = manager?.getRepository(StudentCautionDeposit) ?? this.cautions;
-    const raw = await repo
-      .createQueryBuilder('c')
-      .select('SUM(c.amount)', 'amt')
-      .where('c.studentId = :id', { id: studentId })
-      .andWhere('c.status = :held', { held: 'HELD' })
-      .getRawOne<{ amt: string | null }>();
-    return new Decimal(raw?.amt ?? 0).toFixed(2);
+  private async cautionHeld(studentId: string, tx?: Prisma.TransactionClient): Promise<string> {
+    const db = tx ?? this.prisma;
+    const raw = await db.$queryRaw<{ amt: string | number | null }[]>(Prisma.sql`
+      SELECT SUM(c.amount) AS amt
+      FROM student_caution_deposits c
+      WHERE c.student_id = ${studentId}
+        AND c.status = ${'HELD'}
+    `);
+    return new Decimal(String(raw[0]?.amt ?? 0)).toFixed(2);
   }
 }

@@ -6,53 +6,64 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
+/**
+ * NOTE (Prisma migration, Wave 1): every column is now mapped explicitly to its
+ * snake_case DB name.
+ *
+ * Previously these camelCase properties carried no `name:` mapping and no
+ * SnakeNamingStrategy was configured, so TypeORM emitted `notices.titleBn` /
+ * `notices.createdAt` and every query failed with `Unknown column
+ * 'notice.titleBn'`. The mapping below makes the module functional and lets the
+ * parity harness capture a real pre-migration golden before the service moves to
+ * Prisma. Property names (and therefore the JSON wire shape) are unchanged.
+ */
 @Entity('notices')
 export class Notice {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ type: 'varchar', length: 255 })
+  @Column({ name: 'title', type: 'varchar', length: 255 })
   title: string;
 
-  @Column({ type: 'varchar', length: 255, nullable: true })
+  @Column({ name: 'title_bn', type: 'varchar', length: 255, nullable: true })
   titleBn: string;
 
-  @Column({ type: 'varchar', length: 255, nullable: true })
+  @Column({ name: 'slug', type: 'varchar', length: 255, nullable: true })
   slug: string;
 
-  @Column({ type: 'varchar', length: 100, default: 'General' })
+  @Column({ name: 'category', type: 'varchar', length: 100, default: 'General' })
   category: string;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ name: 'short_description', type: 'text', nullable: true })
   shortDescription: string;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ name: 'short_description_bn', type: 'text', nullable: true })
   shortDescriptionBn: string;
 
-  @Column({ type: 'longtext', nullable: true })
+  @Column({ name: 'description', type: 'longtext', nullable: true })
   description: string;
 
-  @Column({ type: 'longtext', nullable: true })
+  @Column({ name: 'description_bn', type: 'longtext', nullable: true })
   descriptionBn: string;
 
-  @Column({ type: 'varchar', length: 500, nullable: true })
+  @Column({ name: 'image_url', type: 'varchar', length: 500, nullable: true })
   imageUrl: string;
 
-  @Column({ type: 'varchar', length: 500, nullable: true })
+  @Column({ name: 'pdf_url', type: 'varchar', length: 500, nullable: true })
   pdfUrl: string;
 
-  @Column({ type: 'boolean', default: false })
+  @Column({ name: 'is_pinned', type: 'boolean', default: false })
   isPinned: boolean;
 
-  @Column({ type: 'boolean', default: true })
+  @Column({ name: 'is_active', type: 'boolean', default: true })
   isActive: boolean;
 
-  @Column({ type: 'date', nullable: true })
+  @Column({ name: 'publish_date', type: 'date', nullable: true })
   publishDate: string;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   createdAt: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
   updatedAt: Date;
 }

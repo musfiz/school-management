@@ -1,34 +1,43 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Teacher } from '../database/entities/teacher.entity';
+import { PrismaService } from '../prisma/prisma.service';
+import { toDateValue, toWire, toWireList } from '../prisma/wire';
 import { CreateTeacherDto, UpdateTeacherDto } from './teacher.dto';
 
 @Injectable()
 export class TeacherService {
-  constructor(
-    @InjectRepository(Teacher)
-    private readonly repo: Repository<Teacher>,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
-  findAll(): Promise<Teacher[]> {
-    return this.repo.find({ order: { sortOrder: 'ASC', id: 'ASC' } });
+  async findAll() {
+    const rows = await this.prisma.teachers.findMany({
+      orderBy: [{ sortOrder: 'asc' }, { id: 'asc' }],
+    });
+    return toWireList(rows);
   }
 
-  create(dto: CreateTeacherDto): Promise<Teacher> {
-    return this.repo.save(this.repo.create(dto));
+  async create(dto: CreateTeacherDto) {
+    const { jointDate, ...rest } = dto;
+    const row = await this.prisma.teachers.create({
+      data: { ...rest, jointDate: toDateValue(jointDate) },
+    });
+    return toWire(row);
   }
 
-  async update(id: string, dto: UpdateTeacherDto): Promise<Teacher> {
-    const teacher = await this.repo.findOne({ where: { id } });
+  async update(id: string, dto: UpdateTeacherDto) {
+    const teacher = await this.prisma.teachers.findUnique({ where: { id } });
     if (!teacher) throw new NotFoundException(`Teacher ${id} not found`);
-    return this.repo.save(this.repo.merge(teacher, dto));
+
+    const { jointDate, ...rest } = dto;
+    const data: Record<string, unknown> = { ...rest };
+    if (jointDate !== undefined) data.jointDate = toDateValue(jointDate);
+
+    const row = await this.prisma.teachers.update({ where: { id }, data });
+    return toWire(row);
   }
 
   async remove(id: string): Promise<{ id: string }> {
-    const teacher = await this.repo.findOne({ where: { id } });
+    const teacher = await this.prisma.teachers.findUnique({ where: { id } });
     if (!teacher) throw new NotFoundException(`Teacher ${id} not found`);
-    await this.repo.remove(teacher);
+    await this.prisma.teachers.delete({ where: { id } });
     return { id };
   }
 }

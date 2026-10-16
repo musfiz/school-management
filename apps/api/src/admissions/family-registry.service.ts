@@ -1,9 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
-import { FamilyProfile } from '../database/entities/family-profile.entity';
-import { Student } from '../database/entities/student.entity';
-import { StudentEnrollment } from '../database/entities/student-enrollment.entity';
+import { PrismaService } from '../prisma/prisma.service';
+import { toDateOnly } from '../prisma/wire';
+import { Prisma } from '../generated/prisma/client';
+import type { FamilyProfiles } from '../generated/prisma/client';
 
 export interface FamilyChild {
   studentId: string;
@@ -23,7 +22,7 @@ export interface FamilyChild {
   isActiveEnrollment: boolean;
 }
 
-export interface FamilyDirectoryRow extends FamilyProfile {
+export interface FamilyDirectoryRow extends FamilyProfiles {
   childCount: number;
   activeChildCount: number;
   children: FamilyChild[];
@@ -68,33 +67,31 @@ export class FamilyRegistryService {
     tuitionFeePct: 20,
   } as const;
 
-  constructor(
-    @InjectRepository(FamilyProfile) private readonly families: Repository<FamilyProfile>,
-    @InjectRepository(Student) private readonly students: Repository<Student>,
-    @InjectRepository(StudentEnrollment) private readonly enrollments: Repository<StudentEnrollment>,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async lookupByPhoneOrNid(rawQuery: string) {
     const query = (rawQuery ?? '').trim();
     const candidates = this.phoneCandidates(query);
-    const qb = this.families.createQueryBuilder('f').where(
-      `f.primary_guardian_phone IN (:...phones)
-        OR f.mother_phone IN (:...phones)
-        OR f.local_guardian_phone IN (:...phones)
-        OR f.father_nid = :raw
-        OR f.mother_nid = :raw`,
-      { phones: candidates, raw: query },
-    );
-    const family = await qb.getOne();
+    const family = await this.prisma.familyProfiles.findFirst({
+      where: {
+        OR: [
+          { primaryGuardianPhone: { in: candidates } },
+          { motherPhone: { in: candidates } },
+          { localGuardianPhone: { in: candidates } },
+          { fatherNid: query },
+          { motherNid: query },
+        ],
+      },
+    });
     if (!family) return { found: false as const, query };
 
-    const children = await this.students.find({
+    const children = await this.prisma.students.findMany({
       where: { familyProfileId: family.id },
-      order: { fullNameEn: 'ASC' },
+      orderBy: { fullNameEn: 'asc' },
     });
     const activeSiblings: ActiveSibling[] = [];
     for (const s of children) {
-      const en = await this.enrollments.findOne({
+      const en = await this.prisma.studentEnrollments.findFirst({
         where: { studentId: s.id, isActive: true },
       });
       const active = Boolean(en) || s.currentStatus === 'ACTIVE';
@@ -143,27 +140,31 @@ export class FamilyRegistryService {
     zakatEligible?: boolean;
     limit?: number;
   }): Promise<FamilyDirectoryRow[]> {
-    const qb = this.families
-      .createQueryBuilder('f')
-      .orderBy('f.createdAt', 'DESC')
-      .take(Math.min(Math.max(filters.limit ?? 100, 1), 500));
+    const where: Prisma.FamilyProfilesWhereInput = {};
     if (filters.search?.trim()) {
-      const q = `%${filters.search.trim()}%`;
-      qb.andWhere(
-        `f.primary_guardian_phone LIKE :q OR f.family_code LIKE :q
-         OR f.father_name_en LIKE :q OR f.mother_name_en LIKE :q OR f.father_nid LIKE :q`,
-        { q },
-      );
+      const q = filters.search.trim();
+      where.OR = [
+        { primaryGuardianPhone: { contains: q } },
+        { familyCode: { contains: q } },
+        { fatherNameEn: { contains: q } },
+        { motherNameEn: { contains: q } },
+        { fatherNid: { contains: q } },
+      ];
     }
     if (filters.zakatEligible !== undefined) {
-      qb.andWhere('f.is_zakat_eligible_family = :z', { z: filters.zakatEligible });
+      where.isZakatEligibleFamily = filters.zakatEligible;
     }
-    return this.withChildren(await qb.getMany());
+    const families = await this.prisma.familyProfiles.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      take: Math.min(Math.max(filters.limit ?? 100, 1), 500),
+    });
+    return this.withChildren(families);
   }
 
   /** Single family + its full child/sibling roster (directory detail drawer). */
   async getFamily(id: string): Promise<FamilyDirectoryRow> {
-    const family = await this.families.findOne({ where: { id } });
+    const family = await this.prisma.familyProfiles.findUnique({ where: { id } });
     if (!family) throw new NotFoundException(`Family #${id} not found`);
     const [row] = await this.withChildren([family]);
     return row;
@@ -173,16 +174,18 @@ export class FamilyRegistryService {
    * Attach each family's children (students) with their active enrollment so
    * the directory can render the multi-sibling linkage without N+1 queries.
    */
-  private async withChildren(families: FamilyProfile[]): Promise<FamilyDirectoryRow[]> {
+  private async withChildren(families: FamilyProfiles[]): Promise<FamilyDirectoryRow[]> {
     if (families.length === 0) return [];
     const familyIds = families.map((f) => f.id);
-    const students = await this.students.find({
-      where: { familyProfileId: In(familyIds) },
-      order: { fullNameEn: 'ASC' },
+    const students = await this.prisma.students.findMany({
+      where: { familyProfileId: { in: familyIds } },
+      orderBy: { fullNameEn: 'asc' },
     });
     const studentIds = students.map((s) => s.id);
     const enrollments = studentIds.length
-      ? await this.enrollments.find({ where: { studentId: In(studentIds), isActive: true } })
+      ? await this.prisma.studentEnrollments.findMany({
+          where: { studentId: { in: studentIds }, isActive: true },
+        })
       : [];
     const enrollmentByStudent = new Map(enrollments.map((e) => [e.studentId, e]));
 
@@ -196,7 +199,7 @@ export class FamilyRegistryService {
         nameBn: s.fullNameBn ?? null,
         gender: s.gender,
         currentStatus: s.currentStatus,
-        admissionDate: s.admissionDate,
+        admissionDate: toDateOnly(s.admissionDate),
         photoUrl: s.photoUrl ?? null,
         classOrDeptId: en?.classOrDeptId ?? null,
         sectionOrBatchId: en?.sectionOrBatchId ?? null,
@@ -228,9 +231,11 @@ export class FamilyRegistryService {
    * admission flows only ever READ it.
    */
   async setZakatVerified(id: string, verified: boolean) {
-    const family = await this.families.findOne({ where: { id } });
+    const family = await this.prisma.familyProfiles.findUnique({ where: { id } });
     if (!family) throw new NotFoundException(`Family #${id} not found`);
-    family.isZakatEligibleFamily = verified;
-    return this.families.save(family);
+    return this.prisma.familyProfiles.update({
+      where: { id },
+      data: { isZakatEligibleFamily: verified },
+    });
   }
 }

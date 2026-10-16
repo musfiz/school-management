@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { EntityManager } from 'typeorm';
+import { Prisma } from '../../generated/prisma/client';
 import { SequenceService } from './sequence.service';
 
 /**
@@ -15,24 +15,24 @@ export class StudentIdGeneratorService {
   constructor(private readonly sequences: SequenceService) {}
 
   /** `STD-26-0001` — or `[YEAR]-[CLASS_CODE]-[SEQ_4]` when classCode given. */
-  async nextStudentId(manager: EntityManager, year: string, classCode?: string): Promise<string> {
+  async nextStudentId(tx: Prisma.TransactionClient, year: string, classCode?: string): Promise<string> {
     const code = (classCode ?? '').trim().toUpperCase();
     const scope = code ? `STU:${year}:${code}` : `STU:${year}`;
-    const seq = await this.sequences.next(manager, scope);
+    const seq = await this.sequences.next(tx, scope);
     return code
       ? `${year}-${code}-${String(seq).padStart(4, '0')}`
       : `STD-${year.slice(2)}-${String(seq).padStart(4, '0')}`;
   }
 
   /** `FAM-2026-00001`. */
-  async nextFamilyCode(manager: EntityManager, year: string): Promise<string> {
-    const seq = await this.sequences.next(manager, `FAM:${year}`);
+  async nextFamilyCode(tx: Prisma.TransactionClient, year: string): Promise<string> {
+    const seq = await this.sequences.next(tx, `FAM:${year}`);
     return `FAM-${year.slice(2)}-${String(seq).padStart(5, '0')}`;
   }
 
   /** `APP-2026-000001`. */
-  async nextApplicationNo(manager: EntityManager, year: string): Promise<string> {
-    const seq = await this.sequences.next(manager, `APP:${year}`);
+  async nextApplicationNo(tx: Prisma.TransactionClient, year: string): Promise<string> {
+    const seq = await this.sequences.next(tx, `APP:${year}`);
     return `APP-${year}-${String(seq).padStart(6, '0')}`;
   }
 }

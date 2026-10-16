@@ -1,12 +1,9 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { EntityManager, Repository } from 'typeorm';
 import Decimal from 'decimal.js';
-import { WaiverPresetRule } from '../database/entities/waiver-preset-rule.entity';
-import { FamilyProfile } from '../database/entities/family-profile.entity';
-import { StudentWaiver, WAIVER_TYPES } from '../database/entities/student-waiver.entity';
-import { Fund } from '../database/entities/fund.entity';
-import { ChartOfAccount } from '../database/entities/chart-of-account.entity';
+import { PrismaService } from '../prisma/prisma.service';
+import { Prisma } from '../generated/prisma/client';
+import type { WaiverPresetRules, StudentWaivers } from '../generated/prisma/client';
+import { WAIVER_TYPES } from '../database/entities/student-waiver.entity';
 
 export interface WaiverSuggestion {
   ruleCode: string;
@@ -58,13 +55,7 @@ export const DEFAULT_WAIVER_PRESETS: WaiverPresetSeed[] = [
  */
 @Injectable()
 export class WaiverCalculatorService {
-  constructor(
-    @InjectRepository(WaiverPresetRule) private readonly rules: Repository<WaiverPresetRule>,
-    @InjectRepository(FamilyProfile) private readonly families: Repository<FamilyProfile>,
-    @InjectRepository(StudentWaiver) private readonly waivers: Repository<StudentWaiver>,
-    @InjectRepository(Fund) private readonly funds: Repository<Fund>,
-    @InjectRepository(ChartOfAccount) private readonly gls: Repository<ChartOfAccount>,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   /* ================= calculator ================= */
 
@@ -76,24 +67,23 @@ export class WaiverCalculatorService {
       residenceType?: string;
       familyId?: string;
     },
-    /** Workflow 4 passes the onboarding transaction manager for a consistent snapshot. */
-    manager?: EntityManager,
+    /** Workflow 4 passes the onboarding transaction client for a consistent snapshot. */
+    tx?: Prisma.TransactionClient,
   ): Promise<{ suggestions: WaiverSuggestion[] }> {
     const gpa = input.prevGpa !== undefined ? this.gpa(input.prevGpa, 'prevGpa') : null;
     const quota = this.norm(input.quotaTag);
     const residence = this.norm(input.residenceType);
     const institution = this.norm(input.institutionType);
 
-    const rulesRepo = manager?.getRepository(WaiverPresetRule) ?? this.rules;
-    const familiesRepo = manager?.getRepository(FamilyProfile) ?? this.families;
-    const actives = await rulesRepo.find({
+    const db = tx ?? this.prisma;
+    const actives = await db.waiverPresetRules.findMany({
       where: { isActive: true },
-      order: { priority: 'ASC', ruleCode: 'ASC' },
+      orderBy: [{ priority: 'asc' }, { ruleCode: 'asc' }],
     });
 
-    let family: FamilyProfile | null = null;
+    let family = null;
     if (input.familyId) {
-      family = await familiesRepo.findOne({ where: { id: input.familyId } });
+      family = await db.familyProfiles.findUnique({ where: { id: input.familyId } });
       if (!family) throw new NotFoundException(`Family #${input.familyId} not found`);
     }
 
@@ -115,8 +105,8 @@ export class WaiverCalculatorService {
         ruleCode: r.ruleCode,
         ruleName: r.ruleName,
         waiverType: r.waiverType,
-        admissionFeePct: r.admissionFeePct,
-        tuitionFeePct: r.tuitionFeePct,
+        admissionFeePct: new Decimal(String(r.admissionFeePct)).toFixed(2),
+        tuitionFeePct: new Decimal(String(r.tuitionFeePct)).toFixed(2),
         requiresZakatEligible: r.requiresZakatEligible,
         allowed,
         reason,
@@ -133,20 +123,20 @@ export class WaiverCalculatorService {
    * (Pre-admission selection is carried by the wizard into Phase 3; this
    * endpoint serves already-admitted students.)
    */
-  async applyLillahWaiver(studentId: string, familyId: string, remark?: string): Promise<StudentWaiver> {
-    const family = await this.families.findOne({ where: { id: familyId } });
+  async applyLillahWaiver(studentId: string, familyId: string, remark?: string): Promise<StudentWaivers> {
+    const family = await this.prisma.familyProfiles.findUnique({ where: { id: familyId } });
     if (!family) throw new NotFoundException(`Family #${familyId} not found`);
     if (!family.isZakatEligibleFamily) {
       throw new BadRequestException(
         `Blocked: family ${family.familyCode} is not verified zakat-eligible (Fund 02 rule).`,
       );
     }
-    const fund = await this.funds.findOne({ where: { fundCode: '02' } });
+    const fund = await this.prisma.funds.findFirst({ where: { fundCode: '02' } });
     if (!fund) throw new BadRequestException('Fund 02 (Lillah/Zakat) missing — run seed:accounting');
-    const contra = await this.gls.findOne({ where: { glCode: '41904' } });
+    const contra = await this.prisma.chartOfAccounts.findFirst({ where: { glCode: '41904' } });
     if (!contra) throw new BadRequestException('Contra GL 41904 missing — run seed:accounting');
-    return this.waivers.save(
-      this.waivers.create({
+    return this.prisma.studentWaivers.create({
+      data: {
         studentId,
         waiverType: 'LILLAH_ZAKAT_ORPHAN',
         percent: '100.00',
@@ -155,16 +145,16 @@ export class WaiverCalculatorService {
         fundId: fund.id,
         isActive: true,
         remark: remark ?? `Lillah boarding — family ${family.familyCode}`,
-      }),
-    );
+      },
+    });
   }
 
   /* ================= preset CRUD + seed ================= */
 
-  listRules(activeOnly = false): Promise<WaiverPresetRule[]> {
-    return this.rules.find({
+  listRules(activeOnly = false): Promise<WaiverPresetRules[]> {
+    return this.prisma.waiverPresetRules.findMany({
       where: activeOnly ? { isActive: true } : undefined,
-      order: { priority: 'ASC', ruleCode: 'ASC' },
+      orderBy: [{ priority: 'asc' }, { ruleCode: 'asc' }],
     });
   }
 
@@ -174,15 +164,15 @@ export class WaiverCalculatorService {
     residenceType?: string | null; waiverType: string; admissionFeePct: string;
     tuitionFeePct: string; requiresZakatEligible?: boolean; priority?: number;
     remark?: string | null;
-  }): Promise<WaiverPresetRule> {
-    const clash = await this.rules.findOne({ where: { ruleCode: dto.ruleCode } });
+  }): Promise<WaiverPresetRules> {
+    const clash = await this.prisma.waiverPresetRules.findFirst({ where: { ruleCode: dto.ruleCode } });
     if (clash) throw new BadRequestException(`Preset "${dto.ruleCode}" already exists`);
     this.assertWaiverType(dto.waiverType);
     const min = dto.minGpa != null ? this.gpa(dto.minGpa, 'minGpa') : null;
     const max = dto.maxGpa != null ? this.gpa(dto.maxGpa, 'maxGpa') : null;
     if (min && max && min.gt(max)) throw new BadRequestException('minGpa cannot exceed maxGpa');
-    return this.rules.save(
-      this.rules.create({
+    return this.prisma.waiverPresetRules.create({
+      data: {
         ruleCode: dto.ruleCode,
         ruleName: dto.ruleName,
         institutionType: dto.institutionType ?? null,
@@ -197,40 +187,43 @@ export class WaiverCalculatorService {
         priority: dto.priority ?? 100,
         isActive: true,
         remark: dto.remark ?? null,
-      }),
-    );
+      },
+    });
   }
 
-  async updateRule(id: string, dto: Record<string, unknown>): Promise<WaiverPresetRule> {
-    const r = await this.rules.findOne({ where: { id } });
+  async updateRule(id: string, dto: Record<string, unknown>): Promise<WaiverPresetRules> {
+    const r = await this.prisma.waiverPresetRules.findUnique({ where: { id } });
     if (!r) throw new NotFoundException(`Preset #${id} not found`);
     if (dto.waiverType !== undefined) this.assertWaiverType(String(dto.waiverType));
-    const patch: Partial<WaiverPresetRule> = {};
-    if (dto.ruleName !== undefined) patch.ruleName = String(dto.ruleName);
-    if (dto.institutionType !== undefined) patch.institutionType = (dto.institutionType as string) || null;
-    if (dto.minGpa !== undefined) patch.minGpa = dto.minGpa ? this.gpa(String(dto.minGpa), 'minGpa').toFixed(2) : null;
-    if (dto.maxGpa !== undefined) patch.maxGpa = dto.maxGpa ? this.gpa(String(dto.maxGpa), 'maxGpa').toFixed(2) : null;
-    if (dto.quotaTag !== undefined) patch.quotaTag = (dto.quotaTag as string) || null;
-    if (dto.residenceType !== undefined) patch.residenceType = (dto.residenceType as string) || null;
-    if (dto.waiverType !== undefined) patch.waiverType = String(dto.waiverType);
-    if (dto.admissionFeePct !== undefined) patch.admissionFeePct = this.pct(String(dto.admissionFeePct), 'admissionFeePct');
-    if (dto.tuitionFeePct !== undefined) patch.tuitionFeePct = this.pct(String(dto.tuitionFeePct), 'tuitionFeePct');
-    if (dto.requiresZakatEligible !== undefined) patch.requiresZakatEligible = Boolean(dto.requiresZakatEligible);
-    if (dto.priority !== undefined) patch.priority = Number(dto.priority);
-    if (dto.isActive !== undefined) patch.isActive = Boolean(dto.isActive);
-    if (dto.remark !== undefined) patch.remark = (dto.remark as string) || null;
-    Object.assign(r, patch);
-    if (r.minGpa != null && r.maxGpa != null && new Decimal(r.minGpa).gt(new Decimal(r.maxGpa))) {
+    const data: Prisma.WaiverPresetRulesUpdateInput = {};
+    if (dto.ruleName !== undefined) data.ruleName = String(dto.ruleName);
+    if (dto.institutionType !== undefined) data.institutionType = (dto.institutionType as string) || null;
+    if (dto.minGpa !== undefined) data.minGpa = dto.minGpa ? this.gpa(String(dto.minGpa), 'minGpa').toFixed(2) : null;
+    if (dto.maxGpa !== undefined) data.maxGpa = dto.maxGpa ? this.gpa(String(dto.maxGpa), 'maxGpa').toFixed(2) : null;
+    if (dto.quotaTag !== undefined) data.quotaTag = (dto.quotaTag as string) || null;
+    if (dto.residenceType !== undefined) data.residenceType = (dto.residenceType as string) || null;
+    if (dto.waiverType !== undefined) data.waiverType = String(dto.waiverType);
+    if (dto.admissionFeePct !== undefined) data.admissionFeePct = this.pct(String(dto.admissionFeePct), 'admissionFeePct');
+    if (dto.tuitionFeePct !== undefined) data.tuitionFeePct = this.pct(String(dto.tuitionFeePct), 'tuitionFeePct');
+    if (dto.requiresZakatEligible !== undefined) data.requiresZakatEligible = Boolean(dto.requiresZakatEligible);
+    if (dto.priority !== undefined) data.priority = Number(dto.priority);
+    if (dto.isActive !== undefined) data.isActive = Boolean(dto.isActive);
+    if (dto.remark !== undefined) data.remark = (dto.remark as string) || null;
+
+    const nextMin = data.minGpa !== undefined ? (data.minGpa as string | null) : r.minGpa != null ? String(r.minGpa) : null;
+    const nextMax = data.maxGpa !== undefined ? (data.maxGpa as string | null) : r.maxGpa != null ? String(r.maxGpa) : null;
+    if (nextMin != null && nextMax != null && new Decimal(nextMin).gt(new Decimal(nextMax))) {
       throw new BadRequestException('minGpa cannot exceed maxGpa');
     }
-    return this.rules.save(r);
+    if (Object.keys(data).length === 0) return r;
+    return this.prisma.waiverPresetRules.update({ where: { id }, data });
   }
 
   /** Idempotent seed of the plan's standard preset catalogue. */
-  async seedDefaults(): Promise<WaiverPresetRule[]> {
-    const out: WaiverPresetRule[] = [];
+  async seedDefaults(): Promise<WaiverPresetRules[]> {
+    const out: WaiverPresetRules[] = [];
     for (const d of DEFAULT_WAIVER_PRESETS) {
-      const existing = await this.rules.findOne({ where: { ruleCode: d.ruleCode } });
+      const existing = await this.prisma.waiverPresetRules.findFirst({ where: { ruleCode: d.ruleCode } });
       if (existing) {
         out.push(existing);
         continue;
@@ -242,23 +235,23 @@ export class WaiverCalculatorService {
 
   /** Remove a preset rule permanently. */
   async deleteRule(id: string): Promise<{ id: string; deleted: boolean }> {
-    const r = await this.rules.findOne({ where: { id } });
+    const r = await this.prisma.waiverPresetRules.findUnique({ where: { id } });
     if (!r) throw new NotFoundException(`Preset #${id} not found`);
-    await this.rules.remove(r);
+    await this.prisma.waiverPresetRules.delete({ where: { id } });
     return { id, deleted: true };
   }
 
   /* ================= internals ================= */
 
   private matches(
-    r: WaiverPresetRule,
+    r: WaiverPresetRules,
     by: { gpa: Decimal | null; quota: string | null; residence: string | null; institution: string | null },
   ): boolean {
     let cond = false;
     if (r.minGpa != null || r.maxGpa != null) {
       if (!by.gpa) return false;
-      if (r.minGpa != null && by.gpa.lt(new Decimal(r.minGpa))) return false;
-      if (r.maxGpa != null && by.gpa.gt(new Decimal(r.maxGpa))) return false;
+      if (r.minGpa != null && by.gpa.lt(new Decimal(String(r.minGpa)))) return false;
+      if (r.maxGpa != null && by.gpa.gt(new Decimal(String(r.maxGpa)))) return false;
       cond = true;
     }
     if (r.quotaTag) {

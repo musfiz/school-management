@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { EntityManager } from 'typeorm';
+import { Prisma } from '../../generated/prisma/client';
 import { SequenceService } from './sequence.service';
 
 /**
@@ -15,14 +15,14 @@ export class RollNumberGeneratorService {
   constructor(private readonly sequences: SequenceService) {}
 
   async nextRoll(
-    manager: EntityManager,
+    tx: Prisma.TransactionClient,
     academicSessionId: string,
     classOrDeptId: string,
     sectionOrBatchId?: string | null,
   ): Promise<number> {
     const sectionKey = sectionOrBatchId ?? 'NOSEC';
     return this.sequences.next(
-      manager,
+      tx,
       `ROLL:${academicSessionId}:${classOrDeptId}:${sectionKey}`,
     );
   }

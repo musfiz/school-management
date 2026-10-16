@@ -1,17 +1,14 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { EntityManager, Repository } from 'typeorm';
 import Decimal from 'decimal.js';
-import { AcademicSubject } from '../database/entities/academic-subject.entity';
-import {
-  ClassSyllabusSubject,
-  SyllabusSubjectRole,
-} from '../database/entities/class-syllabus-subject.entity';
-import {
-  AssignedSubjectRole,
-  StudentSubjectEnrollment,
-} from '../database/entities/student-subject-enrollment.entity';
-import { StudentEnrollment } from '../database/entities/student-enrollment.entity';
+import { PrismaService } from '../prisma/prisma.service';
+import { Prisma } from '../generated/prisma/client';
+import type {
+  AcademicSubjects,
+  ClassSyllabusSubjects,
+  StudentSubjectEnrollments,
+} from '../generated/prisma/client';
+import type { SyllabusSubjectRole } from '../database/entities/class-syllabus-subject.entity';
+import type { AssignedSubjectRole } from '../database/entities/student-subject-enrollment.entity';
 
 const SYLLABUS_ROLES: SyllabusSubjectRole[] = [
   'COMPULSORY',
@@ -19,6 +16,16 @@ const SYLLABUS_ROLES: SyllabusSubjectRole[] = [
   'FOURTH_OPTIONAL',
   'NON_CREDIT',
 ];
+
+/** Syllabus row with Prisma's `academicSubjects` relation exposed under the entity's `subject` key. */
+export type SyllabusRow = Omit<ClassSyllabusSubjects, 'academicSubjects'> & {
+  subject?: AcademicSubjects | null;
+};
+
+/** Student subject enrollment with the entity's nested relation keys. */
+export type StudentSubjectEnrollmentRow = Omit<StudentSubjectEnrollments, 'classSyllabusSubjects'> & {
+  syllabusSubject?: SyllabusRow | null;
+};
 
 export interface SubjectPreviewRow {
   syllabusSubjectId: string;
@@ -50,49 +57,43 @@ export interface SubjectPreviewRow {
  */
 @Injectable()
 export class SubjectEnrollmentService {
-  constructor(
-    @InjectRepository(AcademicSubject) private readonly masters: Repository<AcademicSubject>,
-    @InjectRepository(ClassSyllabusSubject) private readonly syllabus: Repository<ClassSyllabusSubject>,
-    @InjectRepository(StudentSubjectEnrollment)
-    private readonly enrollments: Repository<StudentSubjectEnrollment>,
-    @InjectRepository(StudentEnrollment)
-    private readonly placements: Repository<StudentEnrollment>,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   /* ================= master subjects ================= */
 
-  listMasterSubjects(boardStream?: string): Promise<AcademicSubject[]> {
-    return this.masters.find({
+  listMasterSubjects(boardStream?: string): Promise<AcademicSubjects[]> {
+    return this.prisma.academicSubjects.findMany({
       where: boardStream ? { boardStream } : undefined,
-      order: { subjectCode: 'ASC', paperNumber: 'ASC' },
+      orderBy: [{ subjectCode: 'asc' }, { paperNumber: 'asc' }],
     });
   }
 
   async createMasterSubject(dto: {
     subjectCode: string; subjectName: string; boardStream?: string; paperNumber?: number | null;
-  }): Promise<AcademicSubject> {
-    const clash = await this.masters.findOne({
-      where: { subjectCode: dto.subjectCode, paperNumber: dto.paperNumber ?? null } as Partial<AcademicSubject>,
+  }): Promise<AcademicSubjects> {
+    const clash = await this.prisma.academicSubjects.findFirst({
+      where: { subjectCode: dto.subjectCode, paperNumber: dto.paperNumber ?? null },
     });
     if (clash) throw new BadRequestException(`Subject ${dto.subjectCode} paper ${dto.paperNumber ?? '—'} already exists`);
-    return this.masters.save(
-      this.masters.create({
+    return this.prisma.academicSubjects.create({
+      data: {
         subjectCode: dto.subjectCode,
         subjectName: dto.subjectName,
         boardStream: dto.boardStream ?? 'GENERAL',
         paperNumber: dto.paperNumber ?? null,
-      }),
-    );
+      },
+    });
   }
 
   /* ================= syllabus matrix ================= */
 
-  listSyllabus(academicSessionId: string, classOrDeptId: string): Promise<ClassSyllabusSubject[]> {
-    return this.syllabus.find({
+  async listSyllabus(academicSessionId: string, classOrDeptId: string): Promise<SyllabusRow[]> {
+    const rows = await this.prisma.classSyllabusSubjects.findMany({
       where: { academicSessionId, classOrDeptId },
-      relations: ['subject'],
-      order: { displayOrder: 'ASC' },
+      include: { academicSubjects: true },
+      orderBy: { displayOrder: 'asc' },
     });
+    return rows.map(toSyllabusRow);
   }
 
   async upsertSyllabusRow(dto: {
@@ -100,28 +101,16 @@ export class SubjectEnrollmentService {
     combinedGroupCode?: string | null; combinedGroupName?: string | null;
     defaultSubjectRole: string; electiveGroup?: string | null; creditHours?: string;
     fullMarks?: string; passEvaluationMode?: string; displayOrder?: number;
-  }): Promise<ClassSyllabusSubject> {
+  }): Promise<ClassSyllabusSubjects> {
     if (!(SYLLABUS_ROLES as string[]).includes(dto.defaultSubjectRole)) {
       throw new BadRequestException(`defaultSubjectRole must be one of ${SYLLABUS_ROLES.join(', ')}`);
     }
-    const subject = await this.masters.findOne({ where: { id: dto.subjectId } });
+    const subject = await this.prisma.academicSubjects.findUnique({ where: { id: dto.subjectId } });
     if (!subject) throw new NotFoundException(`Academic subject #${dto.subjectId} not found`);
     if (dto.defaultSubjectRole === 'GROUP_ELECTIVE' && !dto.electiveGroup) {
       throw new BadRequestException('GROUP_ELECTIVE rows need electiveGroup (e.g. SCIENCE)');
     }
-    const existing = await this.syllabus.findOne({
-      where: {
-        academicSessionId: dto.academicSessionId,
-        classOrDeptId: dto.classOrDeptId,
-        subjectId: dto.subjectId,
-      },
-    });
-    const row = existing ?? this.syllabus.create({
-      academicSessionId: dto.academicSessionId,
-      classOrDeptId: dto.classOrDeptId,
-      subjectId: dto.subjectId,
-    });
-    Object.assign(row, {
+    const values = {
       combinedGroupCode: dto.combinedGroupCode ?? null,
       combinedGroupName: dto.combinedGroupName ?? null,
       defaultSubjectRole: dto.defaultSubjectRole,
@@ -130,18 +119,37 @@ export class SubjectEnrollmentService {
       fullMarks: this.dec(dto.fullMarks ?? '100', 'fullMarks'),
       passEvaluationMode: dto.passEvaluationMode ?? 'SEPARATE_COMPONENTS',
       displayOrder: dto.displayOrder ?? 1,
+    };
+    const existing = await this.prisma.classSyllabusSubjects.findFirst({
+      where: {
+        academicSessionId: dto.academicSessionId,
+        classOrDeptId: dto.classOrDeptId,
+        subjectId: dto.subjectId,
+      },
     });
-    return this.syllabus.save(row);
+    if (existing) {
+      return this.prisma.classSyllabusSubjects.update({ where: { id: existing.id }, data: values });
+    }
+    return this.prisma.classSyllabusSubjects.create({
+      data: {
+        academicSessionId: dto.academicSessionId,
+        classOrDeptId: dto.classOrDeptId,
+        subjectId: dto.subjectId,
+        ...values,
+      },
+    });
   }
 
   async removeSyllabusRow(id: string): Promise<{ deleted: true }> {
-    const row = await this.syllabus.findOne({ where: { id } });
+    const row = await this.prisma.classSyllabusSubjects.findUnique({ where: { id } });
     if (!row) throw new NotFoundException(`Syllabus row #${id} not found`);
-    const used = await this.enrollments.count({ where: { syllabusSubjectId: id } });
+    const used = await this.prisma.studentSubjectEnrollments.count({
+      where: { syllabusSubjectId: id },
+    });
     if (used > 0) {
       throw new BadRequestException(`Row is used by ${used} student enrollment(s) — deactivate via Result Engine instead`);
     }
-    await this.syllabus.remove(row);
+    await this.prisma.classSyllabusSubjects.delete({ where: { id } });
     return { deleted: true as const };
   }
 
@@ -150,16 +158,16 @@ export class SubjectEnrollmentService {
   async preview(academicSessionId: string, classOrDeptId: string, academicGroup?: string) {
     const rows = await this.listSyllabus(academicSessionId, classOrDeptId);
     const group = (academicGroup ?? '').trim().toUpperCase();
-    const toRow = (r: ClassSyllabusSubject, locked: boolean): SubjectPreviewRow => ({
+    const toRow = (r: SyllabusRow, locked: boolean): SubjectPreviewRow => ({
       syllabusSubjectId: r.id,
       subjectCode: r.subject?.subjectCode ?? '?',
       subjectName: r.subject?.subjectName ?? '?',
       paperNumber: r.subject?.paperNumber ?? null,
       combinedGroupCode: r.combinedGroupCode ?? null,
       combinedGroupName: r.combinedGroupName ?? null,
-      defaultRole: r.defaultSubjectRole,
-      creditHours: r.creditHours,
-      fullMarks: r.fullMarks,
+      defaultRole: r.defaultSubjectRole as SyllabusSubjectRole,
+      creditHours: String(r.creditHours),
+      fullMarks: String(r.fullMarks),
       locked,
     });
     const compulsory = rows.filter((r) => r.defaultSubjectRole === 'COMPULSORY').map((r) => toRow(r, true));
@@ -171,9 +179,9 @@ export class SubjectEnrollmentService {
       .map((r) => toRow(r, false));
     const fourthOptions = rows.filter((r) => r.defaultSubjectRole === 'FOURTH_OPTIONAL').map((r) => toRow(r, false));
     const nonCredit = rows.filter((r) => r.defaultSubjectRole === 'NON_CREDIT').map((r) => toRow(r, true));
-    const creditMode = rows.some((r) => new Decimal(r.creditHours).gt(0));
+    const creditMode = rows.some((r) => new Decimal(String(r.creditHours)).gt(0));
     const totalCredits = rows
-      .reduce((t, r) => t.plus(new Decimal(r.creditHours)), new Decimal(0))
+      .reduce((t, r) => t.plus(new Decimal(String(r.creditHours))), new Decimal(0))
       .toFixed(2);
     return {
       compulsory,
@@ -194,16 +202,14 @@ export class SubjectEnrollmentService {
     studentId: string,
     academicSessionId: string,
     syllabusSubjectIds: string[],
-    /** Workflow 4 passes the onboarding transaction manager (no nested txn). */
-    manager?: EntityManager,
+    /** Workflow 4 passes the onboarding transaction client (no nested txn). */
+    tx?: Prisma.TransactionClient,
   ) {
     if (!syllabusSubjectIds.length) throw new BadRequestException('Select at least one subject');
-    const syllabusRepo = manager?.getRepository(ClassSyllabusSubject) ?? this.syllabus;
-    const enrollRepo = manager?.getRepository(StudentSubjectEnrollment) ?? this.enrollments;
+    const db = tx ?? this.prisma;
     const unique = Array.from(new Set(syllabusSubjectIds));
-    const rows = await syllabusRepo.find({
-      where: unique.map((id) => ({ id })),
-      relations: ['subject'],
+    const rows = await db.classSyllabusSubjects.findMany({
+      where: { id: { in: unique } },
     });
     if (rows.length !== unique.length) {
       throw new BadRequestException('One or more syllabus rows do not exist');
@@ -218,7 +224,7 @@ export class SubjectEnrollmentService {
     }
     // 4th-subject rule: whenever the class matrix defines FOURTH_OPTIONAL
     // candidates, exactly one must be picked (Class 9–12 SSC/Dakhil/HSC rule).
-    const classScope = await syllabusRepo.find({
+    const classScope = await db.classSyllabusSubjects.findMany({
       where: { academicSessionId, classOrDeptId: rows[0].classOrDeptId },
     });
     const fourthCandidates = classScope.filter((r) => r.defaultSubjectRole === 'FOURTH_OPTIONAL');
@@ -228,42 +234,56 @@ export class SubjectEnrollmentService {
         `This class requires exactly 1 optional (4th) subject — picked ${pickedFourth.length}`,
       );
     }
-    const roleOf = (r: ClassSyllabusSubject): AssignedSubjectRole =>
+    const roleOf = (r: ClassSyllabusSubjects): AssignedSubjectRole =>
       r.defaultSubjectRole === 'FOURTH_OPTIONAL' ? 'FOURTH_OPTIONAL'
       : r.defaultSubjectRole === 'NON_CREDIT' ? 'NON_CREDIT'
       : 'COMPULSORY';
-    const saved: StudentSubjectEnrollment[] = [];
+    const saved: StudentSubjectEnrollments[] = [];
     for (const r of rows) {
-      const existing = await enrollRepo.findOne({
+      const existing = await db.studentSubjectEnrollments.findFirst({
         where: { academicSessionId, studentId, syllabusSubjectId: r.id },
       });
       if (existing) {
         if (existing.assignedRole !== roleOf(r)) {
-          existing.assignedRole = roleOf(r);
-          saved.push(await enrollRepo.save(existing));
+          saved.push(
+            await db.studentSubjectEnrollments.update({
+              where: { id: existing.id },
+              data: { assignedRole: roleOf(r) },
+            }),
+          );
         } else {
           saved.push(existing);
         }
         continue;
       }
       saved.push(
-        await enrollRepo.save(
-          enrollRepo.create({
+        await db.studentSubjectEnrollments.create({
+          data: {
             academicSessionId,
             studentId,
             syllabusSubjectId: r.id,
             assignedRole: roleOf(r),
-          }),
-        ),
+          },
+        }),
       );
     }
     return { enrolled: saved.length, rows: saved };
   }
 
-  listStudentEnrollments(studentId: string, academicSessionId?: string) {
-    return this.enrollments.find({
+  async listStudentEnrollments(
+    studentId: string,
+    academicSessionId?: string,
+  ): Promise<StudentSubjectEnrollmentRow[]> {
+    const rows = await this.prisma.studentSubjectEnrollments.findMany({
       where: academicSessionId ? { studentId, academicSessionId } : { studentId },
-      relations: ['syllabusSubject', 'syllabusSubject.subject'],
+      include: { classSyllabusSubjects: { include: { academicSubjects: true } } },
+    });
+    return rows.map((row) => {
+      const { classSyllabusSubjects, ...rest } = row;
+      return {
+        ...rest,
+        syllabusSubject: classSyllabusSubjects ? toSyllabusRow(classSyllabusSubjects) : null,
+      };
     });
   }
 
@@ -272,15 +292,15 @@ export class SubjectEnrollmentService {
    * the final roll is reserved under FOR UPDATE at confirm time).
    */
   async peekRoll(academicSessionId: string, classOrDeptId: string, sectionOrBatchId?: string) {
-    const qb = this.placements
-      .createQueryBuilder('e')
-      .select('MAX(e.classRollNo)', 'maxRoll')
-      .where('e.academicSessionId = :s', { s: academicSessionId })
-      .andWhere('e.classOrDeptId = :c', { c: classOrDeptId });
-    if (sectionOrBatchId) qb.andWhere('e.sectionOrBatchId = :sec', { sec: sectionOrBatchId });
-    else qb.andWhere('e.sectionOrBatchId IS NULL');
-    const raw = await qb.getRawOne<{ maxRoll: string | null }>();
-    const max = raw?.maxRoll != null ? Number(raw.maxRoll) : 0;
+    const agg = await this.prisma.studentEnrollments.aggregate({
+      where: {
+        academicSessionId,
+        classOrDeptId,
+        sectionOrBatchId: sectionOrBatchId ?? null,
+      },
+      _max: { classRollNo: true },
+    });
+    const max = agg._max.classRollNo ?? 0;
     return { previewRoll: max + 1, scopeHighest: max };
   }
 
@@ -294,4 +314,9 @@ export class SubjectEnrollmentService {
     if (!d.isFinite() || d.isNegative()) throw new BadRequestException(`${tag} must be non-negative`);
     return d.toFixed(2);
   }
+}
+
+function toSyllabusRow(row: ClassSyllabusSubjects & { academicSubjects?: AcademicSubjects | null }): SyllabusRow {
+  const { academicSubjects, ...rest } = row;
+  return { ...rest, subject: academicSubjects ?? null };
 }

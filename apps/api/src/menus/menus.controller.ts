@@ -11,7 +11,7 @@ import {
   MenuItemInputDto,
   ReplaceMenuDto,
 } from './menu-item.dto';
-import { MenuLocation } from '../database/entities/menu-item.entity';
+import type { MenuLocation } from './menu-item.constants';
 import { Public } from '../common/decorators/public.decorator';
 import { Roles } from '../common/decorators/roles.decorator';
 import { RolesGuard } from '../common/guards/roles.guard';

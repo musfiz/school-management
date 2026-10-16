@@ -1,12 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import Decimal from 'decimal.js';
-import { PaymentCollection } from '../database/entities/payment-collection.entity';
-import { StudentInvoice } from '../database/entities/student-invoice.entity';
-import { StudentInvoiceLine } from '../database/entities/student-invoice-line.entity';
-import { SiteSetting } from '../database/entities/site-setting.entity';
-import { User } from '../database/entities/user.entity';
+import { PrismaService } from '../prisma/prisma.service';
 import { PdfService } from './pdf.service';
 
 export interface GenericReportPdfDto {
@@ -21,7 +15,7 @@ export interface GenericReportPdfDto {
   copiesLine?: string;
 }
 
-const money = (v: string | number | null | undefined): string => {
+const money = (v: unknown): string => {
   try {
     return new Decimal(v == null || v === '' ? '0' : String(v)).toFixed(2);
   } catch {
@@ -39,16 +33,7 @@ const dateOnly = (v: string | Date | null | undefined): string => {
 export class DocumentsService {
   constructor(
     private readonly pdf: PdfService,
-    @InjectRepository(PaymentCollection)
-    private readonly collectionRepo: Repository<PaymentCollection>,
-    @InjectRepository(StudentInvoice)
-    private readonly invoiceRepo: Repository<StudentInvoice>,
-    @InjectRepository(StudentInvoiceLine)
-    private readonly invoiceLineRepo: Repository<StudentInvoiceLine>,
-    @InjectRepository(SiteSetting)
-    private readonly siteRepo: Repository<SiteSetting>,
-    @InjectRepository(User)
-    private readonly userRepo: Repository<User>,
+    private readonly prisma: PrismaService,
   ) {}
 
   private async letterhead(): Promise<{
@@ -58,8 +43,9 @@ export class DocumentsService {
     contactLine?: string;
   }> {
     try {
-      const rows = await this.siteRepo.find({ take: 1 });
-      const s = rows[0];
+      // TypeORM's `find({ take: 1 })`; Prisma's `findFirst()` is the same
+      // single-row read.
+      const s = await this.prisma.siteSettings.findFirst();
       if (!s) return { schoolName: 'My School' };
       const contact = [s.phone, s.email, s.eiin ? `EIIN: ${s.eiin}` : '']
         .filter(Boolean)
@@ -78,7 +64,7 @@ export class DocumentsService {
   private async actorName(id?: string | null): Promise<string> {
     if (!id) return '-';
     try {
-      const u = await this.userRepo.findOne({ where: { id } });
+      const u = await this.prisma.users.findUnique({ where: { id } });
       return u?.name || '-';
     } catch {
       return '-';
@@ -87,9 +73,11 @@ export class DocumentsService {
 
   /* ── Money receipt (POS collection) ─────────────────────────── */
   async moneyReceiptPdf(id: string): Promise<{ filename: string; buffer: Buffer }> {
-    const receipt = await this.collectionRepo.findOne({
+    // Entity relations invoice / cashGl → Prisma relations studentInvoices /
+    // chartOfAccounts (fund was loaded by the old query but never read).
+    const receipt = await this.prisma.paymentCollections.findUnique({
       where: { id },
-      relations: ['invoice', 'cashGl', 'fund'],
+      include: { studentInvoices: true, chartOfAccounts: true },
     });
     if (!receipt) throw new NotFoundException(`Money receipt ${id} not found`);
 
@@ -113,7 +101,7 @@ export class DocumentsService {
     const rows =
       allocation.length > 0
         ? allocation.map((a, i) => [String(i + 1), a.label, a.glCode, a.amount])
-        : [['1', 'Tuition / fee collection', receipt.cashGl?.glCode ?? '', money(receipt.collectedGrossAmount)]];
+        : [['1', 'Tuition / fee collection', receipt.chartOfAccounts?.glCode ?? '', money(receipt.collectedGrossAmount)]];
 
     const buffer = await this.pdf.buildDocument({
       ...head,
@@ -122,10 +110,10 @@ export class DocumentsService {
       meta: [
         { label: 'Receipt No', value: receipt.moneyReceiptNo },
         { label: 'Date', value: dateOnly(receipt.createdAt) },
-        { label: 'Invoice', value: receipt.invoice?.invoiceNo ?? receipt.invoiceId },
-        { label: 'Billing Period', value: receipt.invoice?.billingPeriod ?? '-' },
+        { label: 'Invoice', value: receipt.studentInvoices?.invoiceNo ?? receipt.invoiceId },
+        { label: 'Billing Period', value: receipt.studentInvoices?.billingPeriod ?? '-' },
         { label: 'Student ID', value: receipt.studentId },
-        { label: 'Cash/Bank GL', value: receipt.cashGl ? `${receipt.cashGl.glCode} - ${receipt.cashGl.accountName}` : '-' },
+        { label: 'Cash/Bank GL', value: receipt.chartOfAccounts ? `${receipt.chartOfAccounts.glCode} - ${receipt.chartOfAccounts.accountName}` : '-' },
         { label: 'Gateway Trx', value: receipt.gatewayTrxId || '-' },
         { label: 'Bank Ref', value: receipt.bankReference || '-' },
         { label: 'Collected By', value: collectedBy },
@@ -158,19 +146,22 @@ export class DocumentsService {
 
   /* ── Student invoice / bill ─────────────────────────────────── */
   async studentInvoicePdf(id: string): Promise<{ filename: string; buffer: Buffer }> {
-    const invoice = await this.invoiceRepo.findOne({ where: { id } });
+    const invoice = await this.prisma.studentInvoices.findUnique({
+      where: { id },
+    });
     if (!invoice) throw new NotFoundException(`Invoice ${id} not found`);
 
-    const lines = await this.invoiceLineRepo.find({
+    // Entity relations feeHead / glAccount → Prisma feeHeads / chartOfAccounts.
+    const lines = await this.prisma.studentInvoiceLines.findMany({
       where: { invoiceId: id },
-      relations: ['feeHead', 'glAccount', 'fund'],
+      include: { feeHeads: true, chartOfAccounts: true },
     });
 
     const head = await this.letterhead();
     const rows = lines.map((l, i) => [
       String(i + 1),
-      l.feeHead?.headName ?? l.lineMemo ?? 'Fee',
-      l.glAccount?.glCode ?? '',
+      l.feeHeads?.headName ?? l.lineMemo ?? 'Fee',
+      l.chartOfAccounts?.glCode ?? '',
       money(l.grossAmount),
       money(l.waiverAmount),
       money(l.netAmount),

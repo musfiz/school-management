@@ -1,29 +1,97 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, EntityManager, Repository } from 'typeorm';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import Decimal from 'decimal.js';
+import { PrismaService } from '../prisma/prisma.service';
+import { Prisma } from '../generated/prisma/client';
+import type { Prisma as PrismaTypes } from '../generated/prisma/client';
 import {
   CLEARING_GL_BY_CHANNEL,
   DEFAULT_TDR_PERCENT,
   MFS_CHANNELS,
-  PaymentCollection,
   type PaymentChannel,
 } from '../database/entities/payment-collection.entity';
-import { StudentInvoice } from '../database/entities/student-invoice.entity';
-import { StudentInvoiceLine } from '../database/entities/student-invoice-line.entity';
-import { ChartOfAccount } from '../database/entities/chart-of-account.entity';
-import { Fund } from '../database/entities/fund.entity';
 import { JournalPostingService } from './journal-posting.service';
 import type { JournalLineDto } from './vouchers.dto';
-import type {
-  CollectFeeDto,
-  MfsWebhookDto,
-  SettleCollectionDto,
-} from './collection.dto';
+import type { CollectFeeDto, MfsWebhookDto, SettleCollectionDto } from './collection.dto';
+
+/* ---------------- relation includes + wire reshaping ---------------- */
+
+const COLLECTION_INCLUDE = {
+  studentInvoices: true,
+  chartOfAccounts: true,
+  funds: true,
+  journalEntries: true,
+} satisfies Prisma.PaymentCollectionsInclude;
+
+const COLLECTION_DETAIL_INCLUDE = {
+  studentInvoices: true,
+  chartOfAccounts: true,
+  funds: true,
+  journalEntries: { include: { journalLines: true } },
+} satisfies Prisma.PaymentCollectionsInclude;
+
+const INVOICE_COLLECT_INCLUDE = {
+  studentInvoiceLines: {
+    include: { feeHeads: true, chartOfAccounts: true, funds: true },
+  },
+} satisfies Prisma.StudentInvoicesInclude;
+
+type CollectionPayload = Prisma.PaymentCollectionsGetPayload<{ include: typeof COLLECTION_INCLUDE }>;
+type CollectionDetailPayload = Prisma.PaymentCollectionsGetPayload<{
+  include: typeof COLLECTION_DETAIL_INCLUDE;
+}>;
+type InvoiceCollectPayload = Prisma.StudentInvoicesGetPayload<{
+  include: typeof INVOICE_COLLECT_INCLUDE;
+}>;
+
+function lineToWire<
+  T extends { feeHeads?: unknown; chartOfAccounts?: unknown; funds?: unknown },
+>(l: T) {
+  const { feeHeads, chartOfAccounts, funds, ...rest } = l;
+  return { ...rest, feeHead: feeHeads, glAccount: chartOfAccounts, fund: funds };
+}
+
+function invoiceToWire(inv: InvoiceCollectPayload) {
+  const { studentInvoiceLines, ...rest } = inv;
+  return { ...rest, lines: studentInvoiceLines.map(lineToWire) };
+}
+
+type InvoiceWire = ReturnType<typeof invoiceToWire>;
+
+function receiptToWire(r: CollectionPayload) {
+  const { studentInvoices, chartOfAccounts, funds, journalEntries, ...rest } = r;
+  return {
+    ...rest,
+    invoice: studentInvoices,
+    cashGl: chartOfAccounts,
+    fund: funds,
+    glJournal: journalEntries,
+  };
+}
+
+function receiptToDetailWire(r: CollectionDetailPayload) {
+  const { studentInvoices, chartOfAccounts, funds, journalEntries, ...rest } = r;
+  let glJournal: unknown = journalEntries;
+  if (journalEntries) {
+    const { journalLines, ...jeRest } = journalEntries;
+    glJournal = { ...jeRest, lines: journalLines };
+  }
+  return { ...rest, invoice: studentInvoices, cashGl: chartOfAccounts, fund: funds, glJournal };
+}
+
+/** Recompute invoice status from paid vs. due (mirrors TypeORM `refreshStatus`). */
+function refreshedStatus(
+  current: string,
+  net: Decimal.Value,
+  fine: Decimal.Value,
+  paid: Decimal.Value,
+): string {
+  const due = new Decimal(net).plus(new Decimal(fine));
+  const p = new Decimal(paid);
+  if (p.gte(due) && due.gt(0)) return 'PAID';
+  if (p.gt(0)) return 'PARTIAL';
+  if (current === 'PAID') return 'UNPAID';
+  return current;
+}
 
 /**
  * Phase 4 — counter/bank collection, MFS webhooks with TDR split,
@@ -41,56 +109,53 @@ import type {
  * Settlement (CONTRA): Dr 11201 Mother Bank / Cr 1130x Clearing (net).
  * Every leg stays inside ONE fund so the Phase-2 per-fund isolation
  * rule always holds, even on multi-fund (General + Lillah) invoices.
+ *
+ * AD-P5/AD-P7: repositories → `PrismaService`; the transaction handle is a
+ * `Prisma.TransactionClient`; relation names are remapped to the legacy wire
+ * shape (`invoice`, `cashGl`, `fund`, `glJournal`).
  */
 @Injectable()
 export class FeeCollectionService {
   constructor(
-    private readonly dataSource: DataSource,
+    private readonly prisma: PrismaService,
     private readonly posting: JournalPostingService,
-    @InjectRepository(PaymentCollection)
-    private readonly receipts: Repository<PaymentCollection>,
   ) {}
 
   /* ================= queries ================= */
 
-  list(filters: {
-    studentId?: string;
-    status?: string;
-    channel?: string;
-    limit?: number;
-  }): Promise<PaymentCollection[]> {
-    const qb = this.receipts
-      .createQueryBuilder('r')
-      .leftJoinAndSelect('r.invoice', 'invoice')
-      .leftJoinAndSelect('r.cashGl', 'cashGl')
-      .leftJoinAndSelect('r.fund', 'fund')
-      .leftJoinAndSelect('r.glJournal', 'glJournal')
-      .orderBy('r.createdAt', 'DESC')
-      .take(Math.min(Math.max(filters.limit ?? 100, 1), 500));
-    if (filters.studentId) qb.andWhere('r.studentId = :s', { s: filters.studentId });
-    if (filters.status) qb.andWhere('r.reconciliationStatus = :st', { st: filters.status });
-    if (filters.channel) qb.andWhere('r.paymentChannel = :ch', { ch: filters.channel });
-    return qb.getMany();
+  async list(filters: { studentId?: string; status?: string; channel?: string; limit?: number }) {
+    const where: Prisma.PaymentCollectionsWhereInput = {};
+    if (filters.studentId) where.studentId = filters.studentId;
+    if (filters.status) where.reconciliationStatus = filters.status;
+    if (filters.channel) where.paymentChannel = filters.channel;
+    const rows = await this.prisma.paymentCollections.findMany({
+      where,
+      include: COLLECTION_INCLUDE,
+      orderBy: { createdAt: 'desc' },
+      take: Math.min(Math.max(filters.limit ?? 100, 1), 500),
+    });
+    return rows.map(receiptToWire);
   }
 
-  async findOne(id: string): Promise<PaymentCollection> {
-    const row = await this.receipts.findOne({
+  async findOne(id: string) {
+    const row = await this.prisma.paymentCollections.findUnique({
       where: { id },
-      relations: ['invoice', 'cashGl', 'fund', 'glJournal', 'glJournal.lines'],
+      include: COLLECTION_DETAIL_INCLUDE,
     });
     if (!row) throw new NotFoundException(`Receipt #${id} not found`);
-    return row;
+    return receiptToDetailWire(row);
   }
 
   /** POS lookup: open invoices + AR summary for one student. */
   async duesForStudent(studentId: string) {
-    const invoices = await this.dataSource.getRepository(StudentInvoice).find({
+    const invoices = await this.prisma.studentInvoices.findMany({
       where: { studentId },
-      relations: ['lines', 'lines.feeHead', 'lines.glAccount', 'lines.fund'],
-      order: { dueDate: 'ASC' },
+      include: INVOICE_COLLECT_INCLUDE,
+      orderBy: { dueDate: 'asc' },
     });
-    const open = invoices.filter((i) => !['PAID', 'REVERSED'].includes(i.status));
-    const d = (s: string) => new Decimal(s);
+    const all = invoices.map(invoiceToWire);
+    const open = all.filter((i) => !['PAID', 'REVERSED'].includes(i.status));
+    const d = (s: Decimal.Value) => new Decimal(s);
     const due = open.reduce(
       (t, i) => t.plus(d(i.netAmount)).plus(d(i.lateFineAmount)).minus(d(i.paidAmount)),
       new Decimal(0),
@@ -98,7 +163,7 @@ export class FeeCollectionService {
     return {
       studentId,
       open,
-      all: invoices,
+      all,
       summary: {
         openCount: open.length,
         totalDue: Decimal.max(due, new Decimal(0)).toFixed(2),
@@ -108,194 +173,197 @@ export class FeeCollectionService {
 
   /* ================= counter / POS collection ================= */
 
-  async collect(dto: CollectFeeDto, actorId: string): Promise<PaymentCollection> {
+  async collect(dto: CollectFeeDto, actorId: string) {
     // Idempotency: a retried POST with the same gateway ref returns the
     // original receipt instead of double-posting (plan §4 acceptance).
     if (dto.gatewayTrxId?.trim()) {
-      const dup = await this.receipts.findOne({
+      const dup = await this.prisma.paymentCollections.findFirst({
         where: { gatewayTrxId: dto.gatewayTrxId.trim() },
       });
       if (dup) return this.findOne(dup.id);
     }
-    return this.dataSource.transaction('REPEATABLE READ', (m) =>
-      this.postCollection(m, dto, actorId),
-    );
+    return this.prisma.$transaction((tx) => this.postCollection(tx, dto, actorId), {
+      isolationLevel: 'RepeatableRead',
+    });
   }
 
   /**
    * Workflow 4 entry: same posting inside an OUTER (onboarding)
    * transaction. The caller owns atomicity — no nested transaction here.
    */
-  async collectIn(
-    m: EntityManager,
-    dto: CollectFeeDto,
-    actorId: string,
-  ): Promise<PaymentCollection> {
-    return this.postCollection(m, dto, actorId);
+  async collectIn(tx: PrismaTypes.TransactionClient, dto: CollectFeeDto, actorId: string) {
+    return this.postCollection(tx, dto, actorId);
   }
 
   /* ================= MFS webhook (idempotent) ================= */
 
-  async webhook(
-    gateway: PaymentChannel,
-    dto: MfsWebhookDto,
-    actorId: string,
-  ): Promise<{ duplicate: boolean; receipt: PaymentCollection }> {
+  async webhook(gateway: PaymentChannel, dto: MfsWebhookDto, actorId: string) {
     if (!MFS_CHANNELS.includes(gateway)) {
       throw new BadRequestException(`${gateway} is not an MFS channel`);
     }
     this.assertSignature(gateway, dto.gatewayTrxId, dto.signature);
-    const existing = await this.receipts.findOne({
+    const existing = await this.prisma.paymentCollections.findFirst({
       where: { gatewayTrxId: dto.gatewayTrxId.trim() },
     });
-    if (existing) return { duplicate: true, receipt: await this.findOne(existing.id) };
+    if (existing) return { duplicate: true as const, receipt: await this.findOne(existing.id) };
     const invoiceId = dto.invoiceId ?? (await this.oldestOpenInvoiceId(dto.studentId));
-    const receipt = await this.dataSource.transaction('REPEATABLE READ', (m) =>
-      this.postCollection(
-        m,
-        {
-          studentId: dto.studentId,
-          invoiceId,
-          amount: dto.amount,
-          paymentChannel: gateway,
-          gatewayTrxId: dto.gatewayTrxId.trim(),
-          tdrFee: dto.tdrFee ?? null,
-          transactionDate: dto.transactionDate,
-          remark: `MFS ${gateway} auto-post`,
-        },
-        actorId,
-      ),
+    const receipt = await this.prisma.$transaction(
+      (tx) =>
+        this.postCollection(
+          tx,
+          {
+            studentId: dto.studentId,
+            invoiceId,
+            amount: dto.amount,
+            paymentChannel: gateway,
+            gatewayTrxId: dto.gatewayTrxId.trim(),
+            tdrFee: dto.tdrFee ?? null,
+            transactionDate: dto.transactionDate,
+            remark: `MFS ${gateway} auto-post`,
+          },
+          actorId,
+        ),
+      { isolationLevel: 'RepeatableRead' },
     );
-    return { duplicate: false, receipt };
+    return { duplicate: false as const, receipt };
   }
 
   /* ================= settlement (clearing → bank) ================= */
 
-  async settle(id: string, dto: SettleCollectionDto, actorId: string): Promise<PaymentCollection> {
-    return this.dataSource.transaction('REPEATABLE READ', async (m) => {
-      const repo = m.getRepository(PaymentCollection);
-      const row = await repo.findOne({ where: { id } });
-      if (!row) throw new NotFoundException(`Receipt #${id} not found`);
-      if (row.reconciliationStatus === 'REVERSED') {
-        throw new BadRequestException('Cannot settle a reversed receipt');
-      }
-      if (row.reconciliationStatus === 'SETTLED' || row.reconciliationStatus === 'COLLECTED') {
-        throw new BadRequestException(
-          row.reconciliationStatus === 'SETTLED'
-            ? 'Receipt already settled'
-            : 'Cash/bank receipts settle instantly — only MFS clearing (PENDING) needs settlement',
-        );
-      }
-      const clearing = await m.getRepository(ChartOfAccount).findOne({
-        where: { id: row.cashGlId },
-      });
-      if (!clearing) throw new BadRequestException('Clearing GL not found');
-      const bankId = dto.bankGlId ?? (await this.glId(m, '11201'));
-      const net = new Decimal(row.netBankAmount);
-      if (net.lte(0)) throw new BadRequestException('Nothing left to settle on this receipt');
-      const fundId = row.fundId ?? (await this.generalFundId(m));
-      const txnDate = (dto.transactionDate ?? new Date().toISOString()).slice(0, 10);
-      const journal = await this.posting.postSystemJournal(m, {
-        voucherType: 'CONTRA',
-        transactionDate: txnDate,
-        narration: `MFS settlement ${row.moneyReceiptNo} → bank (${net.toFixed(2)})${dto.settlementRef ? ` ref ${dto.settlementRef}` : ''}`,
-        sourceModule: 'MFS_COLLECTION',
-        sourceReferenceId: row.id,
-        actorId,
-        lines: [
-          {
-            glAccountId: bankId, fundId, costCenterId: null,
-            debitAmount: net.toFixed(2), creditAmount: '0.00',
-            lineMemo: `Settle ${row.moneyReceiptNo}`,
-          },
-          {
-            glAccountId: clearing.id, fundId, costCenterId: null,
-            debitAmount: '0.00', creditAmount: net.toFixed(2),
-            lineMemo: `Clear ${row.moneyReceiptNo}`,
-          },
-        ] as JournalLineDto[],
-      });
-      row.reconciliationStatus = 'SETTLED';
-      row.settlementJournalId = journal.id;
-      await repo.save(row);
-      return this.findOneIn(m, row.id);
-    });
+  async settle(id: string, dto: SettleCollectionDto, actorId: string) {
+    return this.prisma.$transaction(
+      async (tx) => {
+        const row = await tx.paymentCollections.findUnique({ where: { id } });
+        if (!row) throw new NotFoundException(`Receipt #${id} not found`);
+        if (row.reconciliationStatus === 'REVERSED') {
+          throw new BadRequestException('Cannot settle a reversed receipt');
+        }
+        if (row.reconciliationStatus === 'SETTLED' || row.reconciliationStatus === 'COLLECTED') {
+          throw new BadRequestException(
+            row.reconciliationStatus === 'SETTLED'
+              ? 'Receipt already settled'
+              : 'Cash/bank receipts settle instantly — only MFS clearing (PENDING) needs settlement',
+          );
+        }
+        const clearing = await tx.chartOfAccounts.findUnique({ where: { id: row.cashGlId } });
+        if (!clearing) throw new BadRequestException('Clearing GL not found');
+        const bankId = dto.bankGlId ?? (await this.glId(tx, '11201'));
+        const net = new Decimal(row.netBankAmount);
+        if (net.lte(0)) throw new BadRequestException('Nothing left to settle on this receipt');
+        const fundId = row.fundId ?? (await this.generalFundId(tx));
+        const txnDate = (dto.transactionDate ?? new Date().toISOString()).slice(0, 10);
+        const journal = await this.posting.postSystemJournal(tx, {
+          voucherType: 'CONTRA',
+          transactionDate: txnDate,
+          narration: `MFS settlement ${row.moneyReceiptNo} → bank (${net.toFixed(2)})${dto.settlementRef ? ` ref ${dto.settlementRef}` : ''}`,
+          sourceModule: 'MFS_COLLECTION',
+          sourceReferenceId: row.id,
+          actorId,
+          lines: [
+            {
+              glAccountId: bankId, fundId, costCenterId: null,
+              debitAmount: net.toFixed(2), creditAmount: '0.00',
+              lineMemo: `Settle ${row.moneyReceiptNo}`,
+            },
+            {
+              glAccountId: clearing.id, fundId, costCenterId: null,
+              debitAmount: '0.00', creditAmount: net.toFixed(2),
+              lineMemo: `Clear ${row.moneyReceiptNo}`,
+            },
+          ] as JournalLineDto[],
+        });
+        await tx.paymentCollections.update({
+          where: { id: row.id },
+          data: { reconciliationStatus: 'SETTLED', settlementJournalId: journal.id },
+        });
+        return this.findOneIn(tx, row.id);
+      },
+      { isolationLevel: 'RepeatableRead' },
+    );
   }
 
   /* ================= reversal (immutable correction) ================= */
 
-  async reverse(id: string, reason: string, actorId: string): Promise<PaymentCollection> {
+  async reverse(id: string, reason: string, actorId: string) {
     if (!reason || reason.trim().length < 3) {
       throw new BadRequestException('A reversal reason (min 3 chars) is required');
     }
-    return this.dataSource.transaction('REPEATABLE READ', async (m) => {
-      const repo = m.getRepository(PaymentCollection);
-      const row = await repo.findOne({ where: { id } });
-      if (!row) throw new NotFoundException(`Receipt #${id} not found`);
-      if (row.reconciliationStatus === 'REVERSED') {
-        throw new BadRequestException('Receipt already reversed');
-      }
-      if (row.reconciliationStatus === 'SETTLED') {
-        throw new BadRequestException(
-          'Clearing already settled to the bank — reverse the CONTRA settlement voucher first',
-        );
-      }
-      const journal = row.glJournalId
-        ? await m.getRepository((await import('../database/entities/journal-entry.entity')).JournalEntry).findOne({
-            where: { id: row.glJournalId },
-            relations: ['lines'],
-          })
-        : null;
-      if (journal?.lines) {
-        await this.posting.postSystemJournal(m, {
-          voucherType: 'JOURNAL',
-          transactionDate: new Date().toISOString().slice(0, 10),
-          narration: `REVERSAL of ${row.moneyReceiptNo}: ${reason.trim()}`,
-          sourceModule: 'MFS_COLLECTION',
-          sourceReferenceId: row.id,
-          actorId,
-          lines: journal.lines.map((l) => ({
-            glAccountId: l.glAccountId,
-            fundId: l.fundId,
-            costCenterId: l.costCenterId,
-            subledgerType: l.subledgerType,
-            subledgerId: l.subledgerId,
-            debitAmount: new Decimal(l.creditAmount).toFixed(2),
-            creditAmount: new Decimal(l.debitAmount).toFixed(2),
-            lineMemo: `Reversal ${row.moneyReceiptNo}`,
-          })),
+    return this.prisma.$transaction(
+      async (tx) => {
+        const row = await tx.paymentCollections.findUnique({ where: { id } });
+        if (!row) throw new NotFoundException(`Receipt #${id} not found`);
+        if (row.reconciliationStatus === 'REVERSED') {
+          throw new BadRequestException('Receipt already reversed');
+        }
+        if (row.reconciliationStatus === 'SETTLED') {
+          throw new BadRequestException(
+            'Clearing already settled to the bank — reverse the CONTRA settlement voucher first',
+          );
+        }
+        const journal = row.glJournalId
+          ? await tx.journalEntries.findUnique({
+              where: { id: row.glJournalId },
+              include: { journalLines: true },
+            })
+          : null;
+        if (journal?.journalLines?.length) {
+          await this.posting.postSystemJournal(tx, {
+            voucherType: 'JOURNAL',
+            transactionDate: new Date().toISOString().slice(0, 10),
+            narration: `REVERSAL of ${row.moneyReceiptNo}: ${reason.trim()}`,
+            sourceModule: 'MFS_COLLECTION',
+            sourceReferenceId: row.id,
+            actorId,
+            lines: journal.journalLines.map((l) => ({
+              glAccountId: l.glAccountId,
+              fundId: l.fundId,
+              costCenterId: l.costCenterId,
+              subledgerType: l.subledgerType as JournalLineDto['subledgerType'],
+              subledgerId: l.subledgerId,
+              debitAmount: new Decimal(l.creditAmount).toFixed(2),
+              creditAmount: new Decimal(l.debitAmount).toFixed(2),
+              lineMemo: `Reversal ${row.moneyReceiptNo}`,
+            })),
+          });
+        }
+        // Roll the invoice paid_amount back (never below zero).
+        const inv = await tx.studentInvoices.findUnique({ where: { id: row.invoiceId } });
+        if (inv) {
+          const rolled = new Decimal(inv.paidAmount).minus(new Decimal(row.collectedGrossAmount));
+          const paidAmount = Decimal.max(rolled, new Decimal(0)).toFixed(2);
+          await tx.studentInvoices.update({
+            where: { id: inv.id },
+            data: {
+              paidAmount,
+              status: refreshedStatus(inv.status, inv.netAmount, inv.lateFineAmount, paidAmount),
+            },
+          });
+        }
+        await tx.paymentCollections.update({
+          where: { id: row.id },
+          data: { reconciliationStatus: 'REVERSED' },
         });
-      }
-      // Roll the invoice paid_amount back (never below zero).
-      const invRepo = m.getRepository(StudentInvoice);
-      const inv = await invRepo.findOne({ where: { id: row.invoiceId } });
-      if (inv) {
-        const rolled = new Decimal(inv.paidAmount).minus(new Decimal(row.collectedGrossAmount));
-        inv.paidAmount = Decimal.max(rolled, new Decimal(0)).toFixed(2);
-        this.refreshStatus(inv);
-        await invRepo.save(inv);
-      }
-      row.reconciliationStatus = 'REVERSED';
-      await repo.save(row);
-      return this.findOneIn(m, row.id);
-    });
+        return this.findOneIn(tx, row.id);
+      },
+      { isolationLevel: 'RepeatableRead' },
+    );
   }
 
   /* ================= internals ================= */
 
   private async postCollection(
-    m: EntityManager,
+    tx: PrismaTypes.TransactionClient,
     dto: CollectFeeDto,
     actorId: string,
-  ): Promise<PaymentCollection> {
+  ) {
     const gross = this.dec(dto.amount, 'amount');
     if (new Decimal(gross).lte(0)) throw new BadRequestException('Collection amount must be positive');
-    const invRepo = m.getRepository(StudentInvoice);
-    const inv = await invRepo.findOne({
+    const invRaw = await tx.studentInvoices.findUnique({
       where: { id: dto.invoiceId },
-      relations: ['lines', 'lines.feeHead', 'lines.glAccount', 'lines.fund'],
+      include: INVOICE_COLLECT_INCLUDE,
     });
-    if (!inv) throw new NotFoundException(`Invoice #${dto.invoiceId} not found`);
+    if (!invRaw) throw new NotFoundException(`Invoice #${dto.invoiceId} not found`);
+    const inv = invoiceToWire(invRaw);
     if (inv.studentId !== dto.studentId) {
       throw new BadRequestException('Invoice belongs to a different student');
     }
@@ -330,10 +398,10 @@ export class FeeCollectionService {
 
     // Debit GL: explicit override → channel default (cash 11101,
     // challan 11201, MFS 1130x clearing). Must be cash/bank-class.
-    const debitGl = await this.resolveDebitGl(m, dto);
-    const tdrGl = isMfs && tdr.gt(0) ? await this.gl(m, '54103') : null;
-    const arGl = await this.gl(m, '11401');
-    const fundId = await this.generalFundId(m);
+    const debitGl = await this.resolveDebitGl(tx, dto);
+    const tdrGl = isMfs && tdr.gt(0) ? await this.gl(tx, '54103') : null;
+    const arGl = await this.gl(tx, '11401');
+    const fundId = await this.generalFundId(tx);
 
     // Per-fund AR split: credit each fund that was debited at invoice
     // time, proportional to its net share (keeps fund isolation exact).
@@ -394,7 +462,7 @@ export class FeeCollectionService {
     }
 
     const txnDate = (dto.transactionDate ?? new Date().toISOString()).slice(0, 10);
-    const journal = await this.posting.postSystemJournal(m, {
+    const journal = await this.posting.postSystemJournal(tx, {
       voucherType: 'RECEIVE',
       transactionDate: txnDate,
       narration: `${dto.paymentChannel} collection ${inv.invoiceNo} — gross ${new Decimal(gross).toFixed(2)}${isMfs ? ` (TDR ${tdr.toFixed(2)})` : ''}${dto.bankReference ? ` ref ${dto.bankReference}` : ''}`,
@@ -404,15 +472,19 @@ export class FeeCollectionService {
     });
 
     // Header paid_amount + PARTIAL/PAID flip (pessimistic-safe in txn).
-    inv.paidAmount = new Decimal(inv.paidAmount).plus(new Decimal(gross)).toFixed(2);
-    this.refreshStatus(inv);
-    await invRepo.save(inv);
+    const paidAmount = new Decimal(inv.paidAmount).plus(new Decimal(gross)).toFixed(2);
+    await tx.studentInvoices.update({
+      where: { id: inv.id },
+      data: {
+        paidAmount,
+        status: refreshedStatus(inv.status, inv.netAmount, inv.lateFineAmount, paidAmount),
+      },
+    });
 
     const receiptNo = journal.voucherNo.replace(/^(JV|PV|CV|RV)-/, 'MR-');
     const allocation = this.allocationSnapshot(inv, new Decimal(gross));
-    const repo = m.getRepository(PaymentCollection);
-    const saved = await repo.save(
-      repo.create({
+    const saved = await tx.paymentCollections.create({
+      data: {
         moneyReceiptNo: receiptNo,
         studentId: dto.studentId,
         invoiceId: inv.id,
@@ -429,11 +501,13 @@ export class FeeCollectionService {
         allocation: JSON.stringify(allocation),
         collectedByUserId: actorId,
         remark: dto.remark?.trim() || null,
-      }),
-    );
-    journal.sourceReferenceId = saved.id;
-    await m.getRepository((await import('../database/entities/journal-entry.entity')).JournalEntry).save(journal);
-    return this.findOneIn(m, saved.id);
+      },
+    });
+    await tx.journalEntries.update({
+      where: { id: journal.id },
+      data: { sourceReferenceId: saved.id },
+    });
+    return this.findOneIn(tx, saved.id);
   }
 
   /**
@@ -442,7 +516,7 @@ export class FeeCollectionService {
    * paid_amount stays the single source of truth for dues.
    */
   private allocationSnapshot(
-    inv: StudentInvoice,
+    inv: InvoiceWire,
     gross: Decimal,
   ): Array<{ label: string; glCode: string; fundCode: string; amount: string }> {
     let remaining = gross;
@@ -493,10 +567,9 @@ export class FeeCollectionService {
     return out;
   }
 
-  private async resolveDebitGl(m: EntityManager, dto: CollectFeeDto) {
-    const glRepo = m.getRepository(ChartOfAccount);
+  private async resolveDebitGl(tx: PrismaTypes.TransactionClient, dto: CollectFeeDto) {
     if (dto.cashGlId) {
-      const acct = await glRepo.findOne({ where: { id: dto.cashGlId } });
+      const acct = await tx.chartOfAccounts.findUnique({ where: { id: dto.cashGlId } });
       if (!acct) throw new BadRequestException('cashGlId not found');
       if (!acct.isCashOrBank && !acct.glCode.startsWith('113')) {
         throw new BadRequestException(`${acct.glCode} is not a cash/bank/clearing account`);
@@ -507,7 +580,7 @@ export class FeeCollectionService {
       dto.paymentChannel === 'BANK_CHALLAN'
         ? '11201'
         : (CLEARING_GL_BY_CHANNEL[dto.paymentChannel] ?? '11101');
-    const acct = await glRepo.findOne({ where: { glCode: code } });
+    const acct = await tx.chartOfAccounts.findFirst({ where: { glCode: code } });
     if (!acct) throw new BadRequestException(`GL ${code} missing — run seed:accounting`);
     return acct;
   }
@@ -521,44 +594,36 @@ export class FeeCollectionService {
   }
 
   private async oldestOpenInvoiceId(studentId: string): Promise<string> {
-    const open = await this.dataSource.getRepository(StudentInvoice).find({
+    const open = await this.prisma.studentInvoices.findMany({
       where: { studentId },
-      order: { dueDate: 'ASC' },
+      orderBy: { dueDate: 'asc' },
     });
     const first = open.find((i) => !['PAID', 'REVERSED'].includes(i.status));
     if (!first) throw new BadRequestException('Student has no open invoices to settle');
     return first.id;
   }
 
-  private refreshStatus(inv: StudentInvoice): void {
-    const due = new Decimal(inv.netAmount).plus(new Decimal(inv.lateFineAmount));
-    const paid = new Decimal(inv.paidAmount);
-    if (paid.gte(due) && due.gt(0)) inv.status = 'PAID';
-    else if (paid.gt(0)) inv.status = 'PARTIAL';
-    else if (inv.status === 'PAID') inv.status = 'UNPAID';
-  }
-
-  private async findOneIn(m: EntityManager, id: string): Promise<PaymentCollection> {
-    const row = await m.getRepository(PaymentCollection).findOne({
+  private async findOneIn(tx: PrismaTypes.TransactionClient, id: string) {
+    const row = await tx.paymentCollections.findUnique({
       where: { id },
-      relations: ['invoice', 'cashGl', 'fund', 'glJournal'],
+      include: COLLECTION_INCLUDE,
     });
     if (!row) throw new NotFoundException(`Receipt #${id} not found`);
-    return row;
+    return receiptToWire(row);
   }
 
-  private async gl(m: EntityManager, code: string): Promise<ChartOfAccount> {
-    const acct = await m.getRepository(ChartOfAccount).findOne({ where: { glCode: code } });
+  private async gl(tx: PrismaTypes.TransactionClient, code: string) {
+    const acct = await tx.chartOfAccounts.findFirst({ where: { glCode: code } });
     if (!acct) throw new BadRequestException(`GL ${code} missing — run seed:accounting`);
     return acct;
   }
 
-  private async glId(m: EntityManager, code: string): Promise<string> {
-    return (await this.gl(m, code)).id;
+  private async glId(tx: PrismaTypes.TransactionClient, code: string): Promise<string> {
+    return (await this.gl(tx, code)).id;
   }
 
-  private async generalFundId(m: EntityManager): Promise<string> {
-    const f = await m.getRepository(Fund).findOne({ where: { fundCode: '01' } });
+  private async generalFundId(tx: PrismaTypes.TransactionClient): Promise<string> {
+    const f = await tx.funds.findFirst({ where: { fundCode: '01' } });
     if (!f) throw new BadRequestException('Fund 01 (General) missing — run seed:accounting');
     return f.id;
   }
@@ -575,6 +640,3 @@ export class FeeCollectionService {
     return d.toFixed(2);
   }
 }
-
-/** Line type for the student-invoice relation (avoids circular import). */
-export type { StudentInvoiceLine };
