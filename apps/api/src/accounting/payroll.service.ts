@@ -3,21 +3,18 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, EntityManager, Repository } from 'typeorm';
 import Decimal from 'decimal.js';
+import { PrismaService } from '../prisma/prisma.service';
+import { Prisma } from '../generated/prisma/client';
+import type { Prisma as PrismaTypes } from '../generated/prisma/client';
 import {
   PAYROLL_RUN_STATUSES,
-  PayrollRun,
 } from '../database/entities/payroll-run.entity';
-import { PayslipLine } from '../database/entities/payslip-line.entity';
-import {
-  AdjunctHonorariumBill,
-} from '../database/entities/adjunct-honorarium-bill.entity';
 import { ChartOfAccount } from '../database/entities/chart-of-account.entity';
 import { Fund } from '../database/entities/fund.entity';
 import { CostCenter } from '../database/entities/cost-center.entity';
 import { JournalEntry } from '../database/entities/journal-entry.entity';
+import type { SubledgerType } from '../database/entities/journal-line.entity';
 import { JournalPostingService } from './journal-posting.service';
 import type { JournalLineDto } from './vouchers.dto';
 import type {
@@ -30,7 +27,7 @@ import type {
 
 /**
  * Phase 6 — payroll, MPO split, adjunct honorarium & PF
- * (docs/AGENT_IMPLEMENTATION_PLAN.md Phase 6, spec §1.4).
+ * (docs/AGENT_IMPLEMENTATION_PLAN.md Phase 6, spec §1.4).*
  *
  * MPO ISOLATION (acceptance): `mpoGovtAmount` is stored per payslip and
  * summed on the run for display/tax reporting, but approve() builds its
@@ -51,43 +48,43 @@ import type {
 @Injectable()
 export class PayrollAccountingService {
   constructor(
-    private readonly dataSource: DataSource,
+    private readonly prisma: PrismaService,
     private readonly posting: JournalPostingService,
-    @InjectRepository(PayrollRun)
-    private readonly runs: Repository<PayrollRun>,
-    @InjectRepository(PayslipLine)
-    private readonly slips: Repository<PayslipLine>,
-    @InjectRepository(AdjunctHonorariumBill)
-    private readonly honoraria: Repository<AdjunctHonorariumBill>,
   ) {}
 
   /* ================= salary runs ================= */
 
-  listRuns(limit = 100): Promise<PayrollRun[]> {
-    return this.runs.find({
-      relations: ['fund', 'costCenter', 'glJournal', 'paymentJournal', 'lines'],
-      order: { payrollMonth: 'DESC', createdAt: 'DESC' },
+  listRuns(limit = 100) {
+    return this.prisma.payrollRuns.findMany({
+      include: {
+        funds: true,
+        costCenters: true,
+        journalEntriesPayrollRunsGlJournalIdTojournalEntries: true,
+        journalEntriesPayrollRunsPaymentJournalIdTojournalEntries: true,
+        payslipLines: true,
+      },
+      orderBy: [{ payrollMonth: 'desc' }, { createdAt: 'desc' }],
       take: Math.min(Math.max(limit, 1), 500),
     });
   }
 
-  findRun(id: string): Promise<PayrollRun> {
-    return this.findRunIn(this.dataSource.manager, id);
+  findRun(id: string) {
+    return this.findRunIn(this.prisma, id);
   }
 
-  async createRun(dto: CreatePayrollRunDto, actorId: string): Promise<PayrollRun> {
-    const fund = await this.dataSource.getRepository(Fund).findOne({ where: { id: dto.fundId } });
+  async createRun(dto: CreatePayrollRunDto, actorId: string) {
+    const fund = await this.prisma.funds.findUnique({ where: { id: dto.fundId } });
     if (!fund) throw new NotFoundException('Fund not found');
-    let costCenter: CostCenter | null = null;
+    let costCenter: { id: string } | null = null;
     if (dto.costCenterId) {
-      costCenter = await this.dataSource.getRepository(CostCenter).findOne({ where: { id: dto.costCenterId } });
+      costCenter = await this.prisma.costCenters.findUnique({ where: { id: dto.costCenterId } });
       if (!costCenter) throw new NotFoundException('Cost center not found');
     }
     for (let attempt = 0; attempt < 3; attempt += 1) {
       const runNo = await this.nextRunNo(dto.payrollMonth);
       try {
-        return await this.runs.save(
-          this.runs.create({
+        return await this.prisma.payrollRuns.create({
+          data: {
             runNo,
             payrollMonth: dto.payrollMonth,
             payDate: dto.payDate.slice(0, 10),
@@ -96,8 +93,8 @@ export class PayrollAccountingService {
             status: 'DRAFT',
             narration: dto.narration?.trim() || null,
             createdByUserId: actorId,
-          }),
-        );
+          },
+        });
       } catch (e: any) {
         if (String(e?.code) === 'ER_DUP_ENTRY' && attempt < 2) continue;
         throw e;
@@ -107,7 +104,7 @@ export class PayrollAccountingService {
   }
 
   /** Add one payslip to a DRAFT run (net computed server-side). */
-  async addPayslip(runId: string, dto: AddPayslipDto): Promise<PayslipLine> {
+  async addPayslip(runId: string, dto: AddPayslipDto) {
     const run = await this.findRun(runId);
     if (run.status !== 'DRAFT') throw new BadRequestException(`Run is ${run.status} — payslips locked`);
     const mpo = this.money(dto.mpoGovtAmount ?? '0', 'mpoGovtAmount');
@@ -123,10 +120,12 @@ export class PayrollAccountingService {
       );
     }
     const net = gross.minus(deductions);
-    const dup = await this.slips.findOne({ where: { runId: run.id, employeeName: dto.employeeName.trim() } });
+    const dup = await this.prisma.payslipLines.findFirst({
+      where: { runId: run.id, employeeName: dto.employeeName.trim() },
+    });
     if (dup) throw new BadRequestException(`"${dto.employeeName.trim()}" already has a payslip in ${run.runNo}`);
-    const slip = await this.slips.save(
-      this.slips.create({
+    const slip = await this.prisma.payslipLines.create({
+      data: {
         runId: run.id,
         employeeId: dto.employeeId ?? null,
         employeeName: dto.employeeName.trim(),
@@ -138,172 +137,184 @@ export class PayrollAccountingService {
         aitTdsDeduction: ait.toFixed(2),
         loanDeduction: loan.toFixed(2),
         netInstitutionalPayable: net.toFixed(2),
-      }),
-    );
+      },
+    });
     await this.refreshRunTotals(run.id);
     return slip;
   }
 
-  async removePayslip(runId: string, slipId: string): Promise<{ deleted: boolean }> {
+  async removePayslip(runId: string, slipId: string) {
     const run = await this.findRun(runId);
     if (run.status !== 'DRAFT') throw new BadRequestException(`Run is ${run.status} — payslips locked`);
-    const slip = await this.slips.findOne({ where: { id: slipId, runId: run.id } });
+    const slip = await this.prisma.payslipLines.findFirst({ where: { id: slipId, runId: run.id } });
     if (!slip) throw new NotFoundException('Payslip not found in this run');
-    await this.slips.remove(slip);
+    await this.prisma.payslipLines.delete({ where: { id: slipId } });
     await this.refreshRunTotals(run.id);
     return { deleted: true };
   }
 
   /** Approve a DRAFT run and post the institutional-only journal. */
-  approveRun(id: string, actorId: string): Promise<PayrollRun> {
-    return this.dataSource.transaction('REPEATABLE READ', async (m) => {
-      const run = await this.findRunIn(m, id);
-      if (run.status !== 'DRAFT') throw new BadRequestException(`Only DRAFT runs can be approved (now ${run.status})`);
-      if (run.lines.length === 0) throw new BadRequestException('Run has no payslips');
-      const sum = (pick: (l: PayslipLine) => string) =>
-        run.lines.reduce((t, l) => t.plus(new Decimal(pick(l))), new Decimal(0));
-      // NOTE: mpoGovtAmount is deliberately never read here.
-      const gross = sum((l) => l.institutionalGrossAmount);
-      const pfEmp = sum((l) => l.pfEmployeeDeduction);
-      const pfEr = sum((l) => l.pfEmployerContribution);
-      const ait = sum((l) => l.aitTdsDeduction);
-      const pfTotal = pfEmp.plus(pfEr);
+  approveRun(id: string, actorId: string) {
+    return this.prisma.$transaction(
+      async (tx) => {
+        const run = await this.findRunIn(tx, id);
+        if (run.status !== 'DRAFT') throw new BadRequestException(`Only DRAFT runs can be approved (now ${run.status})`);
+        if ((run.payslipLines ?? []).length === 0) throw new BadRequestException('Run has no payslips');
+        const sum = (pick: (l: any) => string) =>
+          (run.payslipLines ?? []).reduce((t, l) => t.plus(new Decimal(pick(l))), new Decimal(0));
+        // NOTE: mpoGovtAmount is deliberately never read here.
+        const gross = sum((l) => l.institutionalGrossAmount);
+        const pfEmp = sum((l) => l.pfEmployeeDeduction);
+        const pfEr = sum((l) => l.pfEmployerContribution);
+        const ait = sum((l) => l.aitTdsDeduction);
+        const pfTotal = pfEmp.plus(pfEr);
 
-      const lines: JournalLineDto[] = [];
-      const glCache = new Map<string, string>();
-      const glId = async (code: string): Promise<string> => {
-        const hit = glCache.get(code);
-        if (hit) return hit;
-        const acct = await m.getRepository(ChartOfAccount).findOne({ where: { glCode: code } });
-        if (!acct) throw new BadRequestException(`GL ${code} missing — run seed:accounting`);
-        glCache.set(code, acct.id);
-        return acct.id;
-      };
-      const leg = async (
-        glCode: string,
-        side: 'dr' | 'cr',
-        amt: Decimal,
-        memo: string,
-        sub?: { id: string },
-      ) => {
-        if (amt.lte(0)) return;
-        lines.push({
-          glAccountId: await glId(glCode),
-          fundId: run.fundId,
-          costCenterId: run.costCenterId,
-          ...(sub ? { subledgerType: 'EMPLOYEE' as const, subledgerId: sub.id } : {}),
-          debitAmount: side === 'dr' ? amt.toFixed(2) : '0.00',
-          creditAmount: side === 'cr' ? amt.toFixed(2) : '0.00',
-          lineMemo: memo.slice(0, 255),
+        const lines: JournalLineDto[] = [];
+        const glCache = new Map<string, string>();
+        const glId = async (code: string): Promise<string> => {
+          const hit = glCache.get(code);
+          if (hit) return hit;
+          const acct = await tx.chartOfAccounts.findUnique({ where: { glCode: code } });
+          if (!acct) throw new BadRequestException(`GL ${code} missing — run seed:accounting`);
+          glCache.set(code, acct.id);
+          return acct.id;
+        };
+        const leg = async (
+          glCode: string,
+          side: 'dr' | 'cr',
+          amt: Decimal,
+          memo: string,
+          sub?: { id: string },
+        ) => {
+          if (amt.lte(0)) return;
+          lines.push({
+            glAccountId: await glId(glCode),
+            fundId: run.fundId,
+            costCenterId: run.costCenterId,
+            ...(sub ? { subledgerType: 'EMPLOYEE' as SubledgerType, subledgerId: sub.id } : {}),
+            debitAmount: side === 'dr' ? amt.toFixed(2) : '0.00',
+            creditAmount: side === 'cr' ? amt.toFixed(2) : '0.00',
+            lineMemo: memo.slice(0, 255),
+          });
+        };
+        await leg('51101', 'dr', gross, `Salary ${run.payrollMonth} institutional gross`);
+        await leg('51104', 'dr', pfEr, `Salary ${run.payrollMonth} employer PF`);
+        await leg('22101', 'cr', pfTotal, `Salary ${run.payrollMonth} PF liability`);
+        await leg('21301', 'cr', ait, `Salary ${run.payrollMonth} AIT`);
+        for (const l of run.payslipLines ?? []) {
+          const loan = new Decimal(l.loanDeduction);
+          const net = new Decimal(l.netInstitutionalPayable);
+          const sub = l.employeeId ? { id: l.employeeId } : undefined;
+          await leg('11403', 'cr', loan, `Loan recovery ${l.employeeName}`, sub);
+          await leg('21102', 'cr', net, `Net pay ${l.employeeName}`, sub);
+        }
+        const journal = await this.posting.postSystemJournal(tx, {
+          voucherType: 'JOURNAL',
+          transactionDate: String(run.payDate).slice(0, 10),
+          narration: `Payroll ${run.runNo} (${run.payrollMonth}) — institutional gross ${gross.toFixed(2)}, net payable ${run.netPayableTotal} (MPO govt ${run.mpoGovtTotal} informational, not posted)`.slice(0, 500),
+          sourceModule: 'PAYROLL',
+          actorId,
+          lines,
         });
-      };
-      await leg('51101', 'dr', gross, `Salary ${run.payrollMonth} institutional gross`);
-      await leg('51104', 'dr', pfEr, `Salary ${run.payrollMonth} employer PF`);
-      await leg('22101', 'cr', pfTotal, `Salary ${run.payrollMonth} PF liability`);
-      await leg('21301', 'cr', ait, `Salary ${run.payrollMonth} AIT`);
-      for (const l of run.lines) {
-        const loan = new Decimal(l.loanDeduction);
-        const net = new Decimal(l.netInstitutionalPayable);
-        const sub = l.employeeId ? { id: l.employeeId } : undefined;
-        await leg('11403', 'cr', loan, `Loan recovery ${l.employeeName}`, sub);
-        await leg('21102', 'cr', net, `Net pay ${l.employeeName}`, sub);
-      }
-      const journal = await this.posting.postSystemJournal(m, {
-        voucherType: 'JOURNAL',
-        transactionDate: run.payDate,
-        narration: `Payroll ${run.runNo} (${run.payrollMonth}) — institutional gross ${gross.toFixed(2)}, net payable ${run.netPayableTotal} (MPO govt ${run.mpoGovtTotal} informational, not posted)`.slice(0, 500),
-        sourceModule: 'PAYROLL',
-        actorId,
-        lines,
-      });
-      run.status = 'APPROVED';
-      run.glJournalId = journal.id;
-      await m.getRepository(PayrollRun).save(run);
-      journal.sourceReferenceId = run.id;
-      await m.getRepository(JournalEntry).save(journal);
-      return this.findRunIn(m, run.id);
-    });
+        await tx.payrollRuns.update({
+          where: { id: run.id },
+          data: { status: 'APPROVED', glJournalId: journal.id },
+        });
+        await tx.journalEntries.update({
+          where: { id: journal.id },
+          data: { sourceReferenceId: run.id },
+        });
+        return this.findRunIn(tx, run.id);
+      },
+      { isolationLevel: 'RepeatableRead' },
+    );
   }
 
   /** Disburse the full net payable (PAYMENT: Dr 21102 / Cr bank). */
-  payRun(id: string, dto: PayPayrollRunDto, actorId: string): Promise<PayrollRun> {
-    return this.dataSource.transaction('REPEATABLE READ', async (m) => {
-      const run = await this.findRunIn(m, id);
-      if (run.status !== 'APPROVED') throw new BadRequestException(`Only APPROVED runs can be paid (now ${run.status})`);
-      const net = new Decimal(run.netPayableTotal);
-      if (net.lte(0)) throw new BadRequestException('Run net payable is zero');
-      const bank = dto.bankGlId
-        ? await m.getRepository(ChartOfAccount).findOne({ where: { id: dto.bankGlId } })
-        : await m.getRepository(ChartOfAccount).findOne({ where: { glCode: '11201' } });
-      if (!bank) throw new BadRequestException('Bank GL not found — run seed:accounting');
-      if (!bank.isCashOrBank) throw new BadRequestException(`${bank.glCode} is not a cash/bank account`);
-      const apId = await this.glCodeId(m, '21102');
-      const lines: JournalLineDto[] = [];
-      for (const l of run.lines) {
-        const amt = new Decimal(l.netInstitutionalPayable);
-        if (amt.lte(0)) continue;
+  payRun(id: string, dto: PayPayrollRunDto, actorId: string) {
+    return this.prisma.$transaction(
+      async (tx) => {
+        const run = await this.findRunIn(tx, id);
+        if (run.status !== 'APPROVED') throw new BadRequestException(`Only APPROVED runs can be paid (now ${run.status})`);
+        const net = new Decimal(run.netPayableTotal);
+        if (net.lte(0)) throw new BadRequestException('Run net payable is zero');
+        const bank = dto.bankGlId
+          ? await tx.chartOfAccounts.findUnique({ where: { id: dto.bankGlId } })
+          : await tx.chartOfAccounts.findUnique({ where: { glCode: '11201' } });
+        if (!bank) throw new BadRequestException('Bank GL not found — run seed:accounting');
+        if (!bank.isCashOrBank) throw new BadRequestException(`${bank.glCode} is not a cash/bank account`);
+        const apId = await this.glCodeId(tx, '21102');
+        const lines: JournalLineDto[] = [];
+        for (const l of run.payslipLines ?? []) {
+          const amt = new Decimal(l.netInstitutionalPayable);
+          if (amt.lte(0)) continue;
+          lines.push({
+            glAccountId: apId,
+            fundId: run.fundId,
+            costCenterId: run.costCenterId,
+            ...(l.employeeId ? { subledgerType: 'EMPLOYEE' as SubledgerType, subledgerId: l.employeeId } : {}),
+            debitAmount: amt.toFixed(2),
+            creditAmount: '0.00',
+            lineMemo: `Salary ${run.payrollMonth} ${l.employeeName}`.slice(0, 255),
+          });
+        }
         lines.push({
-          glAccountId: apId,
+          glAccountId: bank.id,
           fundId: run.fundId,
           costCenterId: run.costCenterId,
-          ...(l.employeeId ? { subledgerType: 'EMPLOYEE' as const, subledgerId: l.employeeId } : {}),
-          debitAmount: amt.toFixed(2),
-          creditAmount: '0.00',
-          lineMemo: `Salary ${run.payrollMonth} ${l.employeeName}`.slice(0, 255),
+          debitAmount: '0.00',
+          creditAmount: net.toFixed(2),
+          lineMemo: `Salary disbursement ${run.runNo}`.slice(0, 255),
         });
-      }
-      lines.push({
-        glAccountId: bank.id,
-        fundId: run.fundId,
-        costCenterId: run.costCenterId,
-        debitAmount: '0.00',
-        creditAmount: net.toFixed(2),
-        lineMemo: `Salary disbursement ${run.runNo}`.slice(0, 255),
-      });
-      const journal = await this.posting.postSystemJournal(m, {
-        voucherType: 'PAYMENT',
-        transactionDate: (dto.transactionDate ?? new Date().toISOString()).slice(0, 10),
-        narration: `Salary disbursement ${run.runNo} — ${net.toFixed(2)}`.slice(0, 500),
-        sourceModule: 'PAYROLL',
-        actorId,
-        lines,
-      });
-      run.status = 'PAID';
-      run.paymentJournalId = journal.id;
-      await m.getRepository(PayrollRun).save(run);
-      journal.sourceReferenceId = run.id;
-      await m.getRepository(JournalEntry).save(journal);
-      return this.findRunIn(m, run.id);
-    });
+        const journal = await this.posting.postSystemJournal(tx, {
+          voucherType: 'PAYMENT',
+          transactionDate: (dto.transactionDate ?? new Date().toISOString()).slice(0, 10),
+          narration: `Salary disbursement ${run.runNo} — ${net.toFixed(2)}`.slice(0, 500),
+          sourceModule: 'PAYROLL',
+          actorId,
+          lines,
+        });
+        await tx.payrollRuns.update({
+          where: { id: run.id },
+          data: { status: 'PAID', paymentJournalId: journal.id },
+        });
+        await tx.journalEntries.update({
+          where: { id: journal.id },
+          data: { sourceReferenceId: run.id },
+        });
+        return this.findRunIn(tx, run.id);
+      },
+      { isolationLevel: 'RepeatableRead' },
+    );
   }
 
-  async voidRun(id: string): Promise<{ deleted: boolean; runNo: string }> {
+  async voidRun(id: string) {
     const run = await this.findRun(id);
     if (run.status !== 'DRAFT') throw new BadRequestException('Only DRAFT runs can be voided');
-    await this.runs.remove(run);
+    await this.prisma.payrollRuns.delete({ where: { id: run.id } });
     return { deleted: true, runNo: run.runNo };
   }
 
   /* ================= honorarium ================= */
 
-  listHonoraria(limit = 100): Promise<AdjunctHonorariumBill[]> {
-    return this.honoraria.find({
-      relations: ['fund', 'costCenter', 'glJournal'],
-      order: { workMonth: 'DESC', createdAt: 'DESC' },
+  listHonoraria(limit = 100) {
+    return this.prisma.adjunctHonorariumBills.findMany({
+      include: { funds: true, costCenters: true, glJournal: true },
+      orderBy: [{ workMonth: 'desc' }, { createdAt: 'desc' }],
       take: Math.min(Math.max(limit, 1), 500),
     });
   }
 
-  findHonorarium(id: string): Promise<AdjunctHonorariumBill> {
-    return this.findHonorariumIn(this.dataSource.manager, id);
+  findHonorarium(id: string) {
+    return this.findHonorariumIn(this.prisma, id);
   }
 
-  async createHonorarium(dto: CreateHonorariumDto, actorId: string): Promise<AdjunctHonorariumBill> {
-    const fund = await this.dataSource.getRepository(Fund).findOne({ where: { id: dto.fundId } });
+  async createHonorarium(dto: CreateHonorariumDto, actorId: string) {
+    const fund = await this.prisma.funds.findUnique({ where: { id: dto.fundId } });
     if (!fund) throw new NotFoundException('Fund not found');
-    let costCenter: CostCenter | null = null;
+    let costCenter: { id: string } | null = null;
     if (dto.costCenterId) {
-      costCenter = await this.dataSource.getRepository(CostCenter).findOne({ where: { id: dto.costCenterId } });
+      costCenter = await this.prisma.costCenters.findUnique({ where: { id: dto.costCenterId } });
       if (!costCenter) throw new NotFoundException('Cost center not found');
     }
     const rc = this.money(dto.ratePerClass, 'ratePerClass');
@@ -318,8 +329,8 @@ export class PayrollAccountingService {
     for (let attempt = 0; attempt < 3; attempt += 1) {
       const billNo = await this.nextHonorariumNo(dto.workMonth.slice(0, 4));
       try {
-        return await this.honoraria.save(
-          this.honoraria.create({
+        return await this.prisma.adjunctHonorariumBills.create({
+          data: {
             billNo,
             adjunctName: dto.adjunctName.trim(),
             adjunctId: dto.adjunctId ?? null,
@@ -339,8 +350,8 @@ export class PayrollAccountingService {
             status: 'DRAFT',
             narration: dto.narration?.trim() || null,
             createdByUserId: actorId,
-          }),
-        );
+          },
+        });
       } catch (e: any) {
         if (String(e?.code) === 'ER_DUP_ENTRY' && attempt < 2) continue;
         throw e;
@@ -349,171 +360,194 @@ export class PayrollAccountingService {
     throw new BadRequestException('Could not allocate a bill number — retry');
   }
 
-  approveHonorarium(id: string, actorId: string): Promise<AdjunctHonorariumBill> {
-    return this.dataSource.transaction('REPEATABLE READ', async (m) => {
-      const bill = await this.findHonorariumIn(m, id);
-      if (bill.status !== 'DRAFT') throw new BadRequestException(`Only DRAFT bills can be approved (now ${bill.status})`);
-      const gross = new Decimal(bill.grossAmount);
-      const tds = new Decimal(bill.tdsAmount);
-      const net = new Decimal(bill.netPayable);
-      const sub = bill.adjunctId ? { subledgerType: 'EMPLOYEE' as const, subledgerId: bill.adjunctId } : {};
-      const journal = await this.posting.postSystemJournal(m, {
-        voucherType: 'JOURNAL',
-        transactionDate: `${bill.workMonth}-01`,
-        narration: `Honorarium ${bill.billNo} ${bill.adjunctName} (${bill.workMonth}) — gross ${gross.toFixed(2)}, TDS ${tds.toFixed(2)}, net ${net.toFixed(2)}`.slice(0, 500),
-        sourceModule: 'PAYROLL',
-        actorId,
-        lines: [
-          {
-            glAccountId: await this.glCodeId(m, '51103'),
-            fundId: bill.fundId,
-            costCenterId: bill.costCenterId,
-            debitAmount: gross.toFixed(2),
-            creditAmount: '0.00',
-            lineMemo: `Honorarium ${bill.billNo}`,
-          },
-          {
-            glAccountId: await this.glCodeId(m, '21103'),
-            fundId: bill.fundId,
-            costCenterId: bill.costCenterId,
-            ...sub,
-            debitAmount: '0.00',
-            creditAmount: net.toFixed(2),
-            lineMemo: `Honorarium payable ${bill.billNo}`,
-          },
-          ...(tds.gt(0)
-            ? [
-                {
-                  glAccountId: await this.glCodeId(m, '21303'),
-                  fundId: bill.fundId,
-                  costCenterId: bill.costCenterId,
-                  debitAmount: '0.00',
-                  creditAmount: tds.toFixed(2),
-                  lineMemo: `TDS ${bill.tdsRate}% ${bill.billNo}`,
-                } as JournalLineDto,
-              ]
-            : []),
-        ],
-      });
-      bill.status = 'APPROVED';
-      bill.glJournalId = journal.id;
-      await m.getRepository(AdjunctHonorariumBill).save(bill);
-      journal.sourceReferenceId = bill.id;
-      await m.getRepository(JournalEntry).save(journal);
-      return this.findHonorariumIn(m, bill.id);
-    });
+  approveHonorarium(id: string, actorId: string) {
+    return this.prisma.$transaction(
+      async (tx) => {
+        const bill = await this.findHonorariumIn(tx, id);
+        if (bill.status !== 'DRAFT') throw new BadRequestException(`Only DRAFT bills can be approved (now ${bill.status})`);
+        const gross = new Decimal(bill.grossAmount);
+        const tds = new Decimal(bill.tdsAmount);
+        const net = new Decimal(bill.netPayable);
+        const sub = bill.adjunctId ? { subledgerType: 'EMPLOYEE' as SubledgerType, subledgerId: bill.adjunctId } : {};
+        const journal = await this.posting.postSystemJournal(tx, {
+          voucherType: 'JOURNAL',
+          transactionDate: `${bill.workMonth}-01`,
+          narration: `Honorarium ${bill.billNo} ${bill.adjunctName} (${bill.workMonth}) — gross ${gross.toFixed(2)}, TDS ${tds.toFixed(2)}, net ${net.toFixed(2)}`.slice(0, 500),
+          sourceModule: 'PAYROLL',
+          actorId,
+          lines: [
+            {
+              glAccountId: await this.glCodeId(tx, '51103'),
+              fundId: bill.fundId,
+              costCenterId: bill.costCenterId,
+              debitAmount: gross.toFixed(2),
+              creditAmount: '0.00',
+              lineMemo: `Honorarium ${bill.billNo}`,
+            },
+            {
+              glAccountId: await this.glCodeId(tx, '21103'),
+              fundId: bill.fundId,
+              costCenterId: bill.costCenterId,
+              ...sub,
+              debitAmount: '0.00',
+              creditAmount: net.toFixed(2),
+              lineMemo: `Honorarium payable ${bill.billNo}`,
+            },
+            ...(tds.gt(0)
+              ? [
+                  {
+                    glAccountId: await this.glCodeId(tx, '21303'),
+                    fundId: bill.fundId,
+                    costCenterId: bill.costCenterId,
+                    debitAmount: '0.00',
+                    creditAmount: tds.toFixed(2),
+                    lineMemo: `TDS ${bill.tdsRate}% ${bill.billNo}`,
+                  },
+                ]
+              : []),
+          ],
+        });
+        await tx.adjunctHonorariumBills.update({
+          where: { id: bill.id },
+          data: { status: 'APPROVED', glJournalId: journal.id },
+        });
+        await tx.journalEntries.update({
+          where: { id: journal.id },
+          data: { sourceReferenceId: bill.id },
+        });
+        return this.findHonorariumIn(tx, bill.id);
+      },
+      { isolationLevel: 'RepeatableRead' },
+    );
   }
 
-  payHonorarium(id: string, dto: PayHonorariumDto, actorId: string): Promise<AdjunctHonorariumBill> {
-    return this.dataSource.transaction('REPEATABLE READ', async (m) => {
-      const bill = await this.findHonorariumIn(m, id);
-      if (bill.status !== 'APPROVED') throw new BadRequestException(`Only APPROVED bills can be paid (now ${bill.status})`);
-      const net = new Decimal(bill.netPayable);
-      const bank = dto.bankGlId
-        ? await m.getRepository(ChartOfAccount).findOne({ where: { id: dto.bankGlId } })
-        : await m.getRepository(ChartOfAccount).findOne({ where: { glCode: '11201' } });
-      if (!bank) throw new BadRequestException('Bank GL not found — run seed:accounting');
-      if (!bank.isCashOrBank) throw new BadRequestException(`${bank.glCode} is not a cash/bank account`);
-      const sub = bill.adjunctId ? { subledgerType: 'EMPLOYEE' as const, subledgerId: bill.adjunctId } : {};
-      const journal = await this.posting.postSystemJournal(m, {
-        voucherType: 'PAYMENT',
-        transactionDate: (dto.transactionDate ?? new Date().toISOString()).slice(0, 10),
-        narration: `Honorarium payment ${bill.billNo} — ${net.toFixed(2)} to ${bill.adjunctName}`.slice(0, 500),
-        sourceModule: 'PAYROLL',
-        actorId,
-        lines: [
-          {
-            glAccountId: await this.glCodeId(m, '21103'),
-            fundId: bill.fundId,
-            costCenterId: bill.costCenterId,
-            ...sub,
-            debitAmount: net.toFixed(2),
-            creditAmount: '0.00',
-            lineMemo: `Pay ${bill.billNo}`,
-          },
-          {
-            glAccountId: bank.id,
-            fundId: bill.fundId,
-            costCenterId: bill.costCenterId,
-            debitAmount: '0.00',
-            creditAmount: net.toFixed(2),
-            lineMemo: `Pay ${bill.billNo}`,
-          },
-        ],
-      });
-      bill.status = 'PAID';
-      await m.getRepository(AdjunctHonorariumBill).save(bill);
-      journal.sourceReferenceId = bill.id;
-      await m.getRepository(JournalEntry).save(journal);
-      return this.findHonorariumIn(m, bill.id);
-    });
+  payHonorarium(id: string, dto: PayHonorariumDto, actorId: string) {
+    return this.prisma.$transaction(
+      async (tx) => {
+        const bill = await this.findHonorariumIn(tx, id);
+        if (bill.status !== 'APPROVED') throw new BadRequestException(`Only APPROVED bills can be paid (now ${bill.status})`);
+        const net = new Decimal(bill.netPayable);
+        const bank = dto.bankGlId
+          ? await tx.chartOfAccounts.findUnique({ where: { id: dto.bankGlId } })
+          : await tx.chartOfAccounts.findUnique({ where: { glCode: '11201' } });
+        if (!bank) throw new BadRequestException('Bank GL not found — run seed:accounting');
+        if (!bank.isCashOrBank) throw new BadRequestException(`${bank.glCode} is not a cash/bank account`);
+        const sub = bill.adjunctId ? { subledgerType: 'EMPLOYEE' as SubledgerType, subledgerId: bill.adjunctId } : {};
+        const journal = await this.posting.postSystemJournal(tx, {
+          voucherType: 'PAYMENT',
+          transactionDate: (dto.transactionDate ?? new Date().toISOString()).slice(0, 10),
+          narration: `Honorarium payment ${bill.billNo} — ${net.toFixed(2)} to ${bill.adjunctName}`.slice(0, 500),
+          sourceModule: 'PAYROLL',
+          actorId,
+          lines: [
+            {
+              glAccountId: await this.glCodeId(tx, '21103'),
+              fundId: bill.fundId,
+              costCenterId: bill.costCenterId,
+              ...sub,
+              debitAmount: net.toFixed(2),
+              creditAmount: '0.00',
+              lineMemo: `Pay ${bill.billNo}`,
+            },
+            {
+              glAccountId: bank.id,
+              fundId: bill.fundId,
+              costCenterId: bill.costCenterId,
+              debitAmount: '0.00',
+              creditAmount: net.toFixed(2),
+              lineMemo: `Pay ${bill.billNo}`,
+            },
+          ],
+        });
+        await tx.adjunctHonorariumBills.update({
+          where: { id: bill.id },
+          data: { status: 'PAID' },
+        });
+        await tx.journalEntries.update({
+          where: { id: journal.id },
+          data: { sourceReferenceId: bill.id },
+        });
+        return this.findHonorariumIn(tx, bill.id);
+      },
+      { isolationLevel: 'RepeatableRead' },
+    );
   }
 
-  async voidHonorarium(id: string): Promise<{ deleted: boolean; billNo: string }> {
+  async voidHonorarium(id: string) {
     const bill = await this.findHonorarium(id);
     if (bill.status !== 'DRAFT') throw new BadRequestException('Only DRAFT bills can be voided');
-    await this.honoraria.remove(bill);
+    await this.prisma.adjunctHonorariumBills.delete({ where: { id: bill.id } });
     return { deleted: true, billNo: bill.billNo };
   }
 
   /* ================= helpers ================= */
 
-  private async findRunIn(m: EntityManager, id: string): Promise<PayrollRun> {
-    const run = await m.getRepository(PayrollRun).findOne({
+  private async findRunIn(tx: PrismaTypes.TransactionClient, id: string) {
+    const run = await tx.payrollRuns.findUnique({
       where: { id },
-      relations: ['fund', 'costCenter', 'glJournal', 'paymentJournal', 'lines'],
-      order: { lines: { createdAt: 'ASC' } } as never,
+      include: {
+        funds: true,
+        costCenters: true,
+        journalEntriesPayrollRunsGlJournalIdTojournalEntries: true,
+        journalEntriesPayrollRunsPaymentJournalIdTojournalEntries: true,
+        payslipLines: { orderBy: { createdAt: 'asc' } },
+      },
     });
     if (!run) throw new NotFoundException(`Payroll run #${id} not found`);
     return run;
   }
 
-  private async findHonorariumIn(m: EntityManager, id: string): Promise<AdjunctHonorariumBill> {
-    const bill = await m.getRepository(AdjunctHonorariumBill).findOne({
+  private async findHonorariumIn(tx: PrismaTypes.TransactionClient, id: string) {
+    const bill = await tx.adjunctHonorariumBills.findUnique({
       where: { id },
-      relations: ['fund', 'costCenter', 'glJournal', 'glJournal.lines'],
+      include: {
+        funds: true,
+        costCenters: true,
+        journalEntries: { include: { journalLines: true } },
+      },
     });
     if (!bill) throw new NotFoundException(`Honorarium bill #${id} not found`);
     return bill;
   }
 
-  private async refreshRunTotals(runId: string): Promise<void> {
-    const lines = await this.slips.find({ where: { runId } });
-    const sum = (pick: (l: PayslipLine) => string) =>
+  private async refreshRunTotals(runId: string) {
+    const lines = await this.prisma.payslipLines.findMany({ where: { runId } });
+    const sum = (pick: (l: any) => string) =>
       lines.reduce((t, l) => t.plus(new Decimal(pick(l))), new Decimal(0)).toFixed(2);
-    await this.runs.update(runId, {
-      mpoGovtTotal: sum((l) => l.mpoGovtAmount),
-      institutionalGrossTotal: sum((l) => l.institutionalGrossAmount),
-      pfEmployeeTotal: sum((l) => l.pfEmployeeDeduction),
-      pfEmployerTotal: sum((l) => l.pfEmployerContribution),
-      aitTdsTotal: sum((l) => l.aitTdsDeduction),
-      loanDeductionTotal: sum((l) => l.loanDeduction),
-      netPayableTotal: sum((l) => l.netInstitutionalPayable),
+    await this.prisma.payrollRuns.update({
+      where: { id: runId },
+      data: {
+        mpoGovtTotal: sum((l) => l.mpoGovtAmount),
+        institutionalGrossTotal: sum((l) => l.institutionalGrossAmount),
+        pfEmployeeTotal: sum((l) => l.pfEmployeeDeduction),
+        pfEmployerTotal: sum((l) => l.pfEmployerContribution),
+        aitTdsTotal: sum((l) => l.aitTdsDeduction),
+        loanDeductionTotal: sum((l) => l.loanDeduction),
+        netPayableTotal: sum((l) => l.netInstitutionalPayable),
+      },
     });
   }
 
-  private async nextRunNo(month: string): Promise<string> {
-    const last = await this.runs
-      .createQueryBuilder('r')
-      .where('r.runNo LIKE :p', { p: `PR-${month}-%` })
-      .orderBy('r.runNo', 'DESC')
-      .getOne();
+  private async nextRunNo(month: string) {
+    const last = await this.prisma.payrollRuns.findFirst({
+      where: { runNo: { startsWith: `PR-${month}-` } },
+      orderBy: { runNo: 'desc' },
+    });
     const seq = last ? Number(last.runNo.split('-').pop() ?? '0') + 1 : 1;
     return `PR-${month}-${String(seq).padStart(3, '0')}`;
   }
 
-  private async nextHonorariumNo(year: string): Promise<string> {
-    const last = await this.honoraria
-      .createQueryBuilder('h')
-      .where('h.billNo LIKE :p', { p: `AH-${year}-%` })
-      .orderBy('h.billNo', 'DESC')
-      .getOne();
+  private async nextHonorariumNo(year: string) {
+    const last = await this.prisma.adjunctHonorariumBills.findFirst({
+      where: { billNo: { startsWith: `AH-${year}-` } },
+      orderBy: { billNo: 'desc' },
+    });
     const seq = last ? Number(last.billNo.split('-').pop() ?? '0') + 1 : 1;
     return `AH-${year}-${String(seq).padStart(6, '0')}`;
   }
 
-  private async glCodeId(m: EntityManager, code: string): Promise<string> {
-    const acct = await m.getRepository(ChartOfAccount).findOne({ where: { glCode: code } });
+  private async glCodeId(tx: PrismaTypes.TransactionClient, code: string): Promise<string> {
+    const acct = await tx.chartOfAccounts.findUnique({ where: { glCode: code } });
     if (!acct) throw new BadRequestException(`GL ${code} missing — run seed:accounting`);
     return acct.id;
   }

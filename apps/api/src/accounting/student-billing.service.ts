@@ -78,13 +78,12 @@ function lineToWire<T extends { feeHeads?: unknown; chartOfAccounts?: unknown; f
   return { ...rest, feeHead: feeHeads, glAccount: chartOfAccounts, fund: funds };
 }
 
-function invoiceToWire(inv: InvoicePayload | InvoiceListPayload) {
+function invoiceToWire(inv: InvoicePayload | InvoiceListPayload): InvoicePayload {
   const { studentInvoiceLines, ...rest } = inv as InvoicePayload;
-  const extra = rest as Record<string, unknown>;
   return {
-    ...extra,
+    ...(rest as InvoicePayload),
     lines: (studentInvoiceLines ?? []).map(lineToWire),
-  };
+  } as InvoicePayload;
 }
 
 function ledgerInvoiceToWire(inv: InvoiceLedgerPayload) {
@@ -352,7 +351,7 @@ export class StudentBillingService {
     tx: PrismaTypes.TransactionClient,
     dto: CreateInvoiceDto,
     actorId: string,
-  ) {
+  ): Promise<InvoicePayload> {
     return this.buildInvoice(tx, dto.studentId, dto, actorId);
   }
 
@@ -398,7 +397,7 @@ export class StudentBillingService {
       async (tx) => {
         const inv = await this.findInvoiceIn(tx, id);
         if (inv.status === 'REVERSED') throw new BadRequestException('Invoice already reversed');
-        if (inv.paidAmount !== '0.00' && new Decimal(inv.paidAmount).gt(0)) {
+        if (String(inv.paidAmount) !== '0.00') {
           throw new BadRequestException(
             'Cannot reverse an invoice with collections — reverse the receipt vouchers first',
           );
@@ -790,7 +789,7 @@ export class StudentBillingService {
       items: InvoiceItemDto[];
     },
     actorId: string,
-  ) {
+  ): Promise<InvoicePayload> {
     if (!dto.items?.length) throw new BadRequestException('An invoice needs at least one fee head');
     const dup = await tx.studentInvoices.findFirst({
       where: { studentId, billingPeriod: dto.billingPeriod },
@@ -1029,7 +1028,7 @@ export class StudentBillingService {
     return this.findInvoiceIn(tx, invoice.id);
   }
 
-  private async findInvoiceIn(tx: PrismaTypes.TransactionClient, id: string) {
+  private async findInvoiceIn(tx: PrismaTypes.TransactionClient, id: string): Promise<InvoicePayload> {
     const inv = await tx.studentInvoices.findUnique({ where: { id }, include: INVOICE_INCLUDE });
     if (!inv) throw new NotFoundException(`Invoice #${id} not found`);
     return invoiceToWire(inv);

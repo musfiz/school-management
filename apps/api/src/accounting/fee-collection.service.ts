@@ -50,22 +50,25 @@ function lineToWire<
   return { ...rest, feeHead: feeHeads, glAccount: chartOfAccounts, fund: funds };
 }
 
-function invoiceToWire(inv: InvoiceCollectPayload) {
+function invoiceToWire(inv: InvoiceCollectPayload): InvoiceCollectPayload {
   const { studentInvoiceLines, ...rest } = inv;
-  return { ...rest, lines: studentInvoiceLines.map(lineToWire) };
+  return {
+    ...(rest as InvoiceCollectPayload),
+    lines: studentInvoiceLines.map(lineToWire),
+  } as InvoiceCollectPayload;
 }
 
 type InvoiceWire = ReturnType<typeof invoiceToWire>;
 
-function receiptToWire(r: CollectionPayload) {
+function receiptToWire(r: CollectionPayload): CollectionPayload {
   const { studentInvoices, chartOfAccounts, funds, journalEntries, ...rest } = r;
   return {
-    ...rest,
+    ...(rest as CollectionPayload),
     invoice: studentInvoices,
     cashGl: chartOfAccounts,
     fund: funds,
     glJournal: journalEntries,
-  };
+  } as CollectionPayload;
 }
 
 function receiptToDetailWire(r: CollectionDetailPayload) {
@@ -191,7 +194,7 @@ export class FeeCollectionService {
    * Workflow 4 entry: same posting inside an OUTER (onboarding)
    * transaction. The caller owns atomicity — no nested transaction here.
    */
-  async collectIn(tx: PrismaTypes.TransactionClient, dto: CollectFeeDto, actorId: string) {
+  async collectIn(tx: PrismaTypes.TransactionClient, dto: CollectFeeDto, actorId: string): Promise<CollectionPayload> {
     return this.postCollection(tx, dto, actorId);
   }
 
@@ -355,7 +358,7 @@ export class FeeCollectionService {
     tx: PrismaTypes.TransactionClient,
     dto: CollectFeeDto,
     actorId: string,
-  ) {
+  ): Promise<CollectionPayload> {
     const gross = this.dec(dto.amount, 'amount');
     if (new Decimal(gross).lte(0)) throw new BadRequestException('Collection amount must be positive');
     const invRaw = await tx.studentInvoices.findUnique({
@@ -406,14 +409,14 @@ export class FeeCollectionService {
     // Per-fund AR split: credit each fund that was debited at invoice
     // time, proportional to its net share (keeps fund isolation exact).
     const netByFund = new Map<string, Decimal>();
-    for (const l of inv.lines ?? []) {
+    for (const l of inv.studentInvoiceLines ?? []) {
       netByFund.set(l.fundId, (netByFund.get(l.fundId) ?? new Decimal(0)).plus(new Decimal(l.netAmount)));
     }
     const totalNet = [...netByFund.values()].reduce((t, v) => t.plus(v), new Decimal(0));
     const fundShares = [...netByFund.entries()].map(([fid, n]) => ({
       fundId: fid,
       share: totalNet.gt(0) ? n.div(totalNet) : new Decimal(1).div(netByFund.size || 1),
-      costCenterId: inv.costCenterId ?? (inv.lines ?? []).find((l) => l.fundId === fid)?.costCenterId ?? null,
+      costCenterId: inv.costCenterId ?? (inv.studentInvoiceLines ?? []).find((l) => l.fundId === fid)?.costCenterId ?? null,
     }));
     const splitByShare = (total: Decimal): Array<{ fundId: string; costCenterId: string | null; amt: Decimal }> => {
       if (fundShares.length === 0) return [{ fundId, costCenterId: inv.costCenterId ?? null, amt: total }];
@@ -534,11 +537,11 @@ export class FeeCollectionService {
     // Prior payments (same fine-first order) already absorbed part of the
     // fine once paid spilled past net — only the remainder is still open.
     const fineRemaining = Decimal.max(fine.minus(Decimal.max(paid.minus(net), new Decimal(0))), new Decimal(0));
-    take('Late fine', '42103', inv.lines?.[0]?.fund?.fundCode ?? '01', fineRemaining);
+    take('Late fine', '42103', inv.studentInvoiceLines?.[0]?.funds?.fundCode ?? '01', fineRemaining);
     // Spread the rest across fee lines pro-rata by net share so the legs
     // always sum to the paisa (largest-remainder rounding).
-    const lines = [...(inv.lines ?? [])].sort((a, b) =>
-      (a.glAccount?.glCode ?? '').localeCompare(b.glAccount?.glCode ?? ''),
+    const lines = [...(inv.studentInvoiceLines ?? [])].sort((a, b) =>
+      (a.chartOfAccounts?.glCode ?? '').localeCompare(b.chartOfAccounts?.glCode ?? ''),
     );
     const totalNet = lines.reduce((t, l) => t.plus(new Decimal(l.netAmount)), new Decimal(0));
     lines.forEach((l, idx) => {
@@ -552,9 +555,9 @@ export class FeeCollectionService {
         cap = new Decimal(0);
       }
       take(
-        l.feeHead?.headCode ?? 'FEE',
-        l.glAccount?.glCode ?? '',
-        l.fund?.fundCode ?? '01',
+        l.feeHeads?.headCode ?? 'FEE',
+        l.chartOfAccounts?.glCode ?? '',
+        l.funds?.fundCode ?? '01',
         cap,
       );
     });
@@ -603,7 +606,7 @@ export class FeeCollectionService {
     return first.id;
   }
 
-  private async findOneIn(tx: PrismaTypes.TransactionClient, id: string) {
+  private async findOneIn(tx: PrismaTypes.TransactionClient, id: string): Promise<CollectionPayload> {
     const row = await tx.paymentCollections.findUnique({
       where: { id },
       include: COLLECTION_INCLUDE,

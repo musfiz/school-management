@@ -1,21 +1,16 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { DataSource, EntityManager } from 'typeorm';
 import Decimal from 'decimal.js';
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma } from '../generated/prisma/client';
 import { toDateValue, toDateOnly } from '../prisma/wire';
 import type { AdmissionApplications, AdmissionCampaigns } from '../generated/prisma/client';
-import { AdmissionCampaign } from '../database/entities/admission-campaign.entity';
-import {
-  AdmissionApplication,
-  ADMISSION_APPLICATION_STATUSES,
-  AdmissionApplicationStatus,
-} from '../database/entities/admission-application.entity';
+import { ADMISSION_APPLICATION_STATUSES } from '../database/entities/admission-application.entity';
 import { ChartOfAccount } from '../database/entities/chart-of-account.entity';
 import { Fund } from '../database/entities/fund.entity';
 import { JournalPostingService } from '../accounting/journal-posting.service';
 import type { JournalLineDto } from '../accounting/vouchers.dto';
 import { StudentIdGeneratorService } from './common/student-id-generator.service';
+import type { Prisma as PrismaTypes } from '../generated/prisma/client';
 
 const MANUAL_STATUSES: AdmissionApplicationStatus[] = ['SHORTLISTED', 'WAITING', 'REJECTED'];
 
@@ -23,6 +18,8 @@ const MANUAL_STATUSES: AdmissionApplicationStatus[] = ['SHORTLISTED', 'WAITING',
 export type ApplicationWithCampaign = Omit<AdmissionApplications, 'admissionCampaigns'> & {
   campaign?: AdmissionCampaigns | null;
 };
+
+type AdmissionApplicationStatus = (typeof ADMISSION_APPLICATION_STATUSES)[number];
 
 function toApplicationWithCampaign(
   row: AdmissionApplications & { admissionCampaigns?: AdmissionCampaigns | null },
@@ -37,14 +34,12 @@ function toApplicationWithCampaign(
  * collection (GL 44102) → bulk test marks + competition-rank merit list →
  * convert-to-draft for the Direct Admission Wizard.
  *
- * `collectFormFee` keeps a TypeORM unit of work: it posts through the Wave 5
- * `JournalPostingService` (still `EntityManager`-based). Everything else runs
- * on Prisma; the carve-out closes when `journal-posting` migrates.
+ * `collectFormFee` runs through the Wave 5 `JournalPostingService` (now
+ * Prisma-based) inside a Prisma transaction.
  */
 @Injectable()
 export class AdmissionApplicationService {
   constructor(
-    private readonly dataSource: DataSource,
     private readonly posting: JournalPostingService,
     private readonly ids: StudentIdGeneratorService,
     private readonly prisma: PrismaService,
@@ -256,61 +251,62 @@ export class AdmissionApplicationService {
    * Prospectus / form fee: Dr Cash 11101 (or override) / Cr 44102 Sale of
    * Admission Forms, Fund 01, source ADMISSION. Marks form_fee_paid in the
    * same transaction — a receipt mis-post never strands a paid flag.
-   *
-   * This unit of work stays on TypeORM because `JournalPostingService` is
-   * Wave 5 (see the class docblock).
    */
   async collectFormFee(
     id: string,
     opts: { paymentChannel?: string; amount?: string; cashGlId?: string | null; remark?: string | null },
     actorId: string,
   ) {
-    return this.dataSource.transaction('REPEATABLE READ', async (m) => {
-      const repo = m.getRepository(AdmissionApplication);
-      const app = await repo.findOne({ where: { id } });
-      if (!app) throw new NotFoundException(`Application #${id} not found`);
-      if (app.formFeePaid) throw new BadRequestException(`${app.applicationNo} form fee is already paid`);
-      const campaign = await m.getRepository(AdmissionCampaign).findOne({ where: { id: app.campaignId } });
-      if (!campaign) throw new BadRequestException('Campaign not found');
-      const amount = this.money(opts.amount ?? campaign.applicationFee, 'amount');
-      if (new Decimal(amount).lte(0)) {
-        throw new BadRequestException('No form fee configured for this campaign (application_fee is 0)');
-      }
-      const cashGl = await this.gl(m, opts.cashGlId ?? '11101');
-      const formGl = await this.gl(m, '44102');
-      const fund = await m.getRepository(Fund).findOne({ where: { fundCode: '01' } });
-      if (!fund) throw new BadRequestException('Fund 01 (General) missing — run seed:accounting');
-      const today = new Date().toISOString().slice(0, 10);
-      const journal = await this.posting.postSystemJournal(m, {
-        voucherType: 'RECEIVE',
-        transactionDate: today,
-        narration: opts.remark ?? `Form fee ${app.applicationNo} — ${app.applicantNameEn} (${amount})`,
-        sourceModule: 'ADMISSION',
-        sourceReferenceId: app.id,
-        actorId,
-        lines: [
-          {
-            glAccountId: cashGl.id, fundId: fund.id, costCenterId: null,
-            debitAmount: new Decimal(amount).toFixed(2), creditAmount: '0.00',
-            lineMemo: `Form fee ${app.applicationNo}${opts.paymentChannel ? ` (${opts.paymentChannel})` : ''}`,
-          },
-          {
-            glAccountId: formGl.id, fundId: fund.id, costCenterId: null,
-            debitAmount: '0.00', creditAmount: new Decimal(amount).toFixed(2),
-            lineMemo: `44102 ${app.applicationNo}`,
-          },
-        ] as JournalLineDto[],
-      });
-      app.formFeePaid = true;
-      await repo.save(app);
-      return {
-        applicationId: app.id,
-        applicationNo: app.applicationNo,
-        amount: new Decimal(amount).toFixed(2),
-        journalId: journal.id,
-        voucherNo: (journal as { voucherNo: string }).voucherNo,
-      };
-    });
+    return this.prisma.$transaction(
+      async (tx) => {
+        const app = await tx.admissionApplications.findUnique({ where: { id } });
+        if (!app) throw new NotFoundException(`Application #${id} not found`);
+        if (app.formFeePaid) throw new BadRequestException(`${app.applicationNo} form fee is already paid`);
+        const campaign = await tx.admissionCampaigns.findUnique({ where: { id: app.campaignId } });
+        if (!campaign) throw new BadRequestException('Campaign not found');
+        const amount = this.money(String(opts.amount ?? campaign.applicationFee), 'amount');
+        if (new Decimal(amount).lte(0)) {
+          throw new BadRequestException('No form fee configured for this campaign (application_fee is 0)');
+        }
+        const cashGl = await this.gl(tx, opts.cashGlId ?? '11101');
+        const formGl = await this.gl(tx, '44102');
+        const fund = await tx.funds.findUnique({ where: { fundCode: '01' } });
+        if (!fund) throw new BadRequestException('Fund 01 (General) missing — run seed:accounting');
+        const today = new Date().toISOString().slice(0, 10);
+        const journal = await this.posting.postSystemJournal(tx, {
+          voucherType: 'RECEIVE',
+          transactionDate: today,
+          narration: opts.remark ?? `Form fee ${app.applicationNo} — ${app.applicantNameEn} (${amount})`,
+          sourceModule: 'ADMISSION',
+          sourceReferenceId: app.id,
+          actorId,
+          lines: [
+            {
+              glAccountId: cashGl.id, fundId: fund.id, costCenterId: null,
+              debitAmount: new Decimal(amount).toFixed(2), creditAmount: '0.00',
+              lineMemo: `Form fee ${app.applicationNo}${opts.paymentChannel ? ` (${opts.paymentChannel})` : ''}`,
+            },
+            {
+              glAccountId: formGl.id, fundId: fund.id, costCenterId: null,
+              debitAmount: '0.00', creditAmount: new Decimal(amount).toFixed(2),
+              lineMemo: `44102 ${app.applicationNo}`,
+            },
+          ] as JournalLineDto[],
+        });
+        await tx.admissionApplications.update({
+          where: { id: app.id },
+          data: { formFeePaid: true },
+        });
+        return {
+          applicationId: app.id,
+          applicationNo: app.applicationNo,
+          amount: new Decimal(amount).toFixed(2),
+          journalId: journal.id,
+          voucherNo: (journal as { voucherNo: string }).voucherNo,
+        };
+      },
+      { isolationLevel: 'RepeatableRead' },
+    );
   }
 
   /* ================= convert to admission draft ================= */
@@ -350,11 +346,10 @@ export class AdmissionApplicationService {
 
   /* ================= internals ================= */
 
-  private async gl(m: EntityManager, codeOrId: string) {
-    const repo = m.getRepository(ChartOfAccount);
-    const byId = await repo.findOne({ where: { id: codeOrId } });
+  private async gl(tx: PrismaTypes.TransactionClient, codeOrId: string) {
+    const byId = await tx.chartOfAccounts.findUnique({ where: { id: codeOrId } });
     if (byId) return byId;
-    const byCode = await repo.findOne({ where: { glCode: codeOrId } });
+    const byCode = await tx.chartOfAccounts.findUnique({ where: { glCode: codeOrId } });
     if (!byCode) throw new BadRequestException(`GL ${codeOrId} missing — run seed:accounting`);
     return byCode;
   }
@@ -393,4 +388,5 @@ export class AdmissionApplicationService {
     }
     return d.toFixed(2);
   }
+
 }

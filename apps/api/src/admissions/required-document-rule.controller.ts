@@ -1,7 +1,6 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { RequiredDocumentRuleService } from './required-document-rule.service';
-import { RequiredDocumentRule } from '../database/entities/required-document-rule.entity';
 
 @Controller('admissions')
 export class RequiredDocumentRuleController {

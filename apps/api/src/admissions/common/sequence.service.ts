@@ -9,7 +9,7 @@ import type { Prisma as PrismaTypes } from '../../generated/prisma/client';
  * share a number. Lost-insert race (two creators, same new scope) falls
  * back to the winner's row.
  *
- * AD-P7: the TypeORM `EntityManager` is now a `Prisma.TransactionClient`. The
+ * AD-P7: the Prisma `TransactionClient` is used for transaction scoping. The
  * lock and the read are a single `SELECT … FOR UPDATE` (a *current* read), so
  * the counter is never taken from a REPEATABLE READ snapshot.
  */

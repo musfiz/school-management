@@ -1,15 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
 import Decimal from 'decimal.js';
-import { AdmissionCampaign } from '../database/entities/admission-campaign.entity';
-import {
-  AdmissionApplication,
-  ADMISSION_APPLICATION_STATUSES,
-} from '../database/entities/admission-application.entity';
-import { Student } from '../database/entities/student.entity';
-import { StudentEnrollment } from '../database/entities/student-enrollment.entity';
-import { StudentInvoice } from '../database/entities/student-invoice.entity';
+import { PrismaService } from '../prisma/prisma.service';
+import { Prisma } from '../generated/prisma/client';
+import { ADMISSION_APPLICATION_STATUSES } from '../database/entities/admission-application.entity';
 
 export interface AdmissionDashboardKpis {
   activeCampaigns: number;
@@ -82,85 +75,59 @@ export interface AdmissionDashboardOverview {
  */
 @Injectable()
 export class AdmissionDashboardService {
-  constructor(
-    @InjectRepository(AdmissionCampaign) private readonly campaigns: Repository<AdmissionCampaign>,
-    @InjectRepository(AdmissionApplication) private readonly applications: Repository<AdmissionApplication>,
-    @InjectRepository(Student) private readonly students: Repository<Student>,
-    @InjectRepository(StudentEnrollment) private readonly enrollments: Repository<StudentEnrollment>,
-    @InjectRepository(StudentInvoice) private readonly invoices: Repository<StudentInvoice>,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async overview(): Promise<AdmissionDashboardOverview> {
     const today = new Date().toISOString().slice(0, 10);
 
-    const campaigns = await this.campaigns.find({ order: { startDate: 'DESC' } });
+    const campaigns = await this.prisma.admissionCampaigns.findMany({
+      orderBy: { startDate: 'desc' },
+    });
 
-    const [appRows, enrollRows, statusRows, todayStudents, pendingRows, pendingSum] = await Promise.all([
-      // applications grouped by (campaign, status)
-      this.applications
-        .createQueryBuilder('a')
-        .select('a.campaignId', 'campaignId')
-        .addSelect('a.status', 'status')
-        .addSelect('COUNT(*)', 'count')
-        .groupBy('a.campaignId')
-        .addGroupBy('a.status')
-        .getRawMany<{ campaignId: string; status: string; count: string }>(),
-      // active enrollments grouped by (session, class) — distinct students
-      this.enrollments
-        .createQueryBuilder('e')
-        .select('e.academicSessionId', 'session')
-        .addSelect('e.classOrDeptId', 'classId')
-        .addSelect('COUNT(DISTINCT e.studentId)', 'count')
-        .where('e.isActive = :active', { active: true })
-        .groupBy('e.academicSessionId')
-        .addGroupBy('e.classOrDeptId')
-        .getRawMany<{ session: string; classId: string; count: string }>(),
-      // funnel totals across all campaigns
-      this.applications
-        .createQueryBuilder('a')
-        .select('a.status', 'status')
-        .addSelect('COUNT(*)', 'count')
-        .groupBy('a.status')
-        .getRawMany<{ status: string; count: string }>(),
-      this.students.find({ where: { admissionDate: today }, order: { createdAt: 'DESC' }, take: 100 }),
-      this.pendingBase()
-        .select('inv.id', 'invoiceId')
-        .addSelect('inv.invoiceNo', 'invoiceNo')
-        .addSelect('inv.studentId', 'studentId')
-        .addSelect('inv.billingPeriod', 'billingPeriod')
-        .addSelect('inv.dueDate', 'dueDate')
-        .addSelect('inv.netAmount', 'netAmount')
-        .addSelect('inv.paidAmount', 'paidAmount')
-        .addSelect('inv.lateFineAmount', 'lateFineAmount')
-        .addSelect('(inv.netAmount + inv.lateFineAmount - inv.paidAmount)', 'outstanding')
-        .orderBy('inv.dueDate', 'ASC')
-        .take(100)
-        .getRawMany<{
-          invoiceId: string;
-          invoiceNo: string;
-          studentId: string;
-          billingPeriod: string;
-          dueDate: string | Date;
-          netAmount: string;
-          paidAmount: string;
-          lateFineAmount: string;
-          outstanding: string;
-        }>(),
-      this.pendingBase()
-        .select('COUNT(*)', 'cnt')
-        .addSelect('COALESCE(SUM(inv.netAmount + inv.lateFineAmount - inv.paidAmount), 0)', 'amt')
-        .getRawOne<{ cnt: string; amt: string }>(),
-    ]);
+    const [appRows, enrollRows, statusRows, todayStudents, pendingInvoices] =
+      await Promise.all([
+        // applications grouped by (campaign, status)
+        this.prisma.admissionApplications.groupBy({
+          by: ['campaignId', 'status'],
+          _count: { id: true },
+        }),
+        // active enrollments grouped by (session, class) — distinct students
+        this.prisma.studentEnrollments.groupBy({
+          by: ['academicSessionId', 'classOrDeptId'],
+          _count: { studentId: true },
+          where: { isActive: true },
+        }),
+        // funnel totals across all campaigns
+        this.prisma.admissionApplications.groupBy({
+          by: ['status'],
+          _count: { id: true },
+        }),
+        this.prisma.students.findMany({
+          where: { admissionDate: today },
+          orderBy: { createdAt: 'desc' },
+          take: 100,
+        }),
+        // admission invoices with an outstanding balance
+        this.prisma.studentInvoices.findMany({
+          where: {
+            billingPeriod: { startsWith: 'ADMISSION-' },
+            status: { not: 'REVERSED' },
+          },
+          orderBy: { dueDate: 'asc' },
+        }),
+      ]);
 
     /* ---------- campaign seat capacity vs admitted ---------- */
     const appsByCampaign = new Map<string, Map<string, number>>();
-    for (const r of appRows) {
+    for (const r of appRows as Array<{ campaignId: string; status: string; _count: { id: number } }>) {
       const m = appsByCampaign.get(r.campaignId) ?? new Map<string, number>();
-      m.set(r.status, Number(r.count));
+      m.set(r.status, r._count.id);
       appsByCampaign.set(r.campaignId, m);
     }
     const enrolledByScope = new Map<string, number>();
-    for (const r of enrollRows) enrolledByScope.set(`${r.session}|${r.classId}`, Number(r.count));
+    for (const r of enrollRows as Array<{ academicSessionId: string; classOrDeptId: string; _count: { studentId: number } }>) {
+      enrolledByScope.set(`${r.academicSessionId}|${r.classOrDeptId}`, r._count.studentId);
+    }
 
     const campaignRows: CampaignSeatRow[] = campaigns.map((c) => {
       const byStatus = appsByCampaign.get(c.id) ?? new Map<string, number>();
@@ -179,35 +146,58 @@ export class AdmissionDashboardService {
         remaining: Math.max(0, c.totalSeats - enrolled),
         fillPct: pct(enrolled, c.totalSeats),
         isActive: c.isActive,
-        startDate: c.startDate,
-        endDate: c.endDate,
+        startDate: String(c.startDate).slice(0, 10),
+        endDate: String(c.endDate).slice(0, 10),
       };
     });
 
     /* ---------- KPIs ---------- */
     const activeCampaigns = campaigns.filter((c) => c.isActive);
     const totalSeats = activeCampaigns.reduce((n, c) => n + c.totalSeats, 0);
-    // De-duplicate (session, class) so overlapping campaigns aren't double-counted.
     const activeScopes = new Set(activeCampaigns.map((c) => `${c.academicSessionId}|${c.classOrDeptId}`));
     let totalEnrolled = 0;
     activeScopes.forEach((key) => {
       totalEnrolled += enrolledByScope.get(key) ?? 0;
     });
 
-    const statusMap = new Map(statusRows.map((r) => [r.status, Number(r.count)]));
+    const statusMap = new Map((statusRows as Array<{ status: string; _count: { id: number } }>).map((r) => [r.status, r._count.id]));
     const applicationStatus = ADMISSION_APPLICATION_STATUSES.map((status) => ({
       status,
       count: statusMap.get(status) ?? 0,
     }));
     const totalApplications = applicationStatus.reduce((n, s) => n + s.count, 0);
 
-    const pendingFeeCount = Number(pendingSum?.cnt ?? 0);
-    const pendingFeeAmount = new Decimal(pendingSum?.amt ?? 0).toFixed(2);
+    /* ---------- pending admission fees (outstanding > 0) ---------- */
+    const pendingFeesRaw: Array<{
+      id: string;
+      invoiceNo: string;
+      studentId: string;
+      billingPeriod: string;
+      dueDate: Date | string;
+      netAmount: Decimal | number | null;
+      lateFineAmount: Decimal | number | null;
+      paidAmount: Decimal | number | null;
+    }> = (pendingInvoices as any[]).filter((inv) => {
+      const net = new Decimal(inv.netAmount ?? 0);
+      const fine = new Decimal(inv.lateFineAmount ?? 0);
+      const paid = new Decimal(inv.paidAmount ?? 0);
+      return net.plus(fine).minus(paid).gt(0);
+    });
+
+    const pendingFeeCount = pendingFeesRaw.length;
+    const pendingFeeAmount = pendingFeesRaw.reduce((t, inv) => {
+      const net = new Decimal(inv.netAmount ?? 0);
+      const fine = new Decimal(inv.lateFineAmount ?? 0);
+      const paid = new Decimal(inv.paidAmount ?? 0);
+      return t.plus(net.plus(fine).minus(paid));
+    }, new Decimal(0)).toFixed(2);
 
     /* ---------- today's admissions (with placement) ---------- */
     const todayIds = todayStudents.map((s) => s.id);
     const todayEnrollments = todayIds.length
-      ? await this.enrollments.find({ where: { studentId: In(todayIds), isActive: true } })
+      ? await this.prisma.studentEnrollments.findMany({
+          where: { studentId: { in: todayIds }, isActive: true },
+        })
       : [];
     const enrollByStudent = new Map(todayEnrollments.map((e) => [e.studentId, e]));
     const todayAdmissions: TodayAdmissionRow[] = todayStudents.map((s) => {
@@ -225,24 +215,27 @@ export class AdmissionDashboardService {
     });
 
     /* ---------- pending admission fees (with student names) ---------- */
-    const pendingStudentIds = Array.from(new Set(pendingRows.map((r) => r.studentId)));
+    const pendingStudentIds = Array.from(new Set(pendingFeesRaw.map((r) => r.studentId)));
     const pendingStudents = pendingStudentIds.length
-      ? await this.students.find({ where: { id: In(pendingStudentIds) } })
+      ? await this.prisma.students.findMany({ where: { id: { in: pendingStudentIds } } })
       : [];
     const studentById = new Map(pendingStudents.map((s) => [s.id, s]));
-    const pendingFees: PendingFeeRow[] = pendingRows.map((r) => {
+    const pendingFees: PendingFeeRow[] = pendingFeesRaw.map((r) => {
       const dueDate = toDateOnly(r.dueDate);
+      const net = new Decimal(r.netAmount ?? 0);
+      const fine = new Decimal(r.lateFineAmount ?? 0);
+      const paid = new Decimal(r.paidAmount ?? 0);
       return {
-        invoiceId: r.invoiceId,
+        invoiceId: r.id,
         invoiceNo: r.invoiceNo,
         studentId: r.studentId,
-        studentUniqueId: studentById.get(r.studentId)?.studentUniqueId ?? "—",
-        fullNameEn: studentById.get(r.studentId)?.fullNameEn ?? "—",
+        studentUniqueId: studentById.get(r.studentId)?.studentUniqueId ?? '—',
+        fullNameEn: studentById.get(r.studentId)?.fullNameEn ?? '—',
         billingPeriod: r.billingPeriod,
         dueDate,
-        netAmount: new Decimal(r.netAmount ?? 0).toFixed(2),
-        paidAmount: new Decimal(r.paidAmount ?? 0).toFixed(2),
-        outstanding: new Decimal(r.outstanding ?? 0).toFixed(2),
+        netAmount: net.toFixed(2),
+        paidAmount: paid.toFixed(2),
+        outstanding: net.plus(fine).minus(paid).toFixed(2),
         overdue: dueDate < today,
       };
     });
@@ -267,15 +260,6 @@ export class AdmissionDashboardService {
       pendingFees,
     };
   }
-
-  /** Admission invoices (billing_period = ADMISSION-*) with an outstanding balance. */
-  private pendingBase() {
-    return this.invoices
-      .createQueryBuilder('inv')
-      .where("inv.billingPeriod LIKE 'ADMISSION-%'")
-      .andWhere('inv.status != :reversed', { reversed: 'REVERSED' })
-      .andWhere('(inv.netAmount + inv.lateFineAmount - inv.paidAmount) > 0');
-  }
 }
 
 function pct(part: number, whole: number): number {
@@ -287,8 +271,8 @@ function pct(part: number, whole: number): number {
 function toDateOnly(v: string | Date): string {
   if (v instanceof Date) {
     const y = v.getFullYear();
-    const m = String(v.getMonth() + 1).padStart(2, "0");
-    const d = String(v.getDate()).padStart(2, "0");
+    const m = String(v.getMonth() + 1).padStart(2, '0');
+    const d = String(v.getDate()).padStart(2, '0');
     return `${y}-${m}-${d}`;
   }
   return String(v).slice(0, 10);

@@ -16,8 +16,6 @@ import { wireFormatExtension } from './wire.extension';
  * Prisma 7 runs without a Rust query engine and connects through a driver
  * adapter; for MySQL/MariaDB that is `@prisma/adapter-mariadb` over the
  * `mariadb` driver.
- *
- * Coexists with the TypeORM DataSource while modules are migrated wave by wave.
  */
 @Injectable()
 export class PrismaService

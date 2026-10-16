@@ -15,7 +15,7 @@ import {
  * write lock (`FOR UPDATE`) on the counter row so two concurrent
  * postings can never receive the same number.
  *
- * AD-P7: the TypeORM `EntityManager` is now a `Prisma.TransactionClient`.
+ * AD-P7: the Prisma `TransactionClient` is used for transaction scoping.
  * The lock and the read are a single `SELECT … FOR UPDATE` (a *current*
  * read) so the counter is never taken from a REPEATABLE READ snapshot.
  */

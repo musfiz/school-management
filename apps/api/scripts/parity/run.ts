@@ -34,7 +34,7 @@ async function main(): Promise<void> {
   const goldenPath = join(goldenDir, `${name}.json`);
 
   // Boot the whole app context (no HTTP listener): every module's providers,
-  // both the TypeORM DataSource and the Prisma client, are live.
+  // including the Prisma client, are live.
   const app = await NestFactory.createApplicationContext(AppModule, {
     logger: false,
   });
