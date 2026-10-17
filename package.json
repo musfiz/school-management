@@ -11,11 +11,13 @@
     "build": "turbo run build",
     "lint": "turbo run lint",
     "clean": "turbo run clean",
-    "migration:generate": "pnpm --filter api run migration:generate",
-    "migration:make": "node scripts/make-migration.mjs",
-    "migration:run": "pnpm --filter api run migration:run",
-    "migration:revert": "pnpm --filter api run migration:revert",
-    "seed": "pnpm --filter api run seed",
+    "prisma:generate": "pnpm --filter api run prisma:generate",
+    "prisma:migrate": "pnpm --filter api run prisma:migrate",
+    "prisma:deploy": "pnpm --filter api run prisma:deploy",
+    "prisma:status": "pnpm --filter api run prisma:status",
+    "prisma:studio": "pnpm --filter api run prisma:studio",
+    "prisma:pull": "pnpm --filter api run prisma:pull",
+    "prisma:smoke": "pnpm --filter api run prisma:smoke",
     "ports:free": "node scripts/free-port.mjs"
   },
   "devDependencies": {

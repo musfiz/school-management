@@ -2,6 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import Decimal from 'decimal.js';
 import { PrismaService } from '../prisma/prisma.service';
 import type { Prisma as PrismaTypes } from '../generated/prisma/client';
+import { toDateValue } from '../prisma/wire';
 import { PAYMENT_CHANNELS } from '../database/entities/payment-collection.entity';
 import { StudentBillingService } from '../accounting/student-billing.service';
 import { FeeCollectionService } from '../accounting/fee-collection.service';
@@ -215,7 +216,7 @@ export class StudentOnboardingService {
             fullNameEn: dto.student.fullNameEn.trim(),
             fullNameBn: dto.student.fullNameBn ?? null,
             gender: dto.student.gender.trim().toUpperCase(),
-            dateOfBirth: dto.student.dateOfBirth.slice(0, 10),
+            dateOfBirth: toDateValue(dto.student.dateOfBirth.slice(0, 10)),
             birthRegNo: dto.student.birthRegNo ?? null,
             nationalIdNo: dto.student.nationalIdNo ?? null,
             religion: dto.student.religion.trim().toUpperCase(),
@@ -226,7 +227,7 @@ export class StudentOnboardingService {
             stipendAccountNo: dto.student.stipendAccountNo ?? null,
             pickupGuardianName: dto.student.pickupGuardianName ?? null,
             pickupGuardianPhone: dto.student.pickupGuardianPhone ?? null,
-            admissionDate,
+            admissionDate: toDateValue(admissionDate),
             currentStatus: 'ACTIVE',
           },
         });
@@ -246,7 +247,7 @@ export class StudentOnboardingService {
               gpaObtained: e.gpaObtained ?? null,
               gpaScale: '5.00',
               tcNumber: e.tcNumber ?? null,
-              tcDate: e.tcDate ?? null,
+              tcDate: e.tcDate ? toDateValue(String(e.tcDate).slice(0, 10)) : null,
             })),
           });
         }
@@ -299,8 +300,8 @@ export class StudentOnboardingService {
             fixedCapAmount: null,
             contraGlId: null,
             fundId: w.fundId,
-            activeFrom: w.activeFrom,
-            activeTo: w.activeTo,
+            activeFrom: toDateValue(w.activeFrom),
+            activeTo: toDateValue(w.activeTo),
             isActive: true,
             remark: w.remark,
           })),

@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import Decimal from 'decimal.js';
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma } from '../generated/prisma/client';
+import { toDateValue } from '../prisma/wire';
 import { ADMISSION_APPLICATION_STATUSES } from '../database/entities/admission-application.entity';
 
 export interface AdmissionDashboardKpis {
@@ -103,7 +104,7 @@ export class AdmissionDashboardService {
           _count: { id: true },
         }),
         this.prisma.students.findMany({
-          where: { admissionDate: today },
+          where: { admissionDate: toDateValue(today) },
           orderBy: { createdAt: 'desc' },
           take: 100,
         }),

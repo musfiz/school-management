@@ -223,7 +223,7 @@ All scripts run from the repo root and are powered by Turborepo.
 | `pnpm prisma:studio`         | Opens Prisma Studio (database GUI)                         |
 | `pnpm prisma:generate`       | Regenerates Prisma Client from schema                      |
 | `pnpm prisma:pull`           | Pulls schema changes from the database                     |
-| `pnpm seed`                  | Seeds the database with initial data                       |
+| `pnpm prisma:smoke`          | Runs a smoke test against the Prisma client                |
 | `pnpm ports:free [port…]`    | Force-frees stuck dev server ports (default `3030 3031`)   |
 
 Filter any of these with `--filter`:
@@ -434,7 +434,11 @@ export class SomeService {
 }
 ```
 
-### Common Prisma commands (run in `apps/api`)
+### Common Prisma commands
+
+These root shortcuts forward to `apps/api` (`pnpm --filter api run …`), so they
+work from the repo root. Extra flags are forwarded too, e.g.
+`pnpm prisma:migrate -- --name add_students_nid`.
 
 | Command | Purpose |
 |---------|---------|

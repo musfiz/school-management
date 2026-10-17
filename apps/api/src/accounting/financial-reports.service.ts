@@ -3,6 +3,7 @@ import Decimal from 'decimal.js';
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma } from '../generated/prisma/client';
 import type { Prisma as PrismaTypes } from '../generated/prisma/client';
+import { toDateValue } from '../prisma/wire';
 import {
   BalanceSheetQueryDto,
   DateRangeReportDto,
@@ -47,7 +48,7 @@ export class FinancialReportsService {
         ...(dto.costCenterId ? { costCenterId: dto.costCenterId } : {}),
         journalEntries: {
           ...lineFilter().journalEntries,
-          transactionDate: { lt: startDate },
+          transactionDate: { lt: toDateValue(startDate) },
         },
       },
     });
@@ -68,7 +69,7 @@ export class FinancialReportsService {
         ...(dto.costCenterId ? { costCenterId: dto.costCenterId } : {}),
         journalEntries: {
           status: 'APPROVED',
-          transactionDate: { gte: startDate, lte: endDate },
+          transactionDate: { gte: toDateValue(startDate), lte: toDateValue(endDate) },
         },
       },
     });
@@ -213,7 +214,7 @@ export class FinancialReportsService {
         glAccountId: { in: cashBankIdList },
         journalEntries: {
           status: 'APPROVED',
-          transactionDate: { lt: startDate },
+          transactionDate: { lt: toDateValue(startDate) },
         },
         ...(dto.fundId ? { fundId: dto.fundId } : {}),
         ...(dto.costCenterId ? { costCenterId: dto.costCenterId } : {}),
@@ -245,7 +246,7 @@ export class FinancialReportsService {
       },
       where: {
         status: 'APPROVED',
-        transactionDate: { gte: startDate, lte: endDate },
+        transactionDate: { gte: toDateValue(startDate), lte: toDateValue(endDate) },
       },
       orderBy: [{ transactionDate: 'asc' }, { createdAt: 'asc' }],
     });
@@ -325,7 +326,7 @@ export class FinancialReportsService {
         glAccountId: { in: cashBankIdList },
         journalEntries: {
           status: 'APPROVED',
-          transactionDate: { lte: endDate },
+          transactionDate: { lte: toDateValue(endDate) },
         },
         ...(dto.fundId ? { fundId: dto.fundId } : {}),
         ...(dto.costCenterId ? { costCenterId: dto.costCenterId } : {}),
@@ -381,7 +382,7 @@ export class FinancialReportsService {
       where: {
         journalEntries: {
           status: 'APPROVED',
-          transactionDate: { gte: startDate, lte: endDate },
+          transactionDate: { gte: toDateValue(startDate), lte: toDateValue(endDate) },
         },
         ...(dto.fundId ? { fundId: dto.fundId } : {}),
         ...(dto.costCenterId ? { costCenterId: dto.costCenterId } : {}),
@@ -475,7 +476,7 @@ export class FinancialReportsService {
       where: {
         journalEntries: {
           status: 'APPROVED',
-          transactionDate: { lte: asOfDate },
+          transactionDate: { lte: toDateValue(asOfDate) },
         },
         ...(dto.fundId ? { fundId: dto.fundId } : {}),
       },
@@ -720,7 +721,7 @@ export class FinancialReportsService {
         glAccountId: dto.glAccountId,
         journalEntries: {
           status: 'APPROVED',
-          transactionDate: { lt: startDate },
+          transactionDate: { lt: toDateValue(startDate) },
         },
         ...(dto.fundId ? { fundId: dto.fundId } : {}),
         ...(dto.costCenterId ? { costCenterId: dto.costCenterId } : {}),
@@ -747,7 +748,7 @@ export class FinancialReportsService {
         glAccountId: dto.glAccountId,
         journalEntries: {
           status: 'APPROVED',
-          transactionDate: { gte: startDate, lte: endDate },
+          transactionDate: { gte: toDateValue(startDate), lte: toDateValue(endDate) },
         },
         ...(dto.fundId ? { fundId: dto.fundId } : {}),
         ...(dto.costCenterId ? { costCenterId: dto.costCenterId } : {}),

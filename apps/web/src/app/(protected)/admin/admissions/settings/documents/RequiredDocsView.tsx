@@ -7,6 +7,7 @@ import AdminPageLoader from "@/components/dashboard/AdminPageLoader";
 import SearchSelect from "@/components/ui/SearchSelect";
 import { apiFetch } from "@/lib/api";
 import { confirmDialog, toast } from "@/lib/swal";
+import type { StudentFilterOptions } from "@/lib/admissions";
 
 const INPUT =
   "w-full rounded-xs cursor-pointer border border-ink-200 bg-white px-2.5 py-1 text-sm outline-none transition-colors focus:border-brand-400";
@@ -79,7 +80,7 @@ export default function RequiredDocsView() {
       const [rulesRes, typesRes, filterRes] = await Promise.all([
         apiFetch<RequiredDocumentRule[]>("/api/admissions/required-document-rules"),
         apiFetch<string[]>("/api/admissions/documents/types"),
-        apiFetch<{ classes: Option[] }>("/api/admissions/filter-options"),
+        apiFetch<StudentFilterOptions>("/api/admissions/students/filter-options"),
       ]);
       setRules(rulesRes);
       setDocTypes((typesRes ?? []).map((t) => ({ value: t, label: docLabel(t) })));

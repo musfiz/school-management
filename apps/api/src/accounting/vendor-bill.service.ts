@@ -7,6 +7,7 @@ import Decimal from 'decimal.js';
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma } from '../generated/prisma/client';
 import type { Prisma as PrismaTypes } from '../generated/prisma/client';
+import { toDateValue } from '../prisma/wire';
 import { VENDOR_BILL_STATUSES } from '../database/entities/vendor-bill.entity';
 import { ChartOfAccount } from '../database/entities/chart-of-account.entity';
 import { Fund } from '../database/entities/fund.entity';
@@ -20,6 +21,49 @@ import type {
   CreateVendorDto,
   PayVendorBillDto,
 } from './procurement.dto';
+
+/**
+ * Legacy wire-shape mappers (docs/PRISMA_MIGRATION_PLAN.md AD-P13).
+ *
+ * Prisma names relations after the referenced model (`chartOfAccounts`,
+ * `journalEntries`, `taxChallanItems`, `vendorBills`), but Phase 5 callers were
+ * built against the TypeORM navigation-property names (`expenseGl`, `glJournal`,
+ * `items`, `vendorBill`). These helpers restore the JSON contract the web app
+ * (`apps/web/src/lib/payables.ts`) expects. Relations only — DECIMAL/DATE
+ * coercion is handled centrally by `wireFormatExtension`.
+ */
+function journalToWire(je: any) {
+  if (!je || !je.journalLines) return je;
+  const { journalLines, ...rest } = je;
+  return { ...rest, lines: journalLines };
+}
+
+function billToWire(b: any) {
+  if (!b) return b;
+  const { vendors, chartOfAccounts, funds, costCenters, journalEntries, ...rest } = b;
+  return {
+    ...rest,
+    vendor: vendors,
+    expenseGl: chartOfAccounts,
+    fund: funds,
+    costCenter: costCenters,
+    glJournal: journalToWire(journalEntries),
+  };
+}
+
+function challanToWire(c: any) {
+  if (!c) return c;
+  const { taxChallanItems, chartOfAccounts, journalEntries, ...rest } = c;
+  return {
+    ...rest,
+    bankGl: chartOfAccounts,
+    items: (taxChallanItems ?? []).map((it: any) => {
+      const { vendorBills, ...itemRest } = it;
+      return { ...itemRest, vendorBill: vendorBills };
+    }),
+    glJournal: journalToWire(journalEntries),
+  };
+}
 
 /**
  * Phase 5 — procurement, vendor payables & NBR withholding
@@ -71,26 +115,27 @@ export class VendorBillService {
 
   /* ================= bills ================= */
 
-  listBills(filters: { vendorId?: string; status?: string; limit?: number }) {
-    return this.prisma.vendorBills.findMany({
+  async listBills(filters: { vendorId?: string; status?: string; limit?: number }) {
+    const rows = await this.prisma.vendorBills.findMany({
       where: {
         ...(filters.vendorId ? { vendorId: filters.vendorId } : {}),
         ...(filters.status ? { status: filters.status } : {}),
       },
       include: {
         vendors: true,
-        expenseGl: true,
-        fund: true,
-        costCenter: true,
-        glJournal: true,
+        chartOfAccounts: true,
+        funds: true,
+        costCenters: true,
+        journalEntries: true,
       },
       orderBy: [{ billDate: 'desc' }, { createdAt: 'desc' }],
       take: Math.min(Math.max(filters.limit ?? 100, 1), 500),
     });
+    return rows.map(billToWire);
   }
 
-  findBill(id: string) {
-    return this.findBillIn(this.prisma, id);
+  async findBill(id: string) {
+    return billToWire(await this.findBillIn(this.prisma, id));
   }
 
   /** DRAFT entry — taxes computed, nothing posted yet. */
@@ -135,8 +180,8 @@ export class VendorBillService {
             expenseGlId: expenseGl.id,
             fundId: fund.id,
             costCenterId: costCenter?.id ?? null,
-            billDate,
-            dueDate,
+            billDate: toDateValue(billDate),
+            dueDate: toDateValue(dueDate),
             supplierInvoiceNo: dto.supplierInvoiceNo?.trim() || null,
             grossAmount: gross.toFixed(2),
             tdsRate: tdsRate.toFixed(2),
@@ -229,7 +274,7 @@ export class VendorBillService {
           where: { id: journal.id },
           data: { sourceReferenceId: bill.id },
         });
-        return this.findBillIn(tx, bill.id);
+        return billToWire(await this.findBillIn(tx, bill.id));
       },
       { isolationLevel: 'RepeatableRead' },
     );
@@ -293,7 +338,7 @@ export class VendorBillService {
           where: { id: journal.id },
           data: { sourceReferenceId: bill.id },
         });
-        return this.findBillIn(tx, bill.id);
+        return billToWire(await this.findBillIn(tx, bill.id));
       },
       { isolationLevel: 'RepeatableRead' },
     );
@@ -353,20 +398,21 @@ export class VendorBillService {
     return { legs, totalPending: total.toFixed(2) };
   }
 
-  listChallans(limit = 100) {
-    return this.prisma.taxChallans.findMany({
+  async listChallans(limit = 100) {
+    const rows = await this.prisma.taxChallans.findMany({
       include: {
         chartOfAccounts: true,
-        items: { include: { vendorBill: true } },
-        glJournal: true,
+        taxChallanItems: { include: { vendorBills: true } },
+        journalEntries: true,
       },
       orderBy: [{ challanDate: 'desc' }, { createdAt: 'desc' }],
       take: Math.min(Math.max(limit, 1), 500),
     });
+    return rows.map(challanToWire);
   }
 
-  findChallan(id: string) {
-    return this.findChallanIn(this.prisma, id);
+  async findChallan(id: string) {
+    return challanToWire(await this.findChallanIn(this.prisma, id));
   }
 
   /**
@@ -445,7 +491,7 @@ export class VendorBillService {
         const saved = await tx.taxChallans.create({
           data: {
             challanNo: dto.challanNo.trim(),
-            challanDate: dto.challanDate.slice(0, 10),
+            challanDate: toDateValue(dto.challanDate.slice(0, 10)),
             bankGlId: bank.id,
             depositBankName: dto.depositBankName?.trim() || null,
             totalAmount: total.toFixed(2),
@@ -479,7 +525,7 @@ export class VendorBillService {
           where: { id: journal.id },
           data: { sourceReferenceId: saved.id },
         });
-        return this.findChallanIn(tx, saved.id);
+        return challanToWire(await this.findChallanIn(tx, saved.id));
       },
       { isolationLevel: 'RepeatableRead' },
     );
@@ -490,7 +536,13 @@ export class VendorBillService {
   private async findBillIn(tx: PrismaTypes.TransactionClient, id: string) {
     const bill = await tx.vendorBills.findUnique({
       where: { id },
-      include: { vendors: true, expenseGl: true, fund: true, costCenter: true, glJournal: { include: { lines: true } } },
+      include: {
+        vendors: true,
+        chartOfAccounts: true,
+        funds: true,
+        costCenters: true,
+        journalEntries: { include: { journalLines: true } },
+      },
     });
     if (!bill) throw new NotFoundException(`Vendor bill #${id} not found`);
     return bill;
@@ -501,8 +553,8 @@ export class VendorBillService {
       where: { id },
       include: {
         chartOfAccounts: true,
-        items: { include: { vendorBill: true } },
-        glJournal: { include: { lines: true } },
+        taxChallanItems: { include: { vendorBills: true } },
+        journalEntries: { include: { journalLines: true } },
       },
     });
     if (!row) throw new NotFoundException(`Tax challan #${id} not found`);

@@ -7,6 +7,7 @@ import Decimal from 'decimal.js';
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma } from '../generated/prisma/client';
 import type { Prisma as PrismaTypes } from '../generated/prisma/client';
+import { toDateValue } from '../prisma/wire';
 import {
   PAYROLL_RUN_STATUSES,
 } from '../database/entities/payroll-run.entity';
@@ -24,6 +25,50 @@ import type {
   PayHonorariumDto,
   PayPayrollRunDto,
 } from './payroll.dto';
+
+/**
+ * Legacy wire-shape mappers (docs/PRISMA_MIGRATION_PLAN.md AD-P13).
+ *
+ * Prisma names relations after the referenced model, but the Phase 6 web app
+ * (`apps/web/src/lib/payroll.ts`) expects TypeORM navigation-property names:
+ * `fund`, `glJournal`, `paymentJournal`, `lines`, and (honorarium) `glJournal`.
+ */
+function journalToWire(je: any) {
+  if (!je || !je.journalLines) return je;
+  const { journalLines, ...rest } = je;
+  return { ...rest, lines: journalLines };
+}
+
+function runToWire(r: any) {
+  if (!r) return r;
+  const {
+    funds,
+    costCenters,
+    journalEntriesPayrollRunsGlJournalIdTojournalEntries: glJournal,
+    journalEntriesPayrollRunsPaymentJournalIdTojournalEntries: paymentJournal,
+    payslipLines,
+    ...rest
+  } = r;
+  return {
+    ...rest,
+    fund: funds,
+    costCenter: costCenters,
+    glJournal,
+    paymentJournal,
+    lines: payslipLines,
+  };
+}
+
+function honorariumToWire(b: any) {
+  if (!b) return b;
+  const { funds, costCenters, journalEntries, ...rest } = b;
+  return {
+    ...rest,
+    fund: funds,
+    costCenter: costCenters,
+    glJournal: journalToWire(journalEntries),
+  };
+}
 
 /**
  * Phase 6 — payroll, MPO split, adjunct honorarium & PF
@@ -54,8 +99,8 @@ export class PayrollAccountingService {
 
   /* ================= salary runs ================= */
 
-  listRuns(limit = 100) {
-    return this.prisma.payrollRuns.findMany({
+  async listRuns(limit = 100) {
+    const rows = await this.prisma.payrollRuns.findMany({
       include: {
         funds: true,
         costCenters: true,
@@ -66,10 +111,11 @@ export class PayrollAccountingService {
       orderBy: [{ payrollMonth: 'desc' }, { createdAt: 'desc' }],
       take: Math.min(Math.max(limit, 1), 500),
     });
+    return rows.map(runToWire);
   }
 
-  findRun(id: string) {
-    return this.findRunIn(this.prisma, id);
+  async findRun(id: string) {
+    return runToWire(await this.findRunIn(this.prisma, id));
   }
 
   async createRun(dto: CreatePayrollRunDto, actorId: string) {
@@ -87,7 +133,7 @@ export class PayrollAccountingService {
           data: {
             runNo,
             payrollMonth: dto.payrollMonth,
-            payDate: dto.payDate.slice(0, 10),
+            payDate: toDateValue(dto.payDate.slice(0, 10)),
             fundId: fund.id,
             costCenterId: costCenter?.id ?? null,
             status: 'DRAFT',
@@ -224,7 +270,7 @@ export class PayrollAccountingService {
           where: { id: journal.id },
           data: { sourceReferenceId: run.id },
         });
-        return this.findRunIn(tx, run.id);
+        return runToWire(await this.findRunIn(tx, run.id));
       },
       { isolationLevel: 'RepeatableRead' },
     );
@@ -282,7 +328,7 @@ export class PayrollAccountingService {
           where: { id: journal.id },
           data: { sourceReferenceId: run.id },
         });
-        return this.findRunIn(tx, run.id);
+        return runToWire(await this.findRunIn(tx, run.id));
       },
       { isolationLevel: 'RepeatableRead' },
     );
@@ -297,16 +343,17 @@ export class PayrollAccountingService {
 
   /* ================= honorarium ================= */
 
-  listHonoraria(limit = 100) {
-    return this.prisma.adjunctHonorariumBills.findMany({
-      include: { funds: true, costCenters: true, glJournal: true },
+  async listHonoraria(limit = 100) {
+    const rows = await this.prisma.adjunctHonorariumBills.findMany({
+      include: { funds: true, costCenters: true, journalEntries: true },
       orderBy: [{ workMonth: 'desc' }, { createdAt: 'desc' }],
       take: Math.min(Math.max(limit, 1), 500),
     });
+    return rows.map(honorariumToWire);
   }
 
-  findHonorarium(id: string) {
-    return this.findHonorariumIn(this.prisma, id);
+  async findHonorarium(id: string) {
+    return honorariumToWire(await this.findHonorariumIn(this.prisma, id));
   }
 
   async createHonorarium(dto: CreateHonorariumDto, actorId: string) {
@@ -415,7 +462,7 @@ export class PayrollAccountingService {
           where: { id: journal.id },
           data: { sourceReferenceId: bill.id },
         });
-        return this.findHonorariumIn(tx, bill.id);
+        return honorariumToWire(await this.findHonorariumIn(tx, bill.id));
       },
       { isolationLevel: 'RepeatableRead' },
     );
@@ -467,7 +514,7 @@ export class PayrollAccountingService {
           where: { id: journal.id },
           data: { sourceReferenceId: bill.id },
         });
-        return this.findHonorariumIn(tx, bill.id);
+        return honorariumToWire(await this.findHonorariumIn(tx, bill.id));
       },
       { isolationLevel: 'RepeatableRead' },
     );
