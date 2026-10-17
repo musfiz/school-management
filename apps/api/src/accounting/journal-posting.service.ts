@@ -4,16 +4,11 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, EntityManager, Repository } from 'typeorm';
 import Decimal from 'decimal.js';
-import { JournalEntry } from '../database/entities/journal-entry.entity';
-import { JournalLine } from '../database/entities/journal-line.entity';
-import { ChartOfAccount } from '../database/entities/chart-of-account.entity';
-import { Fund } from '../database/entities/fund.entity';
-import { CostCenter } from '../database/entities/cost-center.entity';
-import { FiscalPeriod } from '../database/entities/fiscal-period.entity';
-import { User } from '../database/entities/user.entity';
+import { PrismaService } from '../prisma/prisma.service';
+import { Prisma } from '../generated/prisma/client';
+import type { Prisma as PrismaTypes } from '../generated/prisma/client';
+import { toDateOnly, toDateValue } from '../prisma/wire';
 import { UserRole } from '../database/entities/user-role.enum';
 import { VoucherSequenceService } from './voucher-sequence.service';
 import {
@@ -26,6 +21,54 @@ interface CheckedLine extends JournalLineDto {
   debit: Decimal;
   credit: Decimal;
 }
+
+/** Detail include — matches TypeORM `relations: ['lines', 'lines.glAccount', 'lines.fund', 'lines.costCenter', 'fiscalPeriod']`. */
+const ENTRY_INCLUDE_ORDERED = {
+  fiscalPeriods: true,
+  journalLines: {
+    include: { chartOfAccounts: true, funds: true, costCenters: true },
+    orderBy: { debitAmount: 'desc' },
+  },
+} satisfies Prisma.JournalEntriesInclude;
+
+const ENTRY_INCLUDE_PLAIN = {
+  fiscalPeriods: true,
+  journalLines: {
+    include: { chartOfAccounts: true, funds: true, costCenters: true },
+  },
+} satisfies Prisma.JournalEntriesInclude;
+
+const ENTRY_LIST_INCLUDE = { fiscalPeriods: true } satisfies Prisma.JournalEntriesInclude;
+
+type EntryFullPayload = Prisma.JournalEntriesGetPayload<{ include: typeof ENTRY_INCLUDE_PLAIN }>;
+type EntryListPayload = Prisma.JournalEntriesGetPayload<{ include: typeof ENTRY_LIST_INCLUDE }>;
+
+/**
+ * Reshape a Prisma entry (relation names are pluralised) back to the legacy
+ * TypeORM shape the controllers/clients expect: `lines` (with `glAccount`,
+ * `fund`, `costCenter`) and `fiscalPeriod`.
+ */
+function entryToWire(entry: EntryFullPayload) {
+  const { fiscalPeriods, journalLines, ...rest } = entry;
+  return {
+    ...rest,
+    fiscalPeriod: fiscalPeriods,
+    lines: journalLines.map(({ chartOfAccounts, funds, costCenters, ...line }) => ({
+      ...line,
+      glAccount: chartOfAccounts,
+      fund: funds,
+      costCenter: costCenters,
+    })),
+  };
+}
+
+function entryToListWire(entry: EntryListPayload) {
+  const { fiscalPeriods, ...rest } = entry;
+  return { ...rest, fiscalPeriod: fiscalPeriods };
+}
+
+export type JournalEntryWire = ReturnType<typeof entryToWire>;
+export type JournalEntryListWire = ReturnType<typeof entryToListWire>;
 
 /**
  * Immutable double-entry posting engine (Phase 2, plan §3 Phase 2).
@@ -41,136 +84,125 @@ interface CheckedLine extends JournalLineDto {
  *
  * APPROVED entries are immutable: no update, no delete — only a linked
  * REVERSAL mirror entry (spec §1.7 no-delete policy).
+ *
+ * AD-P5/AD-P7: the transaction handle is a `Prisma.TransactionClient` and
+ * every write path runs under `REPEATABLE READ` (same as TypeORM).
  */
 @Injectable()
 export class JournalPostingService {
   constructor(
-    private readonly dataSource: DataSource,
-    @InjectRepository(JournalEntry)
-    private readonly entryRepo: Repository<JournalEntry>,
+    private readonly prisma: PrismaService,
     private readonly sequences: VoucherSequenceService,
   ) {}
 
   /* ---------------- queries ---------------- */
 
-  findAll(filters: { status?: string; voucherType?: string; search?: string; limit?: number }) {
-    const qb = this.entryRepo
-      .createQueryBuilder('e')
-      .leftJoinAndSelect('e.fiscalPeriod', 'fiscalPeriod')
-      .orderBy('e.transactionDate', 'DESC')
-      .addOrderBy('e.createdAt', 'DESC')
-      .take(Math.min(Math.max(filters.limit ?? 100, 1), 500));
-    if (filters.status) qb.andWhere('e.status = :status', { status: filters.status });
-    if (filters.voucherType) qb.andWhere('e.voucherType = :t', { t: filters.voucherType });
+  async findAll(filters: {
+    status?: string;
+    voucherType?: string;
+    search?: string;
+    limit?: number;
+  }): Promise<JournalEntryListWire[]> {
+    const where: Prisma.JournalEntriesWhereInput = {};
+    if (filters.status) where.status = filters.status;
+    if (filters.voucherType) where.voucherType = filters.voucherType;
     if (filters.search) {
-      qb.andWhere('(e.voucherNo LIKE :s OR e.narration LIKE :s)', { s: `%${filters.search}%` });
+      where.OR = [
+        { voucherNo: { contains: filters.search } },
+        { narration: { contains: filters.search } },
+      ];
     }
-    return qb.getMany();
+    const entries = await this.prisma.journalEntries.findMany({
+      where,
+      include: ENTRY_LIST_INCLUDE,
+      orderBy: [{ transactionDate: 'desc' }, { createdAt: 'desc' }],
+      take: Math.min(Math.max(filters.limit ?? 100, 1), 500),
+    });
+    return entries.map(entryToListWire);
   }
 
-  async findOne(id: string): Promise<JournalEntry> {
-    const entry = await this.entryRepo.findOne({
+  async findOne(id: string): Promise<JournalEntryWire> {
+    const entry = await this.prisma.journalEntries.findUnique({
       where: { id },
-      relations: [
-        'lines',
-        'lines.glAccount',
-        'lines.fund',
-        'lines.costCenter',
-        'fiscalPeriod',
-      ],
-      order: { lines: { debitAmount: 'DESC' } },
+      include: ENTRY_INCLUDE_ORDERED,
     });
     if (!entry) throw new NotFoundException(`Voucher #${id} not found`);
-    return entry;
+    return entryToWire(entry);
   }
 
   /* ---------------- maker: create draft ---------------- */
 
-  async createDraft(dto: CreateJournalEntryDto, makerId: string): Promise<JournalEntry> {
-    return this.dataSource.transaction('REPEATABLE READ', async (manager) => {
-      const lines = await this.checkLines(manager, dto.lines);
-      const period = await this.resolvePeriod(manager, dto.transactionDate, dto.fiscalPeriodId);
-      const voucherNo = await this.sequences.nextVoucherNo(
-        manager,
-        dto.voucherType,
-        dto.transactionDate,
-      );
-      const entry = manager.getRepository(JournalEntry).create({
-        voucherNo,
-        voucherType: dto.voucherType,
-        transactionDate: dto.transactionDate.slice(0, 10),
-        fiscalPeriodId: period.id,
-        sourceModule: dto.sourceModule ?? 'MANUAL',
-        sourceReferenceId: dto.sourceReferenceId ?? null,
-        narration: dto.narration.trim(),
-        status: 'DRAFT',
-        createdByUserId: makerId,
-      });
-      const saved = await manager.getRepository(JournalEntry).save(entry);
-      await manager.getRepository(JournalLine).save(
-        lines.map((l) =>
-          manager.getRepository(JournalLine).create({
-            journalEntryId: saved.id,
-            glAccountId: l.glAccountId,
-            fundId: l.fundId,
-            costCenterId: l.costCenterId ?? null,
-            subledgerType: l.subledgerType ?? null,
-            subledgerId: l.subledgerId ?? null,
-            debitAmount: l.debit.toFixed(2),
-            creditAmount: l.credit.toFixed(2),
-            lineMemo: l.lineMemo ?? null,
-          }),
-        ),
-      );
-      return this.findOneIn(manager, saved.id);
-    });
+  async createDraft(dto: CreateJournalEntryDto, makerId: string): Promise<JournalEntryWire> {
+    return this.prisma.$transaction(
+      async (tx) => {
+        const lines = await this.checkLines(tx, dto.lines);
+        const period = await this.resolvePeriod(tx, dto.transactionDate, dto.fiscalPeriodId);
+        const voucherNo = await this.sequences.nextVoucherNo(
+          tx,
+          dto.voucherType,
+          dto.transactionDate,
+        );
+        const saved = await tx.journalEntries.create({
+          data: {
+            voucherNo,
+            voucherType: dto.voucherType,
+            transactionDate: toDateValue(dto.transactionDate.slice(0, 10)),
+            fiscalPeriodId: period.id,
+            sourceModule: dto.sourceModule ?? 'MANUAL',
+            sourceReferenceId: dto.sourceReferenceId ?? null,
+            narration: dto.narration.trim(),
+            status: 'DRAFT',
+            createdByUserId: makerId,
+          },
+        });
+        await tx.journalLines.createMany({ data: lines.map((l) => this.lineData(saved.id, l)) });
+        return this.findOneIn(tx, saved.id);
+      },
+      { isolationLevel: 'RepeatableRead' },
+    );
   }
 
   /* ---------------- maker: edit draft ---------------- */
 
-  async updateDraft(id: string, dto: UpdateJournalDraftDto, userId: string): Promise<JournalEntry> {
-    return this.dataSource.transaction('REPEATABLE READ', async (manager) => {
-      const repo = manager.getRepository(JournalEntry);
-      const entry = await repo.findOne({ where: { id } });
-      if (!entry) throw new NotFoundException(`Voucher #${id} not found`);
-      if (entry.status !== 'DRAFT') {
-        throw new ForbiddenException(`Only DRAFT vouchers can be edited (${entry.status})`);
-      }
-      const txnDate = (dto.transactionDate ?? entry.transactionDate).slice(0, 10);
-      const period = await this.resolvePeriod(manager, txnDate, dto.fiscalPeriodId);
-      if (dto.lines) {
-        const lines = await this.checkLines(manager, dto.lines);
-        await manager.getRepository(JournalLine).delete({ journalEntryId: id });
-        await manager.getRepository(JournalLine).save(
-          lines.map((l) =>
-            manager.getRepository(JournalLine).create({
-              journalEntryId: id,
-              glAccountId: l.glAccountId,
-              fundId: l.fundId,
-              costCenterId: l.costCenterId ?? null,
-              subledgerType: l.subledgerType ?? null,
-              subledgerId: l.subledgerId ?? null,
-              debitAmount: l.debit.toFixed(2),
-              creditAmount: l.credit.toFixed(2),
-              lineMemo: l.lineMemo ?? null,
-            }),
-          ),
-        );
-      }
-      entry.transactionDate = txnDate;
-      entry.fiscalPeriodId = period.id;
-      if (dto.narration !== undefined) entry.narration = dto.narration.trim();
-      await repo.save(entry);
-      void userId;
-      return this.findOneIn(manager, id);
-    });
+  async updateDraft(
+    id: string,
+    dto: UpdateJournalDraftDto,
+    userId: string,
+  ): Promise<JournalEntryWire> {
+    return this.prisma.$transaction(
+      async (tx) => {
+        const entry = await tx.journalEntries.findUnique({ where: { id } });
+        if (!entry) throw new NotFoundException(`Voucher #${id} not found`);
+        if (entry.status !== 'DRAFT') {
+          throw new ForbiddenException(`Only DRAFT vouchers can be edited (${entry.status})`);
+        }
+        const txnDate = (dto.transactionDate ?? toDateOnly(entry.transactionDate)).slice(0, 10);
+        const period = await this.resolvePeriod(tx, txnDate, dto.fiscalPeriodId);
+        if (dto.lines) {
+          const lines = await this.checkLines(tx, dto.lines);
+          await tx.journalLines.deleteMany({ where: { journalEntryId: id } });
+          await tx.journalLines.createMany({ data: lines.map((l) => this.lineData(id, l)) });
+        }
+        await tx.journalEntries.update({
+          where: { id },
+          data: {
+            transactionDate: toDateValue(txnDate),
+            fiscalPeriodId: period.id,
+            ...(dto.narration !== undefined ? { narration: dto.narration.trim() } : {}),
+          },
+        });
+        void userId;
+        return this.findOneIn(tx, id);
+      },
+      { isolationLevel: 'RepeatableRead' },
+    );
   }
 
   /* ---------------- maker: delete draft ---------------- */
 
   async deleteDraft(id: string): Promise<{ deleted: true }> {
-    return this.dataSource.transaction(async (manager) => {
-      const entry = await manager.getRepository(JournalEntry).findOne({ where: { id } });
+    return this.prisma.$transaction(async (tx) => {
+      const entry = await tx.journalEntries.findUnique({ where: { id } });
       if (!entry) throw new NotFoundException(`Voucher #${id} not found`);
       if (entry.status !== 'DRAFT') {
         throw new ForbiddenException(
@@ -179,123 +211,143 @@ export class JournalPostingService {
       }
       // Lines cascade-delete via FK; the delete itself is blocked above
       // for anything past DRAFT (no-delete policy, spec §1.7).
-      await manager.getRepository(JournalEntry).delete(id);
+      await tx.journalEntries.delete({ where: { id } });
       return { deleted: true as const };
     });
   }
 
   /* ---------------- checker: verify ---------------- */
 
-  async verify(id: string, checkerId: string): Promise<JournalEntry> {
-    return this.dataSource.transaction('REPEATABLE READ', async (manager) => {
-      const repo = manager.getRepository(JournalEntry);
-      const entry = await repo.findOne({ where: { id }, relations: ['lines'] });
-      if (!entry) throw new NotFoundException(`Voucher #${id} not found`);
-      if (entry.status !== 'DRAFT') {
-        throw new BadRequestException(`Only DRAFT vouchers can be verified (${entry.status})`);
-      }
-      if (entry.createdByUserId === checkerId) {
-        throw new ForbiddenException('Maker cannot verify their own voucher (checker must differ)');
-      }
-      const makerRole = await this.roleOf(manager, entry.createdByUserId, 'Maker');
-      const checkerRole = await this.roleOf(manager, checkerId, 'Checker');
-      // Admin-superior priority: an admin-created voucher advances by admins only.
-      this.assertAdminSuperior(checkerRole, makerRole === UserRole.ADMIN, 'verify');
-      await this.recheckStoredLines(manager, entry.id);
-      entry.status = 'VERIFIED';
-      entry.verifiedByUserId = checkerId;
-      await repo.save(entry);
-      return this.findOneIn(manager, id);
-    });
+  async verify(id: string, checkerId: string): Promise<JournalEntryWire> {
+    return this.prisma.$transaction(
+      async (tx) => {
+        const entry = await tx.journalEntries.findUnique({
+          where: { id },
+          include: { journalLines: true },
+        });
+        if (!entry) throw new NotFoundException(`Voucher #${id} not found`);
+        if (entry.status !== 'DRAFT') {
+          throw new BadRequestException(`Only DRAFT vouchers can be verified (${entry.status})`);
+        }
+        if (entry.createdByUserId === checkerId) {
+          throw new ForbiddenException('Maker cannot verify their own voucher (checker must differ)');
+        }
+        const makerRole = await this.roleOf(tx, entry.createdByUserId, 'Maker');
+        const checkerRole = await this.roleOf(tx, checkerId, 'Checker');
+        // Admin-superior priority: an admin-created voucher advances by admins only.
+        this.assertAdminSuperior(checkerRole, makerRole === UserRole.ADMIN, 'verify');
+        await this.recheckStoredLines(tx, entry.id);
+        await tx.journalEntries.update({
+          where: { id },
+          data: { status: 'VERIFIED', verifiedByUserId: checkerId },
+        });
+        return this.findOneIn(tx, id);
+      },
+      { isolationLevel: 'RepeatableRead' },
+    );
   }
 
   /* ---------------- approver: approve ---------------- */
 
-  async approve(id: string, approverId: string): Promise<JournalEntry> {
-    return this.dataSource.transaction('REPEATABLE READ', async (manager) => {
-      const repo = manager.getRepository(JournalEntry);
-      const entry = await repo.findOne({ where: { id }, relations: ['lines'] });
-      if (!entry) throw new NotFoundException(`Voucher #${id} not found`);
-      if (entry.status !== 'VERIFIED') {
-        throw new BadRequestException(`Only VERIFIED vouchers can be approved (${entry.status})`);
-      }
-      if (entry.createdByUserId === approverId) {
-        throw new ForbiddenException('Maker cannot approve their own voucher');
-      }
-      if (entry.verifiedByUserId === approverId) {
-        throw new ForbiddenException('Checker cannot also approve the same voucher');
-      }
-      const makerRole = await this.roleOf(manager, entry.createdByUserId, 'Maker');
-      const verifierRole = entry.verifiedByUserId
-        ? await this.roleOf(manager, entry.verifiedByUserId, 'Checker')
-        : null;
-      const approverRole = await this.roleOf(manager, approverId, 'Approver');
-      // Admin-superior priority: anything an admin made or checked is approved by admins only.
-      this.assertAdminSuperior(
-        approverRole,
-        makerRole === UserRole.ADMIN || verifierRole === UserRole.ADMIN,
-        'approve',
-      );
-      // Re-run every rule inside the commit transaction (period may have
-      // been closed between verify and approve).
-      await this.recheckStoredLines(manager, entry.id);
-      entry.status = 'APPROVED';
-      entry.approvedByUserId = approverId;
-      entry.approvedAt = new Date();
-      await repo.save(entry);
-      return this.findOneIn(manager, id);
-    });
+  async approve(id: string, approverId: string): Promise<JournalEntryWire> {
+    return this.prisma.$transaction(
+      async (tx) => {
+        const entry = await tx.journalEntries.findUnique({
+          where: { id },
+          include: { journalLines: true },
+        });
+        if (!entry) throw new NotFoundException(`Voucher #${id} not found`);
+        if (entry.status !== 'VERIFIED') {
+          throw new BadRequestException(`Only VERIFIED vouchers can be approved (${entry.status})`);
+        }
+        if (entry.createdByUserId === approverId) {
+          throw new ForbiddenException('Maker cannot approve their own voucher');
+        }
+        if (entry.verifiedByUserId === approverId) {
+          throw new ForbiddenException('Checker cannot also approve the same voucher');
+        }
+        const makerRole = await this.roleOf(tx, entry.createdByUserId, 'Maker');
+        const verifierRole = entry.verifiedByUserId
+          ? await this.roleOf(tx, entry.verifiedByUserId, 'Checker')
+          : null;
+        const approverRole = await this.roleOf(tx, approverId, 'Approver');
+        // Admin-superior priority: anything an admin made or checked is approved by admins only.
+        this.assertAdminSuperior(
+          approverRole,
+          makerRole === UserRole.ADMIN || verifierRole === UserRole.ADMIN,
+          'approve',
+        );
+        // Re-run every rule inside the commit transaction (period may have
+        // been closed between verify and approve).
+        await this.recheckStoredLines(tx, entry.id);
+        await tx.journalEntries.update({
+          where: { id },
+          data: { status: 'APPROVED', approvedByUserId: approverId, approvedAt: new Date() },
+        });
+        return this.findOneIn(tx, id);
+      },
+      { isolationLevel: 'RepeatableRead' },
+    );
   }
 
   /* ---------------- approver: reverse (immutable correction) ---------------- */
 
-  async reverse(id: string, approverId: string, reason: string): Promise<JournalEntry> {
+  async reverse(id: string, approverId: string, reason: string): Promise<JournalEntryWire> {
     if (!reason || reason.trim().length < 3) {
       throw new BadRequestException('A reversal reason (min 3 chars) is required');
     }
-    return this.dataSource.transaction('REPEATABLE READ', async (manager) => {
-      const repo = manager.getRepository(JournalEntry);
-      const original = await repo.findOne({ where: { id }, relations: ['lines'] });
-      if (!original) throw new NotFoundException(`Voucher #${id} not found`);
-      if (original.status !== 'APPROVED') {
-        throw new BadRequestException(`Only APPROVED vouchers can be reversed (${original.status})`);
-      }
-      const actorRole = await this.roleOf(manager, approverId, 'Reverser');
-      const makerRole = await this.roleOf(manager, original.createdByUserId, 'Maker');
-      const verifierRole = original.verifiedByUserId
-        ? await this.roleOf(manager, original.verifiedByUserId, 'Checker')
-        : null;
-      const approverRole = original.approvedByUserId
-        ? await this.roleOf(manager, original.approvedByUserId, 'Approver')
-        : null;
-      // Same superiority chain as approve: admin-involved vouchers reverse by admins only.
-      this.assertAdminSuperior(
-        actorRole,
-        makerRole === UserRole.ADMIN ||
-          verifierRole === UserRole.ADMIN ||
-          approverRole === UserRole.ADMIN,
-        'reverse',
-      );
-      const period = await this.resolvePeriod(manager, original.transactionDate, undefined);
-      const voucherNo = await this.sequences.nextVoucherNo(manager, 'REVERSAL', original.transactionDate);
-      const mirror = repo.create({
-        voucherNo,
-        voucherType: 'REVERSAL',
-        transactionDate: original.transactionDate,
-        fiscalPeriodId: period.id,
-        sourceModule: original.sourceModule,
-        sourceReferenceId: original.id,
-        narration: `REVERSAL of ${original.voucherNo}: ${reason.trim()}`,
-        status: 'APPROVED',
-        createdByUserId: approverId,
-        verifiedByUserId: approverId,
-        approvedByUserId: approverId,
-        approvedAt: new Date(),
-      });
-      const savedMirror = await repo.save(mirror);
-      await manager.getRepository(JournalLine).save(
-        (original.lines ?? []).map((l) =>
-          manager.getRepository(JournalLine).create({
+    return this.prisma.$transaction(
+      async (tx) => {
+        const original = await tx.journalEntries.findUnique({
+          where: { id },
+          include: { journalLines: true },
+        });
+        if (!original) throw new NotFoundException(`Voucher #${id} not found`);
+        if (original.status !== 'APPROVED') {
+          throw new BadRequestException(
+            `Only APPROVED vouchers can be reversed (${original.status})`,
+          );
+        }
+        const actorRole = await this.roleOf(tx, approverId, 'Reverser');
+        const makerRole = await this.roleOf(tx, original.createdByUserId, 'Maker');
+        const verifierRole = original.verifiedByUserId
+          ? await this.roleOf(tx, original.verifiedByUserId, 'Checker')
+          : null;
+        const approverRole = original.approvedByUserId
+          ? await this.roleOf(tx, original.approvedByUserId, 'Approver')
+          : null;
+        // Same superiority chain as approve: admin-involved vouchers reverse by admins only.
+        this.assertAdminSuperior(
+          actorRole,
+          makerRole === UserRole.ADMIN ||
+            verifierRole === UserRole.ADMIN ||
+            approverRole === UserRole.ADMIN,
+          'reverse',
+        );
+        const period = await this.resolvePeriod(tx, toDateOnly(original.transactionDate));
+        const voucherNo = await this.sequences.nextVoucherNo(
+          tx,
+          'REVERSAL',
+          toDateOnly(original.transactionDate),
+        );
+        const savedMirror = await tx.journalEntries.create({
+          data: {
+            voucherNo,
+            voucherType: 'REVERSAL',
+            transactionDate: original.transactionDate,
+            fiscalPeriodId: period.id,
+            sourceModule: original.sourceModule,
+            sourceReferenceId: original.id,
+            narration: `REVERSAL of ${original.voucherNo}: ${reason.trim()}`,
+            status: 'APPROVED',
+            createdByUserId: approverId,
+            verifiedByUserId: approverId,
+            approvedByUserId: approverId,
+            approvedAt: new Date(),
+          },
+        });
+        await tx.journalLines.createMany({
+          data: (original.journalLines ?? []).map((l) => ({
             journalEntryId: savedMirror.id,
             glAccountId: l.glAccountId,
             fundId: l.fundId,
@@ -306,14 +358,16 @@ export class JournalPostingService {
             debitAmount: new Decimal(l.creditAmount).toFixed(2),
             creditAmount: new Decimal(l.debitAmount).toFixed(2),
             lineMemo: l.lineMemo,
-          }),
-        ),
-      );
-      original.status = 'REVERSED';
-      original.reversedEntryId = savedMirror.id;
-      await repo.save(original);
-      return this.findOneIn(manager, savedMirror.id);
-    });
+          })),
+        });
+        await tx.journalEntries.update({
+          where: { id: original.id },
+          data: { status: 'REVERSED', reversedEntryId: savedMirror.id },
+        });
+        return this.findOneIn(tx, savedMirror.id);
+      },
+      { isolationLevel: 'RepeatableRead' },
+    );
   }
 
   /* ---------------- system auto-post (STUDENT_BILLING etc.) ---------------- */
@@ -325,65 +379,61 @@ export class JournalPostingService {
    * all set to the triggering user — system postings never sit in DRAFT.
    */
   async postSystemJournal(
-    manager: EntityManager,
+    tx: PrismaTypes.TransactionClient,
     args: {
       voucherType: 'JOURNAL' | 'RECEIVE' | 'PAYMENT' | 'CONTRA';
       transactionDate: string;
       narration: string;
-      sourceModule: 'STUDENT_BILLING' | 'MFS_COLLECTION' | 'PAYROLL' | 'PROCUREMENT' | 'MANUAL';
+      sourceModule:
+        | 'STUDENT_BILLING'
+        | 'MFS_COLLECTION'
+        | 'PAYROLL'
+        | 'PROCUREMENT'
+        | 'ADMISSION'
+        | 'MANUAL';
       sourceReferenceId?: string | null;
       actorId: string;
       lines: JournalLineDto[];
     },
-  ): Promise<JournalEntry> {
-    const lines = await this.checkLines(manager, args.lines);
-    const period = await this.resolvePeriod(manager, args.transactionDate, undefined);
+  ): Promise<JournalEntryWire> {
+    const lines = await this.checkLines(tx, args.lines);
+    const period = await this.resolvePeriod(tx, args.transactionDate);
     const voucherNo = await this.sequences.nextVoucherNo(
-      manager,
+      tx,
       args.voucherType,
       args.transactionDate,
     );
-    const repo = manager.getRepository(JournalEntry);
-    const entry = repo.create({
-      voucherNo,
-      voucherType: args.voucherType,
-      transactionDate: args.transactionDate.slice(0, 10),
-      fiscalPeriodId: period.id,
-      sourceModule: args.sourceModule,
-      sourceReferenceId: args.sourceReferenceId ?? null,
-      narration: args.narration.trim(),
-      status: 'APPROVED',
-      createdByUserId: args.actorId,
-      verifiedByUserId: args.actorId,
-      approvedByUserId: args.actorId,
-      approvedAt: new Date(),
+    const saved = await tx.journalEntries.create({
+      data: {
+        voucherNo,
+        voucherType: args.voucherType,
+        transactionDate: toDateValue(args.transactionDate.slice(0, 10)),
+        fiscalPeriodId: period.id,
+        sourceModule: args.sourceModule,
+        sourceReferenceId: args.sourceReferenceId ?? null,
+        narration: args.narration.trim(),
+        status: 'APPROVED',
+        createdByUserId: args.actorId,
+        verifiedByUserId: args.actorId,
+        approvedByUserId: args.actorId,
+        approvedAt: new Date(),
+      },
     });
-    const saved = await repo.save(entry);
-    await manager.getRepository(JournalLine).save(
-      lines.map((l) =>
-        manager.getRepository(JournalLine).create({
-          journalEntryId: saved.id,
-          glAccountId: l.glAccountId,
-          fundId: l.fundId,
-          costCenterId: l.costCenterId ?? null,
-          subledgerType: l.subledgerType ?? null,
-          subledgerId: l.subledgerId ?? null,
-          debitAmount: l.debit.toFixed(2),
-          creditAmount: l.credit.toFixed(2),
-          lineMemo: l.lineMemo ?? null,
-        }),
-      ),
-    );
-    return this.findOneIn(manager, saved.id);
+    await tx.journalLines.createMany({ data: lines.map((l) => this.lineData(saved.id, l)) });
+    return this.findOneIn(tx, saved.id);
   }
 
   /* ---------------- rule engine ---------------- */
 
   /** Role lookup inside the caller's transaction (hierarchy enforcement). */
-  private async roleOf(manager: EntityManager, userId: string, who: string): Promise<UserRole> {
-    const user = await manager.getRepository(User).findOne({ where: { id: userId } });
+  private async roleOf(
+    tx: PrismaTypes.TransactionClient,
+    userId: string,
+    who: string,
+  ): Promise<UserRole> {
+    const user = await tx.users.findUnique({ where: { id: userId } });
     if (!user) throw new NotFoundException(`${who} user not found`);
-    return user.role;
+    return user.role as unknown as UserRole;
   }
 
   /**
@@ -398,30 +448,45 @@ export class JournalPostingService {
     }
   }
 
+  /** Shape one checked line into a `journal_lines` insert. */
+  private lineData(entryId: string, l: CheckedLine) {
+    return {
+      journalEntryId: entryId,
+      glAccountId: l.glAccountId,
+      fundId: l.fundId,
+      costCenterId: l.costCenterId ?? null,
+      subledgerType: l.subledgerType ?? null,
+      subledgerId: l.subledgerId ?? null,
+      debitAmount: l.debit.toFixed(2),
+      creditAmount: l.credit.toFixed(2),
+      lineMemo: l.lineMemo ?? null,
+    };
+  }
+
   /** Full validation of incoming DTO lines (masters + 5 posting rules). */
-  private async checkLines(manager: EntityManager, dtos: JournalLineDto[]): Promise<CheckedLine[]> {
+  private async checkLines(
+    tx: PrismaTypes.TransactionClient,
+    dtos: JournalLineDto[],
+  ): Promise<CheckedLine[]> {
     if (!dtos || dtos.length < 2) {
       throw new BadRequestException('A voucher needs at least two lines');
     }
-    const accountRepo = manager.getRepository(ChartOfAccount);
-    const fundRepo = manager.getRepository(Fund);
-    const centerRepo = manager.getRepository(CostCenter);
 
     const checked: CheckedLine[] = [];
     for (const [i, dto] of dtos.entries()) {
       const tag = `Line ${i + 1}`;
-      const account = await accountRepo.findOne({ where: { id: dto.glAccountId } });
+      const account = await tx.chartOfAccounts.findUnique({ where: { id: dto.glAccountId } });
       if (!account) throw new BadRequestException(`${tag}: GL account not found`);
       if (!account.isActive) {
         throw new BadRequestException(`${tag}: ${account.glCode} is inactive`);
       }
-      const fund = await fundRepo.findOne({ where: { id: dto.fundId } });
+      const fund = await tx.funds.findUnique({ where: { id: dto.fundId } });
       if (!fund) throw new BadRequestException(`${tag}: fund not found`);
       if (fund.isActive === false) {
         throw new BadRequestException(`${tag}: fund "${fund.fundCode}" is inactive`);
       }
       if (dto.costCenterId) {
-        const center = await centerRepo.findOne({ where: { id: dto.costCenterId } });
+        const center = await tx.costCenters.findUnique({ where: { id: dto.costCenterId } });
         if (!center) throw new BadRequestException(`${tag}: cost center not found`);
         if (center.isActive === false) {
           throw new BadRequestException(`${tag}: cost center "${center.centerCode}" is inactive`);
@@ -481,20 +546,23 @@ export class JournalPostingService {
   }
 
   /** Re-validate already-stored lines (verify/approve race against period close). */
-  private async recheckStoredLines(manager: EntityManager, entryId: string): Promise<void> {
-    const entry = await manager.getRepository(JournalEntry).findOne({
+  private async recheckStoredLines(
+    tx: PrismaTypes.TransactionClient,
+    entryId: string,
+  ): Promise<void> {
+    const entry = await tx.journalEntries.findUnique({
       where: { id: entryId },
-      relations: ['lines'],
+      include: { journalLines: true },
     });
     if (!entry) throw new NotFoundException(`Voucher #${entryId} not found`);
-    await this.resolvePeriod(manager, entry.transactionDate, entry.fiscalPeriodId);
+    await this.resolvePeriod(tx, toDateOnly(entry.transactionDate), entry.fiscalPeriodId);
     await this.checkLines(
-      manager,
-      (entry.lines ?? []).map((l) => ({
+      tx,
+      (entry.journalLines ?? []).map((l) => ({
         glAccountId: l.glAccountId,
         fundId: l.fundId,
         costCenterId: l.costCenterId,
-        subledgerType: l.subledgerType,
+        subledgerType: l.subledgerType as JournalLineDto['subledgerType'],
         subledgerId: l.subledgerId,
         debitAmount: String(l.debitAmount),
         creditAmount: String(l.creditAmount),
@@ -505,27 +573,28 @@ export class JournalPostingService {
 
   /** Rule 5 — resolve the open fiscal period for a transaction date. */
   private async resolvePeriod(
-    manager: EntityManager,
+    tx: PrismaTypes.TransactionClient,
     transactionDate: string,
     explicitId?: string,
-  ): Promise<FiscalPeriod> {
-    const repo = manager.getRepository(FiscalPeriod);
+  ): Promise<{ id: string }> {
     const day = transactionDate.slice(0, 10);
-    let period: FiscalPeriod | null;
+    let period: { id: string; periodName: string; startDate: Date; endDate: Date; isClosed: boolean } | null;
     if (explicitId) {
-      period = await repo.findOne({ where: { id: explicitId } });
-      if (!period) throw new BadRequestException('Fiscal period not found');
-      if (day < period.startDate || day > period.endDate) {
+      const found = await tx.fiscalPeriods.findUnique({ where: { id: explicitId } });
+      if (!found) throw new BadRequestException('Fiscal period not found');
+      period = found;
+      if (day < toDateOnly(period.startDate) || day > toDateOnly(period.endDate)) {
         throw new BadRequestException(
           `Transaction date ${day} is outside fiscal period "${period.periodName}"`,
         );
       }
     } else {
-      period = await repo
-        .createQueryBuilder('p')
-        .where('p.startDate <= :day', { day })
-        .andWhere('p.endDate >= :day', { day })
-        .getOne();
+      period = await tx.fiscalPeriods.findFirst({
+        where: {
+          startDate: { lte: toDateValue(day) },
+          endDate: { gte: toDateValue(day) },
+        },
+      });
       if (!period) {
         throw new BadRequestException(`No fiscal period covers transaction date ${day}`);
       }
@@ -554,12 +623,15 @@ export class JournalPostingService {
     return dec;
   }
 
-  private async findOneIn(manager: EntityManager, id: string): Promise<JournalEntry> {
-    const entry = await manager.getRepository(JournalEntry).findOne({
+  private async findOneIn(
+    tx: PrismaTypes.TransactionClient,
+    id: string,
+  ): Promise<JournalEntryWire> {
+    const entry = await tx.journalEntries.findUnique({
       where: { id },
-      relations: ['lines', 'lines.glAccount', 'lines.fund', 'lines.costCenter', 'fiscalPeriod'],
+      include: ENTRY_INCLUDE_PLAIN,
     });
     if (!entry) throw new NotFoundException(`Voucher #${id} not found`);
-    return entry;
+    return entryToWire(entry);
   }
 }

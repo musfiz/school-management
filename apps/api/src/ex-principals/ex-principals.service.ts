@@ -1,34 +1,42 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { ExPrincipal } from '../database/entities/ex-principal.entity';
+import { PrismaService } from '../prisma/prisma.service';
+import { toWire, toWireList } from '../prisma/wire';
 import { CreateExPrincipalDto, UpdateExPrincipalDto } from './ex-principal.dto';
 
 @Injectable()
 export class ExPrincipalsService {
-  constructor(
-    @InjectRepository(ExPrincipal)
-    private readonly repo: Repository<ExPrincipal>,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
-  findAll(): Promise<ExPrincipal[]> {
-    return this.repo.find({ order: { sortOrder: 'ASC', id: 'ASC' } });
+  async findAll() {
+    const rows = await this.prisma.exPrincipals.findMany({
+      orderBy: [{ sortOrder: 'asc' }, { id: 'asc' }],
+    });
+    return toWireList(rows);
   }
 
-  create(dto: CreateExPrincipalDto): Promise<ExPrincipal> {
-    return this.repo.save(this.repo.create(dto));
+  async create(dto: CreateExPrincipalDto) {
+    const row = await this.prisma.exPrincipals.create({ data: { ...dto } });
+    return toWire(row);
   }
 
-  async update(id: string, dto: UpdateExPrincipalDto): Promise<ExPrincipal> {
-    const principal = await this.repo.findOne({ where: { id } });
+  async update(id: string, dto: UpdateExPrincipalDto) {
+    const principal = await this.prisma.exPrincipals.findUnique({
+      where: { id },
+    });
     if (!principal) throw new NotFoundException(`Ex-principal ${id} not found`);
-    return this.repo.save(this.repo.merge(principal, dto));
+    const row = await this.prisma.exPrincipals.update({
+      where: { id },
+      data: { ...dto },
+    });
+    return toWire(row);
   }
 
   async remove(id: string): Promise<{ id: string }> {
-    const principal = await this.repo.findOne({ where: { id } });
+    const principal = await this.prisma.exPrincipals.findUnique({
+      where: { id },
+    });
     if (!principal) throw new NotFoundException(`Ex-principal ${id} not found`);
-    await this.repo.remove(principal);
+    await this.prisma.exPrincipals.delete({ where: { id } });
     return { id };
   }
 }

@@ -1,43 +1,48 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Slider } from '../database/entities/slider.entity';
+import { PrismaService } from '../prisma/prisma.service';
+import { toWire, toWireList } from '../prisma/wire';
 import { CreateSliderDto, UpdateSliderDto } from './slider.dto';
 
 @Injectable()
 export class SlidersService {
-  constructor(
-    @InjectRepository(Slider)
-    private readonly repo: Repository<Slider>,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   /** All slides, for the admin manager (includes inactive ones). */
-  findAll(): Promise<Slider[]> {
-    return this.repo.find({ order: { sortOrder: 'ASC', id: 'ASC' } });
+  async findAll() {
+    const rows = await this.prisma.sliders.findMany({
+      orderBy: [{ sortOrder: 'asc' }, { id: 'asc' }],
+    });
+    return toWireList(rows);
   }
 
   /** Only active slides, for the public hero carousel. */
-  findActive(): Promise<Slider[]> {
-    return this.repo.find({
+  async findActive() {
+    const rows = await this.prisma.sliders.findMany({
       where: { isActive: true },
-      order: { sortOrder: 'ASC', id: 'ASC' },
+      orderBy: [{ sortOrder: 'asc' }, { id: 'asc' }],
     });
+    return toWireList(rows);
   }
 
-  create(dto: CreateSliderDto): Promise<Slider> {
-    return this.repo.save(this.repo.create(dto));
+  async create(dto: CreateSliderDto) {
+    const row = await this.prisma.sliders.create({ data: { ...dto } });
+    return toWire(row);
   }
 
-  async update(id: string, dto: UpdateSliderDto): Promise<Slider> {
-    const slider = await this.repo.findOne({ where: { id } });
+  async update(id: string, dto: UpdateSliderDto) {
+    const slider = await this.prisma.sliders.findUnique({ where: { id } });
     if (!slider) throw new NotFoundException(`Slider ${id} not found`);
-    return this.repo.save(this.repo.merge(slider, dto));
+    const row = await this.prisma.sliders.update({
+      where: { id },
+      data: { ...dto },
+    });
+    return toWire(row);
   }
 
   async remove(id: string): Promise<{ id: string }> {
-    const slider = await this.repo.findOne({ where: { id } });
+    const slider = await this.prisma.sliders.findUnique({ where: { id } });
     if (!slider) throw new NotFoundException(`Slider ${id} not found`);
-    await this.repo.remove(slider);
+    await this.prisma.sliders.delete({ where: { id } });
     return { id };
   }
 }

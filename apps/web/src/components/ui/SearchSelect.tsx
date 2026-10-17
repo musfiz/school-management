@@ -1,5 +1,6 @@
 "use client";
 
+import { useId } from "react";
 import Select, { type StylesConfig } from "react-select";
 
 export interface SearchOption {
@@ -92,9 +93,16 @@ export default function SearchSelect({
   const selected = options.find((o) => o.value === value) ?? null;
   // Native tooltip shows the full text when the single-line ellipsis truncates it.
   const tooltip = selected ? selected.label : placeholder;
+  // react-select builds every DOM id (input, listbox, live region) from a
+  // module-level counter that keeps incrementing across SSR renders, while the
+  // client restarts at 1 — so the ids never match and React reports a hydration
+  // error. useId() is stable across server and client, so feed it in as the
+  // instance id (sanitized to keep the generated ids plain).
+  const instanceId = useId().replace(/[^a-zA-Z0-9_-]/g, "");
   return (
     <div className="w-full min-w-0" title={tooltip}>
     <Select<SearchOption, false>
+      instanceId={instanceId}
       aria-label={ariaLabel}
       value={selected}
       onChange={(opt) => onChange(opt?.value ?? "")}

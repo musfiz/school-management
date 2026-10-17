@@ -1,7 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { GoverningBodyMember } from '../database/entities/governing-body-member.entity';
+import { PrismaService } from '../prisma/prisma.service';
+import { toWire, toWireList } from '../prisma/wire';
 import {
   CreateGoverningBodyMemberDto,
   UpdateGoverningBodyMemberDto,
@@ -9,29 +8,40 @@ import {
 
 @Injectable()
 export class GoverningBodyService {
-  constructor(
-    @InjectRepository(GoverningBodyMember)
-    private readonly repo: Repository<GoverningBodyMember>,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
-  findAll(): Promise<GoverningBodyMember[]> {
-    return this.repo.find({ order: { sortOrder: 'ASC', id: 'ASC' } });
+  async findAll() {
+    const rows = await this.prisma.governingBodyMembers.findMany({
+      orderBy: [{ sortOrder: 'asc' }, { id: 'asc' }],
+    });
+    return toWireList(rows);
   }
 
-  create(dto: CreateGoverningBodyMemberDto): Promise<GoverningBodyMember> {
-    return this.repo.save(this.repo.create(dto));
+  async create(dto: CreateGoverningBodyMemberDto) {
+    const row = await this.prisma.governingBodyMembers.create({
+      data: { ...dto },
+    });
+    return toWire(row);
   }
 
-  async update(id: string, dto: UpdateGoverningBodyMemberDto): Promise<GoverningBodyMember> {
-    const member = await this.repo.findOne({ where: { id } });
+  async update(id: string, dto: UpdateGoverningBodyMemberDto) {
+    const member = await this.prisma.governingBodyMembers.findUnique({
+      where: { id },
+    });
     if (!member) throw new NotFoundException(`Member ${id} not found`);
-    return this.repo.save(this.repo.merge(member, dto));
+    const row = await this.prisma.governingBodyMembers.update({
+      where: { id },
+      data: { ...dto },
+    });
+    return toWire(row);
   }
 
   async remove(id: string): Promise<{ id: string }> {
-    const member = await this.repo.findOne({ where: { id } });
+    const member = await this.prisma.governingBodyMembers.findUnique({
+      where: { id },
+    });
     if (!member) throw new NotFoundException(`Member ${id} not found`);
-    await this.repo.remove(member);
+    await this.prisma.governingBodyMembers.delete({ where: { id } });
     return { id };
   }
 }

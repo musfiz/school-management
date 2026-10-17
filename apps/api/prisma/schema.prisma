@@ -1,0 +1,1106 @@
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "cjs"
+  runtime      = "nodejs"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+model AcademicSubjects {
+  id                    String                  @id @default(dbgenerated("(uuid())")) @db.Char(36)
+  subjectCode           String                  @map("subject_code") @db.VarChar(30)
+  subjectName           String                  @map("subject_name") @db.VarChar(150)
+  boardStream           String                  @default("GENERAL") @map("board_stream") @db.VarChar(30)
+  paperNumber           Int?                    @map("paper_number")
+  classSyllabusSubjects ClassSyllabusSubjects[]
+
+  @@index([subjectCode], map: "IDX_SUBJECTS_CODE")
+  @@map("academic_subjects")
+}
+
+model AccountingAuditLogs {
+  id              String   @id @default(dbgenerated("(uuid())")) @db.Char(36)
+  eventType       String   @map("event_type") @db.VarChar(50)
+  entityType      String   @map("entity_type") @db.VarChar(50)
+  entityId        String   @map("entity_id") @db.Char(36)
+  entityReference String?  @map("entity_reference") @db.VarChar(100)
+  actorId         String?  @map("actor_id") @db.Char(36)
+  action          String   @db.VarChar(50)
+  details         String?  @db.Text
+  ipAddress       String?  @map("ip_address") @db.VarChar(50)
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  users           Users?   @relation(fields: [actorId], references: [id], onUpdate: Restrict, map: "FK_5cc7ad3d4322ee077af303a416c")
+
+  @@index([actorId], map: "IDX_AUDIT_LOG_ACTOR")
+  @@index([createdAt], map: "IDX_AUDIT_LOG_CREATED_AT")
+  @@index([entityType, entityId], map: "IDX_AUDIT_LOG_ENTITY")
+  @@index([eventType], map: "IDX_AUDIT_LOG_EVENT_TYPE")
+  @@map("accounting_audit_logs")
+}
+
+model AdjunctHonorariumBills {
+  id              String          @id @default(dbgenerated("(uuid())")) @db.Char(36)
+  billNo          String          @unique(map: "UQ_7e2c431b23b598fa0d960c4f619") @map("bill_no") @db.VarChar(30)
+  adjunctName     String          @map("adjunct_name") @db.VarChar(150)
+  adjunctId       String?         @map("adjunct_id") @db.Char(36)
+  workMonth       String          @map("work_month") @db.VarChar(7)
+  classesCount    Int             @default(0) @map("classes_count")
+  scriptsCount    Int             @default(0) @map("scripts_count")
+  vivaCount       Int             @default(0) @map("viva_count")
+  ratePerClass    Decimal         @default(0.00) @map("rate_per_class") @db.Decimal(15, 2)
+  ratePerScript   Decimal         @default(0.00) @map("rate_per_script") @db.Decimal(15, 2)
+  ratePerViva     Decimal         @default(0.00) @map("rate_per_viva") @db.Decimal(15, 2)
+  grossAmount     Decimal         @default(0.00) @map("gross_amount") @db.Decimal(15, 2)
+  tdsRate         Decimal         @map("tds_rate") @db.Decimal(5, 2)
+  tdsAmount       Decimal         @default(0.00) @map("tds_amount") @db.Decimal(15, 2)
+  netPayable      Decimal         @default(0.00) @map("net_payable") @db.Decimal(15, 2)
+  fundId          String          @map("fund_id") @db.Char(36)
+  costCenterId    String?         @map("cost_center_id") @db.Char(36)
+  status          String          @default("DRAFT") @db.VarChar(20)
+  glJournalId     String?         @map("gl_journal_id") @db.Char(36)
+  narration       String?         @db.VarChar(255)
+  createdByUserId String?         @map("created_by_user_id") @db.Char(36)
+  createdAt       DateTime        @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt       DateTime        @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+  journalEntries  JournalEntries? @relation(fields: [glJournalId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "FK_4f289bec631bfba5cd9c4049b2e")
+  users           Users?          @relation(fields: [createdByUserId], references: [id], onUpdate: Restrict, map: "FK_7f39a395e294512630a28f76aef")
+  costCenters     CostCenters?    @relation(fields: [costCenterId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "FK_ce9decd83d40698cd87796eb5ae")
+  funds           Funds           @relation(fields: [fundId], references: [id], onUpdate: Restrict, map: "FK_f4a75afd9e3f9a1b79e3da340e3")
+
+  @@index([glJournalId], map: "FK_4f289bec631bfba5cd9c4049b2e")
+  @@index([createdByUserId], map: "FK_7f39a395e294512630a28f76aef")
+  @@index([costCenterId], map: "FK_ce9decd83d40698cd87796eb5ae")
+  @@index([fundId], map: "FK_f4a75afd9e3f9a1b79e3da340e3")
+  @@index([workMonth], map: "IDX_HONORARIUM_MONTH")
+  @@map("adjunct_honorarium_bills")
+}
+
+model AdmissionApplications {
+  id                 String             @id @default(dbgenerated("(uuid())")) @db.Char(36)
+  applicationNo      String             @unique(map: "UQ_ef98819df5645c1238978424af4") @map("application_no") @db.VarChar(30)
+  campaignId         String             @map("campaign_id") @db.Char(36)
+  applicantNameEn    String             @map("applicant_name_en") @db.VarChar(120)
+  applicantNameBn    String?            @map("applicant_name_bn") @db.VarChar(120)
+  gender             String             @db.VarChar(15)
+  dateOfBirth        DateTime           @map("date_of_birth") @db.Date
+  birthRegNo         String?            @map("birth_reg_no") @db.VarChar(25)
+  guardianPhone      String             @map("guardian_phone") @db.VarChar(20)
+  prevExamName       String?            @map("prev_exam_name") @db.VarChar(30)
+  prevBoard          String?            @map("prev_board") @db.VarChar(30)
+  prevRollNo         String?            @map("prev_roll_no") @db.VarChar(30)
+  prevRegNo          String?            @map("prev_reg_no") @db.VarChar(30)
+  prevPassingYear    Int?               @map("prev_passing_year")
+  prevGpa            Decimal?           @map("prev_gpa") @db.Decimal(4, 2)
+  admissionTestMarks Decimal            @default(0.00) @map("admission_test_marks") @db.Decimal(6, 2)
+  meritRank          Int?               @map("merit_rank")
+  quotaApplied       String?            @map("quota_applied") @db.VarChar(40)
+  formFeePaid        Boolean            @default(false) @map("form_fee_paid")
+  status             String             @default("APPLIED") @db.VarChar(25)
+  admittedStudentId  String?            @map("admitted_student_id") @db.Char(36)
+  createdAt          DateTime           @default(now()) @map("created_at") @db.Timestamp(0)
+  admissionCampaigns AdmissionCampaigns @relation(fields: [campaignId], references: [id], onUpdate: Restrict, map: "FK_4c7f324b23124b4609841a16cae")
+  students           Students?          @relation(fields: [admittedStudentId], references: [id], onUpdate: Restrict, map: "FK_ebba2cd78268c80e1d1b4f6d959")
+
+  @@index([admittedStudentId], map: "FK_ebba2cd78268c80e1d1b4f6d959")
+  @@index([campaignId], map: "IDX_APPLICATIONS_CAMPAIGN")
+  @@index([campaignId, meritRank], map: "IDX_APPLICATIONS_MERIT")
+  @@index([guardianPhone], map: "IDX_APPLICATIONS_PHONE")
+  @@index([status], map: "IDX_APPLICATIONS_STATUS")
+  @@map("admission_applications")
+}
+
+model AdmissionCampaigns {
+  id                    String                  @id @default(dbgenerated("(uuid())")) @db.Char(36)
+  academicSessionId     String                  @map("academic_session_id") @db.Char(36)
+  classOrDeptId         String                  @map("class_or_dept_id") @db.Char(36)
+  campaignTitle         String                  @map("campaign_title") @db.VarChar(150)
+  applicationFee        Decimal                 @default(0.00) @map("application_fee") @db.Decimal(10, 2)
+  totalSeats            Int                     @map("total_seats")
+  minRequiredGpa        Decimal                 @default(0.00) @map("min_required_gpa") @db.Decimal(4, 2)
+  startDate             DateTime                @map("start_date") @db.Date
+  endDate               DateTime                @map("end_date") @db.Date
+  isActive              Boolean                 @default(true) @map("is_active")
+  createdAt             DateTime                @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt             DateTime                @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+  admissionApplications AdmissionApplications[]
+
+  @@index([isActive], map: "IDX_CAMPAIGNS_ACTIVE")
+  @@index([academicSessionId, classOrDeptId], map: "IDX_CAMPAIGNS_SESSION_CLASS")
+  @@map("admission_campaigns")
+}
+
+model AdmissionSequences {
+  scopeKey   String @id @map("scope_key") @db.VarChar(160)
+  lastNumber Int    @default(0) @map("last_number")
+
+  @@map("admission_sequences")
+}
+
+model ChartOfAccounts {
+  id                     String                   @id @default(dbgenerated("(uuid())")) @db.Char(36)
+  glCode                 String                   @unique(map: "UQ_6bb8e35e8b83eeaa49218ac45cc") @map("gl_code") @db.VarChar(20)
+  accountName            String                   @map("account_name") @db.VarChar(150)
+  accountNameBn          String?                  @map("account_name_bn") @db.VarChar(150)
+  accountType            String                   @map("account_type") @db.VarChar(20)
+  normalBalance          String                   @map("normal_balance") @db.Char(2)
+  parentId               String?                  @map("parent_id") @db.Char(36)
+  isControlAccount       Boolean                  @default(false) @map("is_control_account")
+  isCashOrBank           Boolean                  @default(false) @map("is_cash_or_bank")
+  defaultFundId          String?                  @map("default_fund_id") @db.Char(36)
+  isActive               Boolean                  @default(true) @map("is_active")
+  createdAt              DateTime                 @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt              DateTime                 @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+  funds                  Funds?                   @relation(fields: [defaultFundId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "FK_coa_default_fund")
+  chartOfAccounts        ChartOfAccounts?         @relation("chart_of_accountsTochart_of_accounts", fields: [parentId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "FK_coa_parent")
+  otherChartOfAccounts   ChartOfAccounts[]        @relation("chart_of_accountsTochart_of_accounts")
+  feeHeads               FeeHeads[]
+  journalLines           JournalLines[]
+  paymentCollections     PaymentCollections[]
+  studentCautionDeposits StudentCautionDeposits[]
+  studentInvoiceLines    StudentInvoiceLines[]
+  studentWaivers         StudentWaivers[]
+  taxChallans            TaxChallans[]
+  vendorBills            VendorBills[]
+
+  @@index([defaultFundId], map: "FK_coa_default_fund")
+  @@index([parentId], map: "FK_coa_parent")
+  @@map("chart_of_accounts")
+}
+
+model ClassSyllabusSubjects {
+  id                        String                      @id @default(dbgenerated("(uuid())")) @db.Char(36)
+  academicSessionId         String                      @map("academic_session_id") @db.Char(36)
+  classOrDeptId             String                      @map("class_or_dept_id") @db.Char(36)
+  subjectId                 String                      @map("subject_id") @db.Char(36)
+  combinedGroupCode         String?                     @map("combined_group_code") @db.VarChar(40)
+  combinedGroupName         String?                     @map("combined_group_name") @db.VarChar(100)
+  defaultSubjectRole        String                      @map("default_subject_role") @db.VarChar(30)
+  electiveGroup             String?                     @map("elective_group") @db.VarChar(40)
+  creditHours               Decimal                     @default(0.00) @map("credit_hours") @db.Decimal(4, 2)
+  fullMarks                 Decimal                     @default(100.00) @map("full_marks") @db.Decimal(6, 2)
+  passEvaluationMode        String                      @default("SEPARATE_COMPONENTS") @map("pass_evaluation_mode") @db.VarChar(40)
+  displayOrder              Int                         @default(1) @map("display_order")
+  academicSubjects          AcademicSubjects            @relation(fields: [subjectId], references: [id], onUpdate: Restrict, map: "FK_6db9c01b5b77757cb51ec8963dd")
+  studentSubjectEnrollments StudentSubjectEnrollments[]
+
+  @@index([subjectId], map: "FK_6db9c01b5b77757cb51ec8963dd")
+  @@index([academicSessionId, classOrDeptId], map: "IDX_SYLLABUS_SESSION_CLASS")
+  @@map("class_syllabus_subjects")
+}
+
+model CostCenters {
+  id                     String                   @id @default(dbgenerated("(uuid())")) @db.Char(36)
+  centerCode             String                   @unique(map: "UQ_59074ee7f832613289d2c4ef60e") @map("center_code") @db.VarChar(15)
+  centerName             String                   @map("center_name") @db.VarChar(100)
+  institutionType        String                   @default("SCHOOL") @map("institution_type") @db.VarChar(20)
+  parentId               String?                  @map("parent_id") @db.Char(36)
+  isActive               Boolean                  @default(true) @map("is_active")
+  createdAt              DateTime                 @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt              DateTime                 @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+  adjunctHonorariumBills AdjunctHonorariumBills[]
+  costCenters            CostCenters?             @relation("cost_centersTocost_centers", fields: [parentId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "FK_cost_centers_parent")
+  otherCostCenters       CostCenters[]            @relation("cost_centersTocost_centers")
+  feeHeads               FeeHeads[]
+  journalLines           JournalLines[]
+  payrollRuns            PayrollRuns[]
+  studentInvoiceLines    StudentInvoiceLines[]
+  studentInvoices        StudentInvoices[]
+  vendorBills            VendorBills[]
+
+  @@index([parentId], map: "FK_cost_centers_parent")
+  @@map("cost_centers")
+}
+
+model ExPrincipals {
+  id        String   @id @default(dbgenerated("(uuid())")) @db.Char(36)
+  name      String   @db.VarChar(150)
+  nameBn    String?  @map("name_bn") @db.VarChar(150)
+  tenure    String?  @db.VarChar(150)
+  imageUrl  String?  @map("image_url") @db.VarChar(255)
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  @@map("ex_principals")
+}
+
+model FamilyProfiles {
+  id                    String     @id @default(dbgenerated("(uuid())")) @db.Char(36)
+  familyCode            String     @unique(map: "UQ_0b4f7780952dd433283cdebb017") @map("family_code") @db.VarChar(30)
+  primaryGuardianPhone  String     @unique(map: "UQ_a4eea2986841bf2e59fc8dce641") @map("primary_guardian_phone") @db.VarChar(20)
+  fatherNameEn          String     @map("father_name_en") @db.VarChar(120)
+  fatherNameBn          String?    @map("father_name_bn") @db.VarChar(120)
+  fatherNid             String?    @map("father_nid") @db.VarChar(25)
+  fatherOccupation      String?    @map("father_occupation") @db.VarChar(80)
+  fatherMonthlyIncome   Decimal    @default(0.00) @map("father_monthly_income") @db.Decimal(12, 2)
+  isFatherDeceased      Boolean    @default(false) @map("is_father_deceased")
+  motherNameEn          String     @map("mother_name_en") @db.VarChar(120)
+  motherNameBn          String?    @map("mother_name_bn") @db.VarChar(120)
+  motherNid             String?    @map("mother_nid") @db.VarChar(25)
+  motherPhone           String?    @map("mother_phone") @db.VarChar(20)
+  motherOccupation      String?    @map("mother_occupation") @db.VarChar(80)
+  localGuardianName     String?    @map("local_guardian_name") @db.VarChar(120)
+  localGuardianRelation String?    @map("local_guardian_relation") @db.VarChar(50)
+  localGuardianPhone    String?    @map("local_guardian_phone") @db.VarChar(20)
+  localGuardianNid      String?    @map("local_guardian_nid") @db.VarChar(25)
+  presentAddress        String     @map("present_address") @db.Text
+  permanentAddress      String?    @map("permanent_address") @db.Text
+  upazilaThana          String?    @map("upazila_thana") @db.VarChar(80)
+  district              String?    @db.VarChar(80)
+  isZakatEligibleFamily Boolean    @default(false) @map("is_zakat_eligible_family")
+  createdAt             DateTime   @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt             DateTime   @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+  students              Students[]
+
+  @@index([fatherNid], map: "IDX_FAMILY_FATHER_NID")
+  @@index([isZakatEligibleFamily], map: "IDX_FAMILY_ZAKAT")
+  @@map("family_profiles")
+}
+
+model FeeHeads {
+  id                  String                @id @default(dbgenerated("(uuid())")) @db.Char(36)
+  headCode            String                @unique(map: "UQ_99370b6d9edecd76e7a49a2249a") @map("head_code") @db.VarChar(30)
+  headName            String                @map("head_name") @db.VarChar(150)
+  billingType         String                @default("MONTHLY") @map("billing_type") @db.VarChar(20)
+  defaultAmount       Decimal               @default(0.00) @map("default_amount") @db.Decimal(15, 2)
+  perCreditRate       Decimal               @default(0.00) @map("per_credit_rate") @db.Decimal(15, 2)
+  revenueGlId         String                @map("revenue_gl_id") @db.Char(36)
+  fundId              String?               @map("fund_id") @db.Char(36)
+  costCenterId        String?               @map("cost_center_id") @db.Char(36)
+  isCautionDeposit    Boolean               @default(false) @map("is_caution_deposit")
+  isActive            Boolean               @default(true) @map("is_active")
+  createdAt           DateTime              @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt           DateTime              @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+  costCenters         CostCenters?          @relation(fields: [costCenterId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "FK_45728218dd0533dafc4098d578f")
+  funds               Funds?                @relation(fields: [fundId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "FK_75669e4129d2d9b6c0765641287")
+  chartOfAccounts     ChartOfAccounts       @relation(fields: [revenueGlId], references: [id], onUpdate: Restrict, map: "FK_a174486d2c8d482b9116f633548")
+  studentInvoiceLines StudentInvoiceLines[]
+
+  @@index([costCenterId], map: "FK_45728218dd0533dafc4098d578f")
+  @@index([fundId], map: "FK_75669e4129d2d9b6c0765641287")
+  @@index([revenueGlId], map: "FK_a174486d2c8d482b9116f633548")
+  @@map("fee_heads")
+}
+
+model FiscalPeriods {
+  id              String            @id @default(dbgenerated("(uuid())")) @db.Char(36)
+  periodName      String            @map("period_name") @db.VarChar(50)
+  startDate       DateTime          @map("start_date") @db.Date
+  endDate         DateTime          @map("end_date") @db.Date
+  isClosed        Boolean           @default(false) @map("is_closed")
+  closedByUserId  String?           @map("closed_by_user_id") @db.Char(36)
+  closedAt        DateTime?         @map("closed_at") @db.Timestamp(0)
+  createdAt       DateTime          @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt       DateTime          @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+  journalEntries  JournalEntries[]
+  studentInvoices StudentInvoices[]
+
+  @@map("fiscal_periods")
+}
+
+model Funds {
+  id                     String                   @id @default(dbgenerated("(uuid())")) @db.Char(36)
+  fundCode               String                   @unique(map: "UQ_72ed7e29a67443fc48b41f8ec43") @map("fund_code") @db.VarChar(10)
+  fundName               String                   @map("fund_name") @db.VarChar(100)
+  isRestricted           Boolean                  @default(false) @map("is_restricted")
+  shariahCompliant       Boolean                  @default(false) @map("shariah_compliant")
+  isActive               Boolean                  @default(true) @map("is_active")
+  createdAt              DateTime                 @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt              DateTime                 @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+  adjunctHonorariumBills AdjunctHonorariumBills[]
+  chartOfAccounts        ChartOfAccounts[]
+  feeHeads               FeeHeads[]
+  journalLines           JournalLines[]
+  paymentCollections     PaymentCollections[]
+  payrollRuns            PayrollRuns[]
+  studentInvoiceLines    StudentInvoiceLines[]
+  studentWaivers         StudentWaivers[]
+  vendorBills            VendorBills[]
+
+  @@map("funds")
+}
+
+model GoverningBodyMembers {
+  id            String   @id @default(dbgenerated("(uuid())")) @db.Char(36)
+  name          String   @db.VarChar(150)
+  nameBn        String?  @map("name_bn") @db.VarChar(150)
+  designation   String   @db.VarChar(150)
+  designationBn String?  @map("designation_bn") @db.VarChar(150)
+  imageUrl      String?  @map("image_url") @db.VarChar(255)
+  sortOrder     Int      @default(0) @map("sort_order")
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt     DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  @@map("governing_body_members")
+}
+
+model HeroSections {
+  id                  String   @id @db.Char(36)
+  isVisible           Boolean  @default(true) @map("is_visible")
+  admissionYear       String?  @map("admission_year") @db.VarChar(50)
+  tagline1            String?  @map("tagline_1") @db.VarChar(255)
+  tagline1Bn          String?  @map("tagline_1_bn") @db.VarChar(255)
+  tagline2            String?  @map("tagline_2") @db.VarChar(255)
+  tagline2Bn          String?  @map("tagline_2_bn") @db.VarChar(255)
+  tagline3            String?  @map("tagline_3") @db.VarChar(255)
+  tagline3Bn          String?  @map("tagline_3_bn") @db.VarChar(255)
+  shortDescription    String?  @map("short_description") @db.Text
+  shortDescriptionBn  String?  @map("short_description_bn") @db.Text
+  showApplyButton     Boolean  @default(true) @map("show_apply_button")
+  instituteOpenInfo   String?  @map("institute_open_info") @db.VarChar(255)
+  instituteOpenInfoBn String?  @map("institute_open_info_bn") @db.VarChar(255)
+  phone               String?  @db.VarChar(50)
+  createdAt           DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt           DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  @@map("hero_sections")
+}
+
+model JournalEntries {
+  id                                                     String                   @id @default(dbgenerated("(uuid())")) @db.Char(36)
+  voucherNo                                              String                   @unique(map: "UQ_2f3830bf7018a0b27eddd7ad8c0") @map("voucher_no") @db.VarChar(30)
+  voucherType                                            String                   @map("voucher_type") @db.VarChar(20)
+  transactionDate                                        DateTime                 @map("transaction_date") @db.Date
+  fiscalPeriodId                                         String                   @map("fiscal_period_id") @db.Char(36)
+  sourceModule                                           String                   @default("MANUAL") @map("source_module") @db.VarChar(30)
+  sourceReferenceId                                      String?                  @map("source_reference_id") @db.Char(36)
+  narration                                              String                   @db.Text
+  status                                                 String                   @default("DRAFT") @db.VarChar(20)
+  reversedEntryId                                        String?                  @map("reversed_entry_id") @db.Char(36)
+  createdByUserId                                        String                   @map("created_by_user_id") @db.Char(36)
+  verifiedByUserId                                       String?                  @map("verified_by_user_id") @db.Char(36)
+  approvedByUserId                                       String?                  @map("approved_by_user_id") @db.Char(36)
+  approvedAt                                             DateTime?                @map("approved_at") @db.Timestamp(0)
+  createdAt                                              DateTime                 @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt                                              DateTime                 @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+  adjunctHonorariumBills                                 AdjunctHonorariumBills[]
+  journalEntries                                         JournalEntries?          @relation("journal_entriesTojournal_entries", fields: [reversedEntryId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "FK_0cd1b7a9f4a2dbb2006af7527bd")
+  otherJournalEntries                                    JournalEntries[]         @relation("journal_entriesTojournal_entries")
+  usersJournalEntriesApprovedByUserIdTousers             Users?                   @relation("journal_entries_approved_by_user_idTousers", fields: [approvedByUserId], references: [id], onUpdate: Restrict, map: "FK_1845d906faef6586c6d1ac639a9")
+  usersJournalEntriesCreatedByUserIdTousers              Users                    @relation("journal_entries_created_by_user_idTousers", fields: [createdByUserId], references: [id], onUpdate: Restrict, map: "FK_77fe13fb6db6b1fea4ff4d70cd2")
+  fiscalPeriods                                          FiscalPeriods            @relation(fields: [fiscalPeriodId], references: [id], onUpdate: Restrict, map: "FK_dfb001500889ba5445dcebedf7e")
+  usersJournalEntriesVerifiedByUserIdTousers             Users?                   @relation("journal_entries_verified_by_user_idTousers", fields: [verifiedByUserId], references: [id], onUpdate: Restrict, map: "FK_e9a1725d8c4972d7d672a7d5ecd")
+  journalLines                                           JournalLines[]
+  paymentCollections                                     PaymentCollections[]
+  payrollRunsPayrollRunsPaymentJournalIdTojournalEntries PayrollRuns[]            @relation("payroll_runs_payment_journal_idTojournal_entries")
+  payrollRunsPayrollRunsGlJournalIdTojournalEntries      PayrollRuns[]            @relation("payroll_runs_gl_journal_idTojournal_entries")
+  studentInvoices                                        StudentInvoices[]
+  taxChallans                                            TaxChallans[]
+  vendorBills                                            VendorBills[]
+
+  @@index([reversedEntryId], map: "FK_0cd1b7a9f4a2dbb2006af7527bd")
+  @@index([approvedByUserId], map: "FK_1845d906faef6586c6d1ac639a9")
+  @@index([createdByUserId], map: "FK_77fe13fb6db6b1fea4ff4d70cd2")
+  @@index([fiscalPeriodId], map: "FK_dfb001500889ba5445dcebedf7e")
+  @@index([verifiedByUserId], map: "FK_e9a1725d8c4972d7d672a7d5ecd")
+  @@index([status], map: "IDX_JOURNAL_STATUS")
+  @@index([transactionDate], map: "IDX_JOURNAL_TXN_DATE")
+  @@index([voucherNo], map: "IDX_JOURNAL_VOUCHER_NO")
+  @@map("journal_entries")
+}
+
+model JournalLines {
+  id              String          @id @default(dbgenerated("(uuid())")) @db.Char(36)
+  journalEntryId  String          @map("journal_entry_id") @db.Char(36)
+  glAccountId     String          @map("gl_account_id") @db.Char(36)
+  fundId          String          @map("fund_id") @db.Char(36)
+  costCenterId    String?         @map("cost_center_id") @db.Char(36)
+  subledgerType   String?         @map("subledger_type") @db.VarChar(30)
+  subledgerId     String?         @map("subledger_id") @db.Char(36)
+  debitAmount     Decimal         @default(0.00) @map("debit_amount") @db.Decimal(15, 2)
+  creditAmount    Decimal         @default(0.00) @map("credit_amount") @db.Decimal(15, 2)
+  lineMemo        String?         @map("line_memo") @db.VarChar(255)
+  journalEntries  JournalEntries  @relation(fields: [journalEntryId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "FK_1fd23ae91f0c24764b4e581c72e")
+  chartOfAccounts ChartOfAccounts @relation(fields: [glAccountId], references: [id], onUpdate: Restrict, map: "FK_29bf92dbf024d23a9bebeea8cf5")
+  costCenters     CostCenters?    @relation(fields: [costCenterId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "FK_7002186b79482768d2a8048aca7")
+  funds           Funds           @relation(fields: [fundId], references: [id], onUpdate: Restrict, map: "FK_a250afb08d8ae2e62629c60e100")
+
+  @@index([costCenterId], map: "FK_7002186b79482768d2a8048aca7")
+  @@index([journalEntryId], map: "IDX_JLINES_ENTRY")
+  @@index([fundId], map: "IDX_JLINES_FUND")
+  @@index([glAccountId], map: "IDX_JLINES_GL")
+  @@map("journal_lines")
+}
+
+model MenuItems {
+  id             String      @id @default(dbgenerated("(uuid())")) @db.Char(36)
+  menuLocation   String      @default("header") @map("menu_location") @db.VarChar(30)
+  parentId       String?     @map("parent_id") @db.Char(36)
+  labelEn        String      @map("label_en") @db.VarChar(150)
+  labelBn        String?     @map("label_bn") @db.VarChar(150)
+  href           String      @db.VarChar(255)
+  sortOrder      Int         @default(0) @map("sort_order")
+  isVisible      Boolean     @default(true) @map("is_visible")
+  createdAt      DateTime    @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt      DateTime    @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+  menuItems      MenuItems?  @relation("menu_itemsTomenu_items", fields: [parentId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "FK_MENU_ITEMS_PARENT")
+  otherMenuItems MenuItems[] @relation("menu_itemsTomenu_items")
+
+  @@index([parentId], map: "FK_MENU_ITEMS_PARENT")
+  @@index([menuLocation], map: "IDX_MENU_ITEMS_LOCATION")
+  @@map("menu_items")
+}
+
+model Migrations {
+  id        Int    @id @default(autoincrement())
+  timestamp BigInt
+  name      String @db.VarChar(255)
+
+  @@map("migrations")
+}
+
+model Modules {
+  id          String        @id @default(dbgenerated("(uuid())")) @db.Char(36)
+  name        String        @unique(map: "UQ_8cd1abde4b70e59644c98668c06") @db.VarChar(100)
+  createdAt   DateTime      @default(now()) @map("created_at") @db.Timestamp(0)
+  permissions Permissions[]
+
+  @@map("modules")
+}
+
+model Notices {
+  id                 String    @id @default(dbgenerated("(uuid())")) @db.Char(36)
+  title              String    @db.VarChar(255)
+  titleBn            String?   @map("title_bn") @db.VarChar(255)
+  slug               String?   @db.VarChar(255)
+  category           String    @default("General") @db.VarChar(100)
+  shortDescription   String?   @map("short_description") @db.Text
+  shortDescriptionBn String?   @map("short_description_bn") @db.Text
+  description        String?   @db.LongText
+  descriptionBn      String?   @map("description_bn") @db.LongText
+  imageUrl           String?   @map("image_url") @db.VarChar(500)
+  pdfUrl             String?   @map("pdf_url") @db.VarChar(500)
+  isPinned           Boolean   @default(false) @map("is_pinned")
+  isActive           Boolean   @default(true) @map("is_active")
+  publishDate        DateTime? @map("publish_date") @db.Date
+  createdAt          DateTime  @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt          DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  @@index([category], map: "IDX_notices_category")
+  @@index([isActive], map: "IDX_notices_is_active")
+  @@index([isPinned], map: "IDX_notices_is_pinned")
+  @@map("notices")
+}
+
+model Pages {
+  slug           String   @id @db.VarChar(60)
+  titleEn        String   @map("title_en") @db.VarChar(200)
+  titleBn        String?  @map("title_bn") @db.VarChar(200)
+  contentEn      String?  @map("content_en") @db.Text
+  contentBn      String?  @map("content_bn") @db.Text
+  imageUrl       String?  @map("image_url") @db.VarChar(255)
+  showInHomepage Boolean  @default(true) @map("show_in_homepage")
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt      DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  @@map("pages")
+}
+
+model PaymentCollections {
+  id                   String          @id @default(dbgenerated("(uuid())")) @db.Char(36)
+  moneyReceiptNo       String          @unique(map: "UQ_8efe2b0b69068cd6049767557c2") @map("money_receipt_no") @db.VarChar(30)
+  studentId            String          @map("student_id") @db.Char(36)
+  invoiceId            String          @map("invoice_id") @db.Char(36)
+  paymentChannel       String          @map("payment_channel") @db.VarChar(20)
+  gatewayTrxId         String?         @unique(map: "uq_collection_gateway_trx") @map("gateway_trx_id") @db.VarChar(80)
+  collectedGrossAmount Decimal         @default(0.00) @map("collected_gross_amount") @db.Decimal(15, 2)
+  gatewayTdrFee        Decimal         @default(0.00) @map("gateway_tdr_fee") @db.Decimal(15, 2)
+  netBankAmount        Decimal         @default(0.00) @map("net_bank_amount") @db.Decimal(15, 2)
+  cashGlId             String          @map("cash_gl_id") @db.Char(36)
+  fundId               String?         @map("fund_id") @db.Char(36)
+  reconciliationStatus String          @default("COLLECTED") @map("reconciliation_status") @db.VarChar(20)
+  glJournalId          String?         @map("gl_journal_id") @db.Char(36)
+  settlementJournalId  String?         @map("settlement_journal_id") @db.Char(36)
+  bankReference        String?         @map("bank_reference") @db.VarChar(80)
+  allocation           String?         @db.Text
+  collectedByUserId    String?         @map("collected_by_user_id") @db.Char(36)
+  remark               String?         @db.VarChar(255)
+  createdAt            DateTime        @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt            DateTime        @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+  studentInvoices      StudentInvoices @relation(fields: [invoiceId], references: [id], onUpdate: Restrict, map: "FK_2f480bd26e010da3f88fdb5ca89")
+  funds                Funds?          @relation(fields: [fundId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "FK_553921c63cd12349c268f20d478")
+  chartOfAccounts      ChartOfAccounts @relation(fields: [cashGlId], references: [id], onUpdate: Restrict, map: "FK_a2ea2f79498def55cbe883c97a0")
+  journalEntries       JournalEntries? @relation(fields: [glJournalId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "FK_b149022fe7461319e295a983900")
+
+  @@index([fundId], map: "FK_553921c63cd12349c268f20d478")
+  @@index([cashGlId], map: "FK_a2ea2f79498def55cbe883c97a0")
+  @@index([glJournalId], map: "FK_b149022fe7461319e295a983900")
+  @@index([invoiceId], map: "IDX_COLLECTION_INVOICE")
+  @@index([reconciliationStatus], map: "IDX_COLLECTION_STATUS")
+  @@index([studentId], map: "IDX_COLLECTION_STUDENT")
+  @@map("payment_collections")
+}
+
+model PayrollRuns {
+  id                                                        String          @id @default(dbgenerated("(uuid())")) @db.Char(36)
+  runNo                                                     String          @unique(map: "UQ_2cef0e9a108106112b863124f6f") @map("run_no") @db.VarChar(30)
+  payrollMonth                                              String          @map("payroll_month") @db.VarChar(7)
+  payDate                                                   DateTime        @map("pay_date") @db.Date
+  fundId                                                    String          @map("fund_id") @db.Char(36)
+  costCenterId                                              String?         @map("cost_center_id") @db.Char(36)
+  mpoGovtTotal                                              Decimal         @default(0.00) @map("mpo_govt_total") @db.Decimal(15, 2)
+  institutionalGrossTotal                                   Decimal         @default(0.00) @map("institutional_gross_total") @db.Decimal(15, 2)
+  pfEmployeeTotal                                           Decimal         @default(0.00) @map("pf_employee_total") @db.Decimal(15, 2)
+  pfEmployerTotal                                           Decimal         @default(0.00) @map("pf_employer_total") @db.Decimal(15, 2)
+  aitTdsTotal                                               Decimal         @default(0.00) @map("ait_tds_total") @db.Decimal(15, 2)
+  loanDeductionTotal                                        Decimal         @default(0.00) @map("loan_deduction_total") @db.Decimal(15, 2)
+  netPayableTotal                                           Decimal         @default(0.00) @map("net_payable_total") @db.Decimal(15, 2)
+  status                                                    String          @default("DRAFT") @db.VarChar(20)
+  glJournalId                                               String?         @map("gl_journal_id") @db.Char(36)
+  paymentJournalId                                          String?         @map("payment_journal_id") @db.Char(36)
+  narration                                                 String?         @db.VarChar(255)
+  createdByUserId                                           String?         @map("created_by_user_id") @db.Char(36)
+  createdAt                                                 DateTime        @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt                                                 DateTime        @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+  costCenters                                               CostCenters?    @relation(fields: [costCenterId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "FK_2784638bcb4961f09de25ceb871")
+  users                                                     Users?          @relation(fields: [createdByUserId], references: [id], onUpdate: Restrict, map: "FK_6c1c3e51a85243dc4e7b981e2b9")
+  journalEntriesPayrollRunsPaymentJournalIdTojournalEntries JournalEntries? @relation("payroll_runs_payment_journal_idTojournal_entries", fields: [paymentJournalId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "FK_c79243d7310cc718d3d7207b64e")
+  funds                                                     Funds           @relation(fields: [fundId], references: [id], onUpdate: Restrict, map: "FK_d55de221adb3b66278c1f66681a")
+  journalEntriesPayrollRunsGlJournalIdTojournalEntries      JournalEntries? @relation("payroll_runs_gl_journal_idTojournal_entries", fields: [glJournalId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "FK_e7fda897ba99ea795bf9a22b4e7")
+  payslipLines                                              PayslipLines[]
+
+  @@index([costCenterId], map: "FK_2784638bcb4961f09de25ceb871")
+  @@index([createdByUserId], map: "FK_6c1c3e51a85243dc4e7b981e2b9")
+  @@index([paymentJournalId], map: "FK_c79243d7310cc718d3d7207b64e")
+  @@index([fundId], map: "FK_d55de221adb3b66278c1f66681a")
+  @@index([glJournalId], map: "FK_e7fda897ba99ea795bf9a22b4e7")
+  @@index([payrollMonth], map: "IDX_PAYROLL_MONTH")
+  @@map("payroll_runs")
+}
+
+model PayslipLines {
+  id                       String      @id @default(dbgenerated("(uuid())")) @db.Char(36)
+  runId                    String      @map("run_id") @db.Char(36)
+  employeeId               String?     @map("employee_id") @db.Char(36)
+  employeeName             String      @map("employee_name") @db.VarChar(150)
+  designation              String?     @db.VarChar(120)
+  mpoGovtAmount            Decimal     @default(0.00) @map("mpo_govt_amount") @db.Decimal(15, 2)
+  institutionalGrossAmount Decimal     @default(0.00) @map("institutional_gross_amount") @db.Decimal(15, 2)
+  pfEmployeeDeduction      Decimal     @default(0.00) @map("pf_employee_deduction") @db.Decimal(15, 2)
+  pfEmployerContribution   Decimal     @default(0.00) @map("pf_employer_contribution") @db.Decimal(15, 2)
+  aitTdsDeduction          Decimal     @default(0.00) @map("ait_tds_deduction") @db.Decimal(15, 2)
+  loanDeduction            Decimal     @default(0.00) @map("loan_deduction") @db.Decimal(15, 2)
+  netInstitutionalPayable  Decimal     @default(0.00) @map("net_institutional_payable") @db.Decimal(15, 2)
+  createdAt                DateTime    @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt                DateTime    @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+  payrollRuns              PayrollRuns @relation(fields: [runId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "FK_dc4ee2b2653728dd07f13455c9c")
+
+  @@index([runId], map: "IDX_PAYSLIP_RUN")
+  @@map("payslip_lines")
+}
+
+model Permissions {
+  id              String            @id @default(dbgenerated("(uuid())")) @db.Char(36)
+  name            String            @unique(map: "UQ_48ce552495d14eae9b187bb6716") @db.VarChar(100)
+  description     String?           @db.VarChar(255)
+  moduleId        String?           @map("module_id") @db.Char(36)
+  createdAt       DateTime          @default(now()) @map("created_at") @db.Timestamp(0)
+  modules         Modules?          @relation(fields: [moduleId], references: [id], onUpdate: Restrict, map: "FK_738f46bb9ac6ea356f1915835d0")
+  userPermissions UserPermissions[]
+
+  @@index([moduleId], map: "FK_738f46bb9ac6ea356f1915835d0")
+  @@map("permissions")
+}
+
+model RequiredDocumentRules {
+  id                 String   @id @default(dbgenerated("(uuid())")) @db.Char(36)
+  classOrDeptId      String   @map("class_or_dept_id") @db.VarChar(36)
+  documentType       String   @map("document_type") @db.VarChar(40)
+  isOriginalRequired Boolean  @default(true) @map("is_original_required")
+  isActive           Boolean  @default(true) @map("is_active")
+  createdAt          DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt          DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  @@unique([classOrDeptId, documentType], map: "IDX_566ec38bbaf38332e6bd672b9e")
+  @@map("required_document_rules")
+}
+
+model SiteSettings {
+  id              String   @id @db.Char(36)
+  siteName        String   @default("My School") @map("site_name") @db.VarChar(150)
+  tagline         String?  @db.VarChar(200)
+  description     String?  @db.Text
+  logoUrl         String?  @map("logo_url") @db.VarChar(255)
+  headerDisplay   String   @default("both") @map("header_display") @db.VarChar(10)
+  phone           String?  @db.VarChar(30)
+  email           String?  @db.VarChar(150)
+  address         String?  @db.VarChar(255)
+  established     Int?
+  eiin            String?  @db.VarChar(30)
+  facebookUrl     String?  @map("facebook_url") @db.VarChar(255)
+  twitterUrl      String?  @map("twitter_url") @db.VarChar(255)
+  linkedinUrl     String?  @map("linkedin_url") @db.VarChar(255)
+  youtubeUrl      String?  @map("youtube_url") @db.VarChar(255)
+  copyrightText   String?  @map("copyright_text") @db.VarChar(255)
+  siteNameBn      String?  @map("site_name_bn") @db.VarChar(150)
+  taglineBn       String?  @map("tagline_bn") @db.VarChar(200)
+  descriptionBn   String?  @map("description_bn") @db.Text
+  addressBn       String?  @map("address_bn") @db.VarChar(255)
+  copyrightTextBn String?  @map("copyright_text_bn") @db.VarChar(255)
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt       DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  @@map("site_settings")
+}
+
+model Sliders {
+  id        String   @id @default(dbgenerated("(uuid())")) @db.Char(36)
+  imageUrl  String   @map("image_url") @db.VarChar(255)
+  titleEn   String?  @map("title_en") @db.VarChar(200)
+  titleBn   String?  @map("title_bn") @db.VarChar(200)
+  sortOrder Int      @default(0) @map("sort_order")
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  @@map("sliders")
+}
+
+model StaffMembers {
+  id            String   @id @default(dbgenerated("(uuid())")) @db.Char(36)
+  name          String   @db.VarChar(150)
+  nameBn        String?  @map("name_bn") @db.VarChar(150)
+  designation   String   @db.VarChar(150)
+  designationBn String?  @map("designation_bn") @db.VarChar(150)
+  imageUrl      String?  @map("image_url") @db.VarChar(255)
+  sortOrder     Int      @default(0) @map("sort_order")
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt     DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  @@map("staff_members")
+}
+
+model StudentCautionDeposits {
+  id                  String          @id @default(dbgenerated("(uuid())")) @db.Char(36)
+  studentId           String          @map("student_id") @db.Char(36)
+  glAccountId         String          @map("gl_account_id") @db.Char(36)
+  amount              Decimal         @default(0.00) @db.Decimal(15, 2)
+  status              String          @default("HELD") @db.VarChar(20)
+  receiptJournalId    String?         @map("receipt_journal_id") @db.Char(36)
+  settlementJournalId String?         @map("settlement_journal_id") @db.Char(36)
+  remark              String?         @db.VarChar(255)
+  createdAt           DateTime        @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt           DateTime        @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+  chartOfAccounts     ChartOfAccounts @relation(fields: [glAccountId], references: [id], onUpdate: Restrict, map: "FK_fc4ae3d9ab90adc7384becbe386")
+
+  @@index([glAccountId], map: "FK_fc4ae3d9ab90adc7384becbe386")
+  @@index([studentId], map: "IDX_CAUTION_STUDENT")
+  @@map("student_caution_deposits")
+}
+
+model StudentDocuments {
+  id                  String   @id @default(dbgenerated("(uuid())")) @db.Char(36)
+  studentId           String   @map("student_id") @db.Char(36)
+  documentType        String   @map("document_type") @db.VarChar(40)
+  fileUrl             String   @map("file_url") @db.VarChar(255)
+  isOriginalSubmitted Boolean  @default(false) @map("is_original_submitted")
+  verifiedBy          String?  @map("verified_by") @db.Char(36)
+  uploadedAt          DateTime @default(now()) @map("uploaded_at") @db.Timestamp(0)
+  students            Students @relation(fields: [studentId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "FK_8b0e086cbeca4ba69aadaac8541")
+  users               Users?   @relation(fields: [verifiedBy], references: [id], onUpdate: Restrict, map: "FK_9a1617311db9e7e586ab9bc05a9")
+
+  @@index([verifiedBy], map: "FK_9a1617311db9e7e586ab9bc05a9")
+  @@index([studentId], map: "IDX_DOCS_STUDENT")
+  @@index([documentType], map: "IDX_DOCS_TYPE")
+  @@map("student_documents")
+}
+
+model StudentEnrollments {
+  id                  String   @id @default(dbgenerated("(uuid())")) @db.Char(36)
+  studentId           String   @map("student_id") @db.Char(36)
+  academicSessionId   String   @map("academic_session_id") @db.Char(36)
+  institutionType     String   @map("institution_type") @db.VarChar(25)
+  classOrDeptId       String   @map("class_or_dept_id") @db.Char(36)
+  shiftId             String?  @map("shift_id") @db.Char(36)
+  sectionOrBatchId    String?  @map("section_or_batch_id") @db.Char(36)
+  academicGroup       String   @default("GENERAL") @map("academic_group") @db.VarChar(40)
+  classRollNo         Int      @map("class_roll_no")
+  boardRegistrationNo String?  @map("board_registration_no") @db.VarChar(40)
+  enrollmentType      String   @map("enrollment_type") @db.VarChar(25)
+  residenceType       String   @default("DAY_SCHOLAR") @map("residence_type") @db.VarChar(25)
+  hostelSeatId        String?  @map("hostel_seat_id") @db.Char(36)
+  transportRouteId    String?  @map("transport_route_id") @db.Char(36)
+  quotaTag            String   @default("NONE") @map("quota_tag") @db.VarChar(40)
+  isActive            Boolean  @default(true) @map("is_active")
+  createdAt           DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  students            Students @relation(fields: [studentId], references: [id], onUpdate: Restrict, map: "FK_08caafd8a026a19ecf54db0e958")
+
+  @@unique([academicSessionId, classOrDeptId, sectionOrBatchId, classRollNo], map: "uq_session_class_section_roll")
+  @@unique([studentId, academicSessionId], map: "uq_student_active_session")
+  @@index([academicSessionId, classOrDeptId], map: "IDX_ENROLL_SESSION_CLASS")
+  @@index([studentId], map: "IDX_ENROLL_STUDENT")
+  @@map("student_enrollments")
+}
+
+model StudentInvoiceLines {
+  id              String          @id @default(dbgenerated("(uuid())")) @db.Char(36)
+  invoiceId       String          @map("invoice_id") @db.Char(36)
+  feeHeadId       String          @map("fee_head_id") @db.Char(36)
+  glAccountId     String          @map("gl_account_id") @db.Char(36)
+  fundId          String          @map("fund_id") @db.Char(36)
+  costCenterId    String?         @map("cost_center_id") @db.Char(36)
+  creditHours     Decimal         @default(0.00) @map("credit_hours") @db.Decimal(8, 2)
+  grossAmount     Decimal         @default(0.00) @map("gross_amount") @db.Decimal(15, 2)
+  waiverAmount    Decimal         @default(0.00) @map("waiver_amount") @db.Decimal(15, 2)
+  netAmount       Decimal         @default(0.00) @map("net_amount") @db.Decimal(15, 2)
+  waiverId        String?         @map("waiver_id") @db.Char(36)
+  lineMemo        String?         @map("line_memo") @db.VarChar(255)
+  studentInvoices StudentInvoices @relation(fields: [invoiceId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "FK_035bf01694d659913f736a76672")
+  studentWaivers  StudentWaivers? @relation(fields: [waiverId], references: [id], onUpdate: Restrict, map: "FK_1e499a36b5cd17128be10d3b415")
+  costCenters     CostCenters?    @relation(fields: [costCenterId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "FK_9db5abe778ddab94285c1bdeed8")
+  feeHeads        FeeHeads        @relation(fields: [feeHeadId], references: [id], onUpdate: Restrict, map: "FK_ab278aa704f6813f6a0f288e3d4")
+  funds           Funds           @relation(fields: [fundId], references: [id], onUpdate: Restrict, map: "FK_b795c15fd3b45859b6213f3a3ec")
+  chartOfAccounts ChartOfAccounts @relation(fields: [glAccountId], references: [id], onUpdate: Restrict, map: "FK_eb0be5e84e5b6c82e99d32db523")
+
+  @@index([waiverId], map: "FK_1e499a36b5cd17128be10d3b415")
+  @@index([costCenterId], map: "FK_9db5abe778ddab94285c1bdeed8")
+  @@index([feeHeadId], map: "FK_ab278aa704f6813f6a0f288e3d4")
+  @@index([fundId], map: "FK_b795c15fd3b45859b6213f3a3ec")
+  @@index([glAccountId], map: "FK_eb0be5e84e5b6c82e99d32db523")
+  @@index([invoiceId], map: "IDX_INV_LINES_INVOICE")
+  @@map("student_invoice_lines")
+}
+
+model StudentInvoices {
+  id                  String                @id @default(dbgenerated("(uuid())")) @db.Char(36)
+  invoiceNo           String                @unique(map: "UQ_b34180c3c4b7dca8bfa4530b2a1") @map("invoice_no") @db.VarChar(30)
+  studentId           String                @map("student_id") @db.Char(36)
+  billingPeriod       String                @map("billing_period") @db.VarChar(30)
+  issueDate           DateTime              @map("issue_date") @db.Date
+  dueDate             DateTime              @map("due_date") @db.Date
+  status              String                @default("UNPAID") @db.VarChar(20)
+  grossAmount         Decimal               @default(0.00) @map("gross_amount") @db.Decimal(15, 2)
+  waiverAmount        Decimal               @default(0.00) @map("waiver_amount") @db.Decimal(15, 2)
+  netAmount           Decimal               @default(0.00) @map("net_amount") @db.Decimal(15, 2)
+  paidAmount          Decimal               @default(0.00) @map("paid_amount") @db.Decimal(15, 2)
+  lateFineAmount      Decimal               @default(0.00) @map("late_fine_amount") @db.Decimal(15, 2)
+  fiscalPeriodId      String                @map("fiscal_period_id") @db.Char(36)
+  journalEntryId      String?               @map("journal_entry_id") @db.Char(36)
+  costCenterId        String?               @map("cost_center_id") @db.Char(36)
+  createdByUserId     String?               @map("created_by_user_id") @db.Char(36)
+  narration           String?               @db.VarChar(255)
+  createdAt           DateTime              @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt           DateTime              @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+  paymentCollections  PaymentCollections[]
+  studentInvoiceLines StudentInvoiceLines[]
+  fiscalPeriods       FiscalPeriods         @relation(fields: [fiscalPeriodId], references: [id], onUpdate: Restrict, map: "FK_528c0905688b9272b12a69c35ed")
+  costCenters         CostCenters?          @relation(fields: [costCenterId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "FK_65542b0944b005443bdbf4756f3")
+  journalEntries      JournalEntries?       @relation(fields: [journalEntryId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "FK_f918f7c39bab56ef2a8850bb81d")
+
+  @@unique([studentId, billingPeriod], map: "uq_invoice_student_period")
+  @@index([fiscalPeriodId], map: "FK_528c0905688b9272b12a69c35ed")
+  @@index([costCenterId], map: "FK_65542b0944b005443bdbf4756f3")
+  @@index([journalEntryId], map: "FK_f918f7c39bab56ef2a8850bb81d")
+  @@index([dueDate], map: "IDX_INVOICES_DUE")
+  @@index([status], map: "IDX_INVOICES_STATUS")
+  @@index([studentId], map: "IDX_INVOICES_STUDENT")
+  @@map("student_invoices")
+}
+
+model StudentPreviousEducations {
+  id             String    @id @default(dbgenerated("(uuid())")) @db.Char(36)
+  studentId      String    @map("student_id") @db.Char(36)
+  examTitle      String    @map("exam_title") @db.VarChar(40)
+  instituteName  String    @map("institute_name") @db.VarChar(150)
+  educationBoard String?   @map("education_board") @db.VarChar(40)
+  academicGroup  String?   @map("academic_group") @db.VarChar(40)
+  rollNo         String?   @map("roll_no") @db.VarChar(30)
+  regNo          String?   @map("reg_no") @db.VarChar(30)
+  passingYear    Int?      @map("passing_year")
+  gpaObtained    Decimal?  @map("gpa_obtained") @db.Decimal(4, 2)
+  gpaScale       Decimal   @default(5.00) @map("gpa_scale") @db.Decimal(4, 2)
+  tcNumber       String?   @map("tc_number") @db.VarChar(50)
+  tcDate         DateTime? @map("tc_date") @db.Date
+  students       Students  @relation(fields: [studentId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "FK_cd587085933a1a022c90c31d545")
+
+  @@index([studentId], map: "IDX_PREV_EDU_STUDENT")
+  @@map("student_previous_educations")
+}
+
+model StudentSubjectEnrollments {
+  id                    String                @id @default(dbgenerated("(uuid())")) @db.Char(36)
+  academicSessionId     String                @map("academic_session_id") @db.Char(36)
+  studentId             String                @map("student_id") @db.Char(36)
+  syllabusSubjectId     String                @map("syllabus_subject_id") @db.Char(36)
+  assignedRole          String                @map("assigned_role") @db.VarChar(30)
+  classSyllabusSubjects ClassSyllabusSubjects @relation(fields: [syllabusSubjectId], references: [id], onUpdate: Restrict, map: "FK_d9ddcc2f7e4b87d9813f9f3e193")
+
+  @@unique([academicSessionId, studentId, syllabusSubjectId], map: "uq_student_sub_enroll")
+  @@index([syllabusSubjectId], map: "FK_d9ddcc2f7e4b87d9813f9f3e193")
+  @@index([academicSessionId, studentId], map: "IDX_SUB_ENROLL_SESSION")
+  @@index([studentId], map: "IDX_SUB_ENROLL_STUDENT")
+  @@map("student_subject_enrollments")
+}
+
+model StudentWaivers {
+  id                  String                @id @default(dbgenerated("(uuid())")) @db.Char(36)
+  studentId           String                @map("student_id") @db.Char(36)
+  waiverType          String                @map("waiver_type") @db.VarChar(30)
+  percent             Decimal               @default(0.00) @db.Decimal(5, 2)
+  fixedCapAmount      Decimal?              @map("fixed_cap_amount") @db.Decimal(15, 2)
+  contraGlId          String?               @map("contra_gl_id") @db.Char(36)
+  fundId              String?               @map("fund_id") @db.Char(36)
+  activeFrom          DateTime?             @map("active_from") @db.Date
+  activeTo            DateTime?             @map("active_to") @db.Date
+  isActive            Boolean               @default(true) @map("is_active")
+  remark              String?               @db.VarChar(255)
+  createdAt           DateTime              @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt           DateTime              @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+  scopeBillingTypes   String?               @map("scope_billing_types") @db.VarChar(60)
+  studentInvoiceLines StudentInvoiceLines[]
+  funds               Funds?                @relation(fields: [fundId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "FK_94f15acf285950c2d0b85c54567")
+  chartOfAccounts     ChartOfAccounts?      @relation(fields: [contraGlId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "FK_d322e215cde77b75f60af410074")
+
+  @@index([fundId], map: "FK_94f15acf285950c2d0b85c54567")
+  @@index([contraGlId], map: "FK_d322e215cde77b75f60af410074")
+  @@index([scopeBillingTypes], map: "IDX_WAIVERS_SCOPE")
+  @@index([studentId], map: "IDX_WAIVERS_STUDENT")
+  @@map("student_waivers")
+}
+
+model Students {
+  id                        String                      @id @default(dbgenerated("(uuid())")) @db.Char(36)
+  studentUniqueId           String                      @unique(map: "UQ_643b46fc455dff465cda83b289a") @map("student_unique_id") @db.VarChar(30)
+  govtUidCrvs               String?                     @unique(map: "UQ_8d22ce0313314d70b8410dcd54f") @map("govt_uid_crvs") @db.VarChar(30)
+  familyProfileId           String                      @map("family_profile_id") @db.Char(36)
+  fullNameEn                String                      @map("full_name_en") @db.VarChar(120)
+  fullNameBn                String?                     @map("full_name_bn") @db.VarChar(120)
+  gender                    String                      @db.VarChar(15)
+  dateOfBirth               DateTime                    @map("date_of_birth") @db.Date
+  birthRegNo                String?                     @unique(map: "UQ_572defa4aaf30e866caceb2aeff") @map("birth_reg_no") @db.VarChar(25)
+  nationalIdNo              String?                     @map("national_id_no") @db.VarChar(25)
+  religion                  String                      @db.VarChar(25)
+  bloodGroup                String?                     @map("blood_group") @db.VarChar(10)
+  photoUrl                  String?                     @map("photo_url") @db.VarChar(255)
+  medicalAllergyNotes       String?                     @map("medical_allergy_notes") @db.Text
+  stipendMfsType            String?                     @map("stipend_mfs_type") @db.VarChar(20)
+  stipendAccountNo          String?                     @map("stipend_account_no") @db.VarChar(30)
+  admissionDate             DateTime                    @map("admission_date") @db.Date
+  currentStatus             String                      @default("ACTIVE") @map("current_status") @db.VarChar(25)
+  createdAt                 DateTime                    @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt                 DateTime                    @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+  pickupGuardianName        String?                     @map("pickup_guardian_name") @db.VarChar(120)
+  pickupGuardianPhone       String?                     @map("pickup_guardian_phone") @db.VarChar(20)
+  tcNumber                  String?                     @map("tc_number") @db.VarChar(50)
+  tcIssueDate               DateTime?                   @map("tc_issue_date") @db.Date
+  tcRemark                  String?                     @map("tc_remark") @db.VarChar(255)
+  admissionApplications     AdmissionApplications[]
+  studentDocuments          StudentDocuments[]
+  studentEnrollments        StudentEnrollments[]
+  studentPreviousEducations StudentPreviousEducations[]
+  familyProfiles            FamilyProfiles              @relation(fields: [familyProfileId], references: [id], onUpdate: Restrict, map: "FK_d0964695550b73c47dcc55b6f80")
+
+  @@index([familyProfileId], map: "IDX_STUDENTS_FAMILY")
+  @@index([currentStatus], map: "IDX_STUDENTS_STATUS")
+  @@map("students")
+}
+
+model TaxChallanItems {
+  id           String      @id @default(dbgenerated("(uuid())")) @db.Char(36)
+  challanId    String      @map("challan_id") @db.Char(36)
+  vendorBillId String      @map("vendor_bill_id") @db.Char(36)
+  taxType      String      @map("tax_type") @db.VarChar(10)
+  amount       Decimal     @default(0.00) @db.Decimal(15, 2)
+  vendorBills  VendorBills @relation(fields: [vendorBillId], references: [id], onUpdate: Restrict, map: "FK_147d7f26963dabed76013224c11")
+  taxChallans  TaxChallans @relation(fields: [challanId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "FK_318ca8a2147e43329eec9c0a65a")
+
+  @@index([vendorBillId], map: "IDX_CHALLAN_ITEM_BILL")
+  @@index([challanId], map: "IDX_CHALLAN_ITEM_CHALLAN")
+  @@map("tax_challan_items")
+}
+
+model TaxChallans {
+  id              String            @id @default(dbgenerated("(uuid())")) @db.Char(36)
+  challanNo       String            @unique(map: "UQ_01d2b2741b161dabe3b9a90e672") @map("challan_no") @db.VarChar(60)
+  challanDate     DateTime          @map("challan_date") @db.Date
+  bankGlId        String            @map("bank_gl_id") @db.Char(36)
+  depositBankName String?           @map("deposit_bank_name") @db.VarChar(120)
+  totalAmount     Decimal           @default(0.00) @map("total_amount") @db.Decimal(15, 2)
+  glJournalId     String?           @map("gl_journal_id") @db.Char(36)
+  status          String            @default("POSTED") @db.VarChar(20)
+  createdByUserId String?           @map("created_by_user_id") @db.Char(36)
+  createdAt       DateTime          @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt       DateTime          @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+  taxChallanItems TaxChallanItems[]
+  journalEntries  JournalEntries?   @relation(fields: [glJournalId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "FK_8873912ce8258c482d44409d534")
+  users           Users?            @relation(fields: [createdByUserId], references: [id], onUpdate: Restrict, map: "FK_d193b9ac044bd03087c2e49317d")
+  chartOfAccounts ChartOfAccounts   @relation(fields: [bankGlId], references: [id], onUpdate: Restrict, map: "FK_f9131bf1f77c9cf6496338e7879")
+
+  @@index([glJournalId], map: "FK_8873912ce8258c482d44409d534")
+  @@index([createdByUserId], map: "FK_d193b9ac044bd03087c2e49317d")
+  @@index([bankGlId], map: "FK_f9131bf1f77c9cf6496338e7879")
+  @@map("tax_challans")
+}
+
+model Teachers {
+  id            String    @id @default(dbgenerated("(uuid())")) @db.Char(36)
+  name          String    @db.VarChar(150)
+  nameBn        String?   @map("name_bn") @db.VarChar(150)
+  designation   String    @db.VarChar(150)
+  designationBn String?   @map("designation_bn") @db.VarChar(150)
+  department    String?   @db.VarChar(150)
+  departmentBn  String?   @map("department_bn") @db.VarChar(150)
+  imageUrl      String?   @map("image_url") @db.VarChar(255)
+  jointDate     DateTime? @map("joint_date") @db.Date
+  sortOrder     Int       @default(0) @map("sort_order")
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt     DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  @@map("teachers")
+}
+
+model UserPermissions {
+  userId                                String      @map("user_id") @db.Char(36)
+  permissionId                          String      @map("permission_id") @db.Char(36)
+  assignedBy                            String?     @map("assigned_by") @db.Char(36)
+  assignedAt                            DateTime    @default(now()) @map("assigned_at") @db.Timestamp(0)
+  usersUserPermissionsUserIdTousers     Users       @relation("user_permissions_user_idTousers", fields: [userId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "FK_3495bd31f1862d02931e8e8d2e8")
+  usersUserPermissionsAssignedByTousers Users?      @relation("user_permissions_assigned_byTousers", fields: [assignedBy], references: [id], onUpdate: Restrict, map: "FK_5dd800c5e91aa3997060508bf2e")
+  permissions                           Permissions @relation(fields: [permissionId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "FK_8145f5fadacd311693c15e41f10")
+
+  @@id([userId, permissionId])
+  @@index([assignedBy], map: "FK_5dd800c5e91aa3997060508bf2e")
+  @@index([permissionId], map: "FK_8145f5fadacd311693c15e41f10")
+  @@map("user_permissions")
+}
+
+model Users {
+  id                                                  String                   @id @default(dbgenerated("(uuid())")) @db.Char(36)
+  name                                                String                   @db.VarChar(100)
+  email                                               String                   @unique(map: "UQ_97672ac88f789774dd47f7c8be3") @db.VarChar(100)
+  password                                            String                   @db.VarChar(255)
+  role                                                UsersRole                @default(student)
+  phone                                               String?                  @db.VarChar(20)
+  isActive                                            Boolean                  @default(true) @map("is_active")
+  isVerified                                          Boolean                  @default(false) @map("is_verified")
+  lastLoginAt                                         DateTime?                @map("last_login_at") @db.Timestamp(0)
+  createdAt                                           DateTime                 @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt                                           DateTime                 @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+  accountingAuditLogs                                 AccountingAuditLogs[]
+  adjunctHonorariumBills                              AdjunctHonorariumBills[]
+  journalEntriesJournalEntriesApprovedByUserIdTousers JournalEntries[]         @relation("journal_entries_approved_by_user_idTousers")
+  journalEntriesJournalEntriesCreatedByUserIdTousers  JournalEntries[]         @relation("journal_entries_created_by_user_idTousers")
+  journalEntriesJournalEntriesVerifiedByUserIdTousers JournalEntries[]         @relation("journal_entries_verified_by_user_idTousers")
+  payrollRuns                                         PayrollRuns[]
+  studentDocuments                                    StudentDocuments[]
+  taxChallans                                         TaxChallans[]
+  userPermissionsUserPermissionsUserIdTousers         UserPermissions[]        @relation("user_permissions_user_idTousers")
+  userPermissionsUserPermissionsAssignedByTousers     UserPermissions[]        @relation("user_permissions_assigned_byTousers")
+  vendorBills                                         VendorBills[]
+
+  @@index([email], map: "IDX_USERS_EMAIL")
+  @@index([role], map: "IDX_USERS_ROLE")
+  @@map("users")
+}
+
+model VendorBills {
+  id                String            @id @default(dbgenerated("(uuid())")) @db.Char(36)
+  billNo            String            @unique(map: "UQ_a56f55b1c6b1e55c66bd80362eb") @map("bill_no") @db.VarChar(30)
+  vendorId          String            @map("vendor_id") @db.Char(36)
+  expenseGlId       String            @map("expense_gl_id") @db.Char(36)
+  fundId            String            @map("fund_id") @db.Char(36)
+  costCenterId      String?           @map("cost_center_id") @db.Char(36)
+  billDate          DateTime          @map("bill_date") @db.Date
+  dueDate           DateTime?         @map("due_date") @db.Date
+  supplierInvoiceNo String?           @map("supplier_invoice_no") @db.VarChar(60)
+  grossAmount       Decimal           @default(0.00) @map("gross_amount") @db.Decimal(15, 2)
+  tdsRate           Decimal           @default(0.00) @map("tds_rate") @db.Decimal(5, 2)
+  tdsAmount         Decimal           @default(0.00) @map("tds_amount") @db.Decimal(15, 2)
+  vdsRate           Decimal           @default(0.00) @map("vds_rate") @db.Decimal(5, 2)
+  vdsAmount         Decimal           @default(0.00) @map("vds_amount") @db.Decimal(15, 2)
+  netPayable        Decimal           @default(0.00) @map("net_payable") @db.Decimal(15, 2)
+  paidAmount        Decimal           @default(0.00) @map("paid_amount") @db.Decimal(15, 2)
+  tdsRemittedAmount Decimal           @default(0.00) @map("tds_remitted_amount") @db.Decimal(15, 2)
+  vdsRemittedAmount Decimal           @default(0.00) @map("vds_remitted_amount") @db.Decimal(15, 2)
+  mushak63Received  Boolean           @default(false) @map("mushak_63_received")
+  status            String            @default("DRAFT") @db.VarChar(20)
+  glJournalId       String?           @map("gl_journal_id") @db.Char(36)
+  narration         String?           @db.VarChar(255)
+  createdByUserId   String?           @map("created_by_user_id") @db.Char(36)
+  createdAt         DateTime          @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt         DateTime          @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+  taxChallanItems   TaxChallanItems[]
+  users             Users?            @relation(fields: [createdByUserId], references: [id], onUpdate: Restrict, map: "FK_0182d1c44fa5b860a14d0fcda06")
+  funds             Funds             @relation(fields: [fundId], references: [id], onUpdate: Restrict, map: "FK_28d037073acb7c50b4dbae9736e")
+  journalEntries    JournalEntries?   @relation(fields: [glJournalId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "FK_61e9c923e0ead2d238400684c43")
+  vendors           Vendors           @relation(fields: [vendorId], references: [id], onUpdate: Restrict, map: "FK_6f4bf16a8536ae1bdf7f8ad6ed4")
+  chartOfAccounts   ChartOfAccounts   @relation(fields: [expenseGlId], references: [id], onUpdate: Restrict, map: "FK_8559aeb8b449295787d733cd4be")
+  costCenters       CostCenters?      @relation(fields: [costCenterId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "FK_a577d0f1830fcf3c84556ec5b35")
+
+  @@index([createdByUserId], map: "FK_0182d1c44fa5b860a14d0fcda06")
+  @@index([fundId], map: "FK_28d037073acb7c50b4dbae9736e")
+  @@index([glJournalId], map: "FK_61e9c923e0ead2d238400684c43")
+  @@index([expenseGlId], map: "FK_8559aeb8b449295787d733cd4be")
+  @@index([costCenterId], map: "FK_a577d0f1830fcf3c84556ec5b35")
+  @@index([billDate], map: "IDX_BILL_DATE")
+  @@index([status], map: "IDX_BILL_STATUS")
+  @@index([vendorId], map: "IDX_BILL_VENDOR")
+  @@map("vendor_bills")
+}
+
+model Vendors {
+  id             String        @id @default(dbgenerated("(uuid())")) @db.Char(36)
+  vendorCode     String?       @unique(map: "UQ_6c20a7a81f96af980d5219cf463") @map("vendor_code") @db.VarChar(20)
+  vendorName     String        @map("vendor_name") @db.VarChar(150)
+  binNo          String?       @map("bin_no") @db.VarChar(20)
+  tradeLicenseNo String?       @map("trade_license_no") @db.VarChar(60)
+  contactPerson  String?       @map("contact_person") @db.VarChar(120)
+  contactPhone   String?       @map("contact_phone") @db.VarChar(30)
+  address        String?       @db.VarChar(255)
+  isActive       Boolean       @default(true) @map("is_active")
+  createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt      DateTime      @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+  vendorBills    VendorBills[]
+
+  @@map("vendors")
+}
+
+model VoucherSequences {
+  id          String   @id @default(dbgenerated("(uuid())")) @db.Char(36)
+  fiscalYear  String   @map("fiscal_year") @db.VarChar(9)
+  voucherType String   @map("voucher_type") @db.VarChar(20)
+  lastNumber  Int      @default(0) @map("last_number")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  @@unique([fiscalYear, voucherType], map: "uq_voucher_sequence_year_type")
+  @@map("voucher_sequences")
+}
+
+model WaiverPresetRules {
+  id                    String   @id @default(dbgenerated("(uuid())")) @db.Char(36)
+  ruleCode              String   @unique(map: "UQ_a03a00a14b798126c4df517eb00") @map("rule_code") @db.VarChar(40)
+  ruleName              String   @map("rule_name") @db.VarChar(120)
+  institutionType       String?  @map("institution_type") @db.VarChar(25)
+  minGpa                Decimal? @map("min_gpa") @db.Decimal(4, 2)
+  maxGpa                Decimal? @map("max_gpa") @db.Decimal(4, 2)
+  quotaTag              String?  @map("quota_tag") @db.VarChar(40)
+  residenceType         String?  @map("residence_type") @db.VarChar(25)
+  waiverType            String   @map("waiver_type") @db.VarChar(30)
+  admissionFeePct       Decimal  @default(0.00) @map("admission_fee_pct") @db.Decimal(5, 2)
+  tuitionFeePct         Decimal  @default(0.00) @map("tuition_fee_pct") @db.Decimal(5, 2)
+  requiresZakatEligible Boolean  @default(false) @map("requires_zakat_eligible")
+  priority              Int      @default(100)
+  isActive              Boolean  @default(true) @map("is_active")
+  remark                String?  @db.VarChar(255)
+  createdAt             DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt             DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  @@index([isActive, priority], map: "IDX_WAIVER_RULES_ACTIVE")
+  @@index([quotaTag], map: "IDX_WAIVER_RULES_QUOTA")
+  @@map("waiver_preset_rules")
+}
+
+enum UsersRole {
+  admin
+  management
+  accountant
+  teacher
+  student
+  guardian
+
+  @@map("users_role")
+}

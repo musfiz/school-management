@@ -1,9 +1,9 @@
 import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { UsersService } from '../users/users.service';
+import { UsersService, UserRecord } from '../users/users.service';
 import { PermissionsService } from '../permissions/permissions.service';
 import { LoginDto, RegisterDto, AuthResponseDto } from './auth.dto';
-import { User } from '../database/entities/user.entity';
+import { comparePassword } from '../users/user.util';
 
 @Injectable()
 export class AuthService {
@@ -19,7 +19,7 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const isPasswordValid = await user.comparePassword(loginDto.password);
+    const isPasswordValid = await comparePassword(user, loginDto.password);
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid credentials');
     }
@@ -106,7 +106,7 @@ export class AuthService {
     };
   }
 
-  async validateUser(userId: string): Promise<User | null> {
+  async validateUser(userId: string): Promise<UserRecord | null> {
     return this.usersService.findByIdWithPassword(userId);
   }
 }

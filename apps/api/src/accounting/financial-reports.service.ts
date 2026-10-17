@@ -1,14 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, Repository } from 'typeorm';
 import Decimal from 'decimal.js';
-import { JournalEntry } from '../database/entities/journal-entry.entity';
-import { JournalLine } from '../database/entities/journal-line.entity';
-import { ChartOfAccount } from '../database/entities/chart-of-account.entity';
-import { Fund } from '../database/entities/fund.entity';
-import { CostCenter } from '../database/entities/cost-center.entity';
-import { StudentInvoice } from '../database/entities/student-invoice.entity';
-import { User } from '../database/entities/user.entity';
+import { PrismaService } from '../prisma/prisma.service';
+import { Prisma } from '../generated/prisma/client';
+import type { Prisma as PrismaTypes } from '../generated/prisma/client';
+import { toDateValue } from '../prisma/wire';
 import {
   BalanceSheetQueryDto,
   DateRangeReportDto,
@@ -21,23 +16,7 @@ const fmt = (d: Decimal) => d.toFixed(2);
 
 @Injectable()
 export class FinancialReportsService {
-  constructor(
-    private readonly dataSource: DataSource,
-    @InjectRepository(JournalEntry)
-    private readonly entryRepo: Repository<JournalEntry>,
-    @InjectRepository(JournalLine)
-    private readonly lineRepo: Repository<JournalLine>,
-    @InjectRepository(ChartOfAccount)
-    private readonly coaRepo: Repository<ChartOfAccount>,
-    @InjectRepository(Fund)
-    private readonly fundRepo: Repository<Fund>,
-    @InjectRepository(CostCenter)
-    private readonly costCenterRepo: Repository<CostCenter>,
-    @InjectRepository(StudentInvoice)
-    private readonly invoiceRepo: Repository<StudentInvoice>,
-    @InjectRepository(User)
-    private readonly userRepo: Repository<User>,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   /* =========================================================================
    * 1. TRIAL BALANCE
@@ -47,48 +26,59 @@ export class FinancialReportsService {
     const startDate = dto.startDate || `${today.slice(0, 4)}-01-01`;
     const endDate = dto.endDate || today;
 
-    const accounts = await this.coaRepo.find({
-      order: { glCode: 'ASC' },
-      relations: ['parent'],
+    const accounts = await this.prisma.chartOfAccounts.findMany({
+      orderBy: { glCode: 'asc' },
+      include: { chartOfAccounts: true }, // parent
+    });
+
+    const lineFilter = (extra: Record<string, unknown> = {}) => ({
+      ...extra,
+      journalEntries: {
+        status: 'APPROVED',
+      },
     });
 
     // Opening lines (< startDate, status = APPROVED)
-    const openQb = this.lineRepo
-      .createQueryBuilder('l')
-      .innerJoin('l.entry', 'e')
-      .select('l.glAccountId', 'glAccountId')
-      .addSelect('SUM(CAST(l.debitAmount AS DECIMAL(15,2)))', 'totalDebit')
-      .addSelect('SUM(CAST(l.creditAmount AS DECIMAL(15,2)))', 'totalCredit')
-      .where('e.status = :status', { status: 'APPROVED' })
-      .andWhere('e.transactionDate < :startDate', { startDate })
-      .groupBy('l.glAccountId');
-
-    if (dto.fundId) openQb.andWhere('l.fundId = :fundId', { fundId: dto.fundId });
-    if (dto.costCenterId) openQb.andWhere('l.costCenterId = :ccId', { ccId: dto.costCenterId });
-    const openRows = await openQb.getRawMany();
+    const openRows = await this.prisma.journalLines.groupBy({
+      by: ['glAccountId'],
+      _sum: { debitAmount: true, creditAmount: true },
+      where: {
+        ...lineFilter(),
+        ...(dto.fundId ? { fundId: dto.fundId } : {}),
+        ...(dto.costCenterId ? { costCenterId: dto.costCenterId } : {}),
+        journalEntries: {
+          ...lineFilter().journalEntries,
+          transactionDate: { lt: toDateValue(startDate) },
+        },
+      },
+    });
     const openMap = new Map<string, { dr: Decimal; cr: Decimal }>();
     for (const r of openRows) {
-      openMap.set(r.glAccountId, { dr: dec(r.totalDebit), cr: dec(r.totalCredit) });
+      openMap.set(r.glAccountId, {
+        dr: dec(r._sum.debitAmount ?? 0),
+        cr: dec(r._sum.creditAmount ?? 0),
+      });
     }
 
     // Period lines (>= startDate AND <= endDate, status = APPROVED)
-    const periodQb = this.lineRepo
-      .createQueryBuilder('l')
-      .innerJoin('l.entry', 'e')
-      .select('l.glAccountId', 'glAccountId')
-      .addSelect('SUM(CAST(l.debitAmount AS DECIMAL(15,2)))', 'periodDebit')
-      .addSelect('SUM(CAST(l.creditAmount AS DECIMAL(15,2)))', 'periodCredit')
-      .where('e.status = :status', { status: 'APPROVED' })
-      .andWhere('e.transactionDate >= :startDate', { startDate })
-      .andWhere('e.transactionDate <= :endDate', { endDate })
-      .groupBy('l.glAccountId');
-
-    if (dto.fundId) periodQb.andWhere('l.fundId = :fundId', { fundId: dto.fundId });
-    if (dto.costCenterId) periodQb.andWhere('l.costCenterId = :ccId', { ccId: dto.costCenterId });
-    const periodRows = await periodQb.getRawMany();
+    const periodRows = await this.prisma.journalLines.groupBy({
+      by: ['glAccountId'],
+      _sum: { debitAmount: true, creditAmount: true },
+      where: {
+        ...(dto.fundId ? { fundId: dto.fundId } : {}),
+        ...(dto.costCenterId ? { costCenterId: dto.costCenterId } : {}),
+        journalEntries: {
+          status: 'APPROVED',
+          transactionDate: { gte: toDateValue(startDate), lte: toDateValue(endDate) },
+        },
+      },
+    });
     const periodMap = new Map<string, { dr: Decimal; cr: Decimal }>();
     for (const r of periodRows) {
-      periodMap.set(r.glAccountId, { dr: dec(r.periodDebit), cr: dec(r.periodCredit) });
+      periodMap.set(r.glAccountId, {
+        dr: dec(r._sum.debitAmount ?? 0),
+        cr: dec(r._sum.creditAmount ?? 0),
+      });
     }
 
     let totOpenDr = new Decimal(0);
@@ -130,7 +120,6 @@ export class FinancialReportsService {
         closeCr = closeNet.abs();
       }
 
-      // Skip rows with zero balance everywhere if desired, but keep active or active with activity
       const hasActivity =
         !openDr.isZero() ||
         !openCr.isZero() ||
@@ -193,9 +182,9 @@ export class FinancialReportsService {
     const endDate = dto.endDate || today;
 
     // 1. Identify all cash/bank accounts
-    const cashBankAccounts = await this.coaRepo.find({
+    const cashBankAccounts = await this.prisma.chartOfAccounts.findMany({
       where: { isCashOrBank: true },
-      order: { glCode: 'ASC' },
+      orderBy: { glCode: 'asc' },
     });
     const cashBankIds = new Set(cashBankAccounts.map((a) => a.id));
 
@@ -215,24 +204,25 @@ export class FinancialReportsService {
       };
     }
 
-    // 2. Opening cash/bank balances (< startDate)
-    const openQb = this.lineRepo
-      .createQueryBuilder('l')
-      .innerJoin('l.entry', 'e')
-      .select('l.glAccountId', 'glAccountId')
-      .addSelect('SUM(CAST(l.debitAmount AS DECIMAL(15,2)))', 'totDr')
-      .addSelect('SUM(CAST(l.creditAmount AS DECIMAL(15,2)))', 'totCr')
-      .where('e.status = :status', { status: 'APPROVED' })
-      .andWhere('e.transactionDate < :startDate', { startDate })
-      .andWhere('l.glAccountId IN (:...ids)', { ids: Array.from(cashBankIds) })
-      .groupBy('l.glAccountId');
+    const cashBankIdList = Array.from(cashBankIds);
 
-    if (dto.fundId) openQb.andWhere('l.fundId = :fundId', { fundId: dto.fundId });
-    if (dto.costCenterId) openQb.andWhere('l.costCenterId = :ccId', { ccId: dto.costCenterId });
-    const openRows = await openQb.getRawMany();
+    // 2. Opening cash/bank balances (< startDate)
+    const openRows = await this.prisma.journalLines.groupBy({
+      by: ['glAccountId'],
+      _sum: { debitAmount: true, creditAmount: true },
+      where: {
+        glAccountId: { in: cashBankIdList },
+        journalEntries: {
+          status: 'APPROVED',
+          transactionDate: { lt: toDateValue(startDate) },
+        },
+        ...(dto.fundId ? { fundId: dto.fundId } : {}),
+        ...(dto.costCenterId ? { costCenterId: dto.costCenterId } : {}),
+      },
+    });
     const openMap = new Map<string, Decimal>();
     for (const r of openRows) {
-      openMap.set(r.glAccountId, dec(r.totDr).minus(dec(r.totCr)));
+      openMap.set(r.glAccountId, dec(r._sum.debitAmount ?? 0).minus(dec(r._sum.creditAmount ?? 0)));
     }
 
     let totOpen = new Decimal(0);
@@ -248,15 +238,18 @@ export class FinancialReportsService {
     });
 
     // 3. Find all APPROVED journal entries in period touching cash/bank
-    const entriesWithCash = await this.entryRepo
-      .createQueryBuilder('e')
-      .innerJoinAndSelect('e.lines', 'l')
-      .leftJoinAndSelect('l.glAccount', 'gl')
-      .where('e.status = :status', { status: 'APPROVED' })
-      .andWhere('e.transactionDate >= :startDate', { startDate })
-      .andWhere('e.transactionDate <= :endDate', { endDate })
-      .orderBy('e.transactionDate', 'ASC')
-      .getMany();
+    const entriesWithCash = await this.prisma.journalEntries.findMany({
+      include: {
+        journalLines: {
+          include: { chartOfAccounts: true },
+        },
+      },
+      where: {
+        status: 'APPROVED',
+        transactionDate: { gte: toDateValue(startDate), lte: toDateValue(endDate) },
+      },
+      orderBy: [{ transactionDate: 'asc' }, { createdAt: 'asc' }],
+    });
 
     const receiptsMap = new Map<string, { glCode: string; name: string; amount: Decimal }>();
     const paymentsMap = new Map<string, { glCode: string; name: string; amount: Decimal }>();
@@ -264,7 +257,7 @@ export class FinancialReportsService {
     let totPayments = new Decimal(0);
 
     for (const entry of entriesWithCash) {
-      const lines = entry.lines || [];
+      const lines = entry.journalLines ?? [];
       const hasCashDr = lines.some((l) => cashBankIds.has(l.glAccountId) && dec(l.debitAmount).gt(0));
       const hasCashCr = lines.some((l) => cashBankIds.has(l.glAccountId) && dec(l.creditAmount).gt(0));
 
@@ -283,8 +276,8 @@ export class FinancialReportsService {
               existing.amount = existing.amount.plus(cr);
             } else {
               receiptsMap.set(key, {
-                glCode: l.glAccount?.glCode || 'N/A',
-                name: l.glAccount?.accountName || 'Receipt Head',
+                glCode: l.chartOfAccounts?.glCode || 'N/A',
+                name: l.chartOfAccounts?.accountName || 'Receipt Head',
                 amount: cr,
               });
             }
@@ -307,8 +300,8 @@ export class FinancialReportsService {
               existing.amount = existing.amount.plus(dr);
             } else {
               paymentsMap.set(key, {
-                glCode: l.glAccount?.glCode || 'N/A',
-                name: l.glAccount?.accountName || 'Payment Head',
+                glCode: l.chartOfAccounts?.glCode || 'N/A',
+                name: l.chartOfAccounts?.accountName || 'Payment Head',
                 amount: dr,
               });
             }
@@ -326,23 +319,22 @@ export class FinancialReportsService {
       .sort((a, b) => a.glCode.localeCompare(b.glCode));
 
     // 4. Closing cash/bank balance as of endDate
-    const closeQb = this.lineRepo
-      .createQueryBuilder('l')
-      .innerJoin('l.entry', 'e')
-      .select('l.glAccountId', 'glAccountId')
-      .addSelect('SUM(CAST(l.debitAmount AS DECIMAL(15,2)))', 'totDr')
-      .addSelect('SUM(CAST(l.creditAmount AS DECIMAL(15,2)))', 'totCr')
-      .where('e.status = :status', { status: 'APPROVED' })
-      .andWhere('e.transactionDate <= :endDate', { endDate })
-      .andWhere('l.glAccountId IN (:...ids)', { ids: Array.from(cashBankIds) })
-      .groupBy('l.glAccountId');
-
-    if (dto.fundId) closeQb.andWhere('l.fundId = :fundId', { fundId: dto.fundId });
-    if (dto.costCenterId) closeQb.andWhere('l.costCenterId = :ccId', { ccId: dto.costCenterId });
-    const closeRows = await closeQb.getRawMany();
+    const closeRows = await this.prisma.journalLines.groupBy({
+      by: ['glAccountId'],
+      _sum: { debitAmount: true, creditAmount: true },
+      where: {
+        glAccountId: { in: cashBankIdList },
+        journalEntries: {
+          status: 'APPROVED',
+          transactionDate: { lte: toDateValue(endDate) },
+        },
+        ...(dto.fundId ? { fundId: dto.fundId } : {}),
+        ...(dto.costCenterId ? { costCenterId: dto.costCenterId } : {}),
+      },
+    });
     const closeMap = new Map<string, Decimal>();
     for (const r of closeRows) {
-      closeMap.set(r.glAccountId, dec(r.totDr).minus(dec(r.totCr)));
+      closeMap.set(r.glAccountId, dec(r._sum.debitAmount ?? 0).minus(dec(r._sum.creditAmount ?? 0)));
     }
 
     let totClosingActual = new Decimal(0);
@@ -384,31 +376,27 @@ export class FinancialReportsService {
     const startDate = dto.startDate || `${today.slice(0, 4)}-01-01`;
     const endDate = dto.endDate || today;
 
-    const qb = this.lineRepo
-      .createQueryBuilder('l')
-      .innerJoin('l.entry', 'e')
-      .innerJoin('l.glAccount', 'gl')
-      .select('l.glAccountId', 'glAccountId')
-      .addSelect('gl.glCode', 'glCode')
-      .addSelect('gl.accountName', 'accountName')
-      .addSelect('gl.accountType', 'accountType')
-      .addSelect('SUM(CAST(l.debitAmount AS DECIMAL(15,2)))', 'totalDebit')
-      .addSelect('SUM(CAST(l.creditAmount AS DECIMAL(15,2)))', 'totalCredit')
-      .where('e.status = :status', { status: 'APPROVED' })
-      .andWhere('e.transactionDate >= :startDate', { startDate })
-      .andWhere('e.transactionDate <= :endDate', { endDate })
-      .andWhere('gl.accountType IN (:...types)', {
-        types: ['REVENUE', 'CONTRA_REVENUE', 'EXPENSE'],
-      })
-      .groupBy('l.glAccountId')
-      .addGroupBy('gl.glCode')
-      .addGroupBy('gl.accountName')
-      .addGroupBy('gl.accountType')
-      .orderBy('gl.glCode', 'ASC');
+    const rows = await this.prisma.journalLines.groupBy({
+      by: ['glAccountId'],
+      _sum: { debitAmount: true, creditAmount: true },
+      where: {
+        journalEntries: {
+          status: 'APPROVED',
+          transactionDate: { gte: toDateValue(startDate), lte: toDateValue(endDate) },
+        },
+        ...(dto.fundId ? { fundId: dto.fundId } : {}),
+        ...(dto.costCenterId ? { costCenterId: dto.costCenterId } : {}),
+      },
+    });
 
-    if (dto.fundId) qb.andWhere('l.fundId = :fundId', { fundId: dto.fundId });
-    if (dto.costCenterId) qb.andWhere('l.costCenterId = :ccId', { ccId: dto.costCenterId });
-    const rows = await qb.getRawMany();
+    // Fetch GL accounts to classify by accountType
+    const accountIds = rows.map((r) => r.glAccountId);
+    const accounts = accountIds.length
+      ? await this.prisma.chartOfAccounts.findMany({
+          where: { id: { in: accountIds } },
+        })
+      : [];
+    const accountById = new Map(accounts.map((a) => [a.id, a]));
 
     const revenues: any[] = [];
     const contraRevenues: any[] = [];
@@ -419,38 +407,44 @@ export class FinancialReportsService {
     let totExpense = new Decimal(0);
 
     for (const r of rows) {
-      const dr = dec(r.totalDebit);
-      const cr = dec(r.totalCredit);
+      const acc = accountById.get(r.glAccountId);
+      if (!acc) continue;
+      const dr = dec(r._sum.debitAmount ?? 0);
+      const cr = dec(r._sum.creditAmount ?? 0);
 
-      if (r.accountType === 'REVENUE') {
+      if (acc.accountType === 'REVENUE') {
         const netCr = cr.minus(dr);
         totGrossRevenue = totGrossRevenue.plus(netCr);
         revenues.push({
           glAccountId: r.glAccountId,
-          glCode: r.glCode,
-          accountName: r.accountName,
+          glCode: acc.glCode,
+          accountName: acc.accountName,
           amount: fmt(netCr),
         });
-      } else if (r.accountType === 'CONTRA_REVENUE') {
+      } else if (acc.accountType === 'CONTRA_REVENUE') {
         const netDr = dr.minus(cr);
         totContraRevenue = totContraRevenue.plus(netDr);
         contraRevenues.push({
           glAccountId: r.glAccountId,
-          glCode: r.glCode,
-          accountName: r.accountName,
+          glCode: acc.glCode,
+          accountName: acc.accountName,
           amount: fmt(netDr),
         });
-      } else if (r.accountType === 'EXPENSE') {
+      } else if (acc.accountType === 'EXPENSE') {
         const netDr = dr.minus(cr);
         totExpense = totExpense.plus(netDr);
         expenses.push({
           glAccountId: r.glAccountId,
-          glCode: r.glCode,
-          accountName: r.accountName,
+          glCode: acc.glCode,
+          accountName: acc.accountName,
           amount: fmt(netDr),
         });
       }
     }
+
+    revenues.sort((a, b) => a.glCode.localeCompare(b.glCode));
+    contraRevenues.sort((a, b) => a.glCode.localeCompare(b.glCode));
+    expenses.sort((a, b) => a.glCode.localeCompare(b.glCode));
 
     const netOperatingRevenue = totGrossRevenue.minus(totContraRevenue);
     const netSurplusDeficit = netOperatingRevenue.minus(totExpense);
@@ -476,31 +470,25 @@ export class FinancialReportsService {
   async getBalanceSheet(dto: BalanceSheetQueryDto) {
     const asOfDate = dto.asOfDate || new Date().toISOString().slice(0, 10);
 
-    // Query all approved lines up to asOfDate
-    const qb = this.lineRepo
-      .createQueryBuilder('l')
-      .innerJoin('l.entry', 'e')
-      .innerJoin('l.glAccount', 'gl')
-      .select('l.glAccountId', 'glAccountId')
-      .addSelect('gl.glCode', 'glCode')
-      .addSelect('gl.accountName', 'accountName')
-      .addSelect('gl.accountType', 'accountType')
-      .addSelect('gl.normalBalance', 'normalBalance')
-      .addSelect('gl.isCashOrBank', 'isCashOrBank')
-      .addSelect('SUM(CAST(l.debitAmount AS DECIMAL(15,2)))', 'totalDebit')
-      .addSelect('SUM(CAST(l.creditAmount AS DECIMAL(15,2)))', 'totalCredit')
-      .where('e.status = :status', { status: 'APPROVED' })
-      .andWhere('e.transactionDate <= :asOfDate', { asOfDate })
-      .groupBy('l.glAccountId')
-      .addGroupBy('gl.glCode')
-      .addGroupBy('gl.accountName')
-      .addGroupBy('gl.accountType')
-      .addGroupBy('gl.normalBalance')
-      .addGroupBy('gl.isCashOrBank')
-      .orderBy('gl.glCode', 'ASC');
+    const rows = await this.prisma.journalLines.groupBy({
+      by: ['glAccountId'],
+      _sum: { debitAmount: true, creditAmount: true },
+      where: {
+        journalEntries: {
+          status: 'APPROVED',
+          transactionDate: { lte: toDateValue(asOfDate) },
+        },
+        ...(dto.fundId ? { fundId: dto.fundId } : {}),
+      },
+    });
 
-    if (dto.fundId) qb.andWhere('l.fundId = :fundId', { fundId: dto.fundId });
-    const rows = await qb.getRawMany();
+    const accountIds = rows.map((r) => r.glAccountId);
+    const accounts = accountIds.length
+      ? await this.prisma.chartOfAccounts.findMany({
+          where: { id: { in: accountIds } },
+        })
+      : [];
+    const accountById = new Map(accounts.map((a) => [a.id, a]));
 
     const currentAssets: any[] = [];
     const fixedAssets: any[] = [];
@@ -514,67 +502,68 @@ export class FinancialReportsService {
     let cumulativeNetIncome = new Decimal(0);
 
     for (const r of rows) {
-      const dr = dec(r.totalDebit);
-      const cr = dec(r.totalCredit);
+      const acc = accountById.get(r.glAccountId);
+      if (!acc) continue;
+      const dr = dec(r._sum.debitAmount ?? 0);
+      const cr = dec(r._sum.creditAmount ?? 0);
       const netDr = dr.minus(cr);
       const netCr = cr.minus(dr);
 
-      if (r.accountType === 'ASSET') {
+      if (acc.accountType === 'ASSET') {
         totAssets = totAssets.plus(netDr);
-        if (r.isCashOrBank || r.glCode.startsWith('11')) {
+        if (acc.isCashOrBank || acc.glCode.startsWith('11')) {
           currentAssets.push({
             glAccountId: r.glAccountId,
-            glCode: r.glCode,
-            accountName: r.accountName,
+            glCode: acc.glCode,
+            accountName: acc.accountName,
             amount: fmt(netDr),
           });
         } else {
           fixedAssets.push({
             glAccountId: r.glAccountId,
-            glCode: r.glCode,
-            accountName: r.accountName,
+            glCode: acc.glCode,
+            accountName: acc.accountName,
             amount: fmt(netDr),
           });
         }
-      } else if (r.accountType === 'CONTRA_ASSET') {
-        // Contra-asset reduces total assets (e.g. Accum. Depreciation)
+      } else if (acc.accountType === 'CONTRA_ASSET') {
         totAssets = totAssets.minus(netCr);
         fixedAssets.push({
           glAccountId: r.glAccountId,
-          glCode: r.glCode,
-          accountName: r.accountName,
+          glCode: acc.glCode,
+          accountName: acc.accountName,
           amount: fmt(netCr.neg()),
         });
-      } else if (r.accountType === 'LIABILITY') {
+      } else if (acc.accountType === 'LIABILITY') {
         totLiabilities = totLiabilities.plus(netCr);
-        if (r.glCode.startsWith('22')) {
+        if (acc.glCode.startsWith('22')) {
           longTermLiabilities.push({
             glAccountId: r.glAccountId,
-            glCode: r.glCode,
-            accountName: r.accountName,
+            glCode: acc.glCode,
+            accountName: acc.accountName,
             amount: fmt(netCr),
           });
         } else {
           currentLiabilities.push({
             glAccountId: r.glAccountId,
-            glCode: r.glCode,
-            accountName: r.accountName,
+            glCode: acc.glCode,
+            accountName: acc.accountName,
             amount: fmt(netCr),
           });
         }
-      } else if (r.accountType === 'EQUITY') {
+      } else if (acc.accountType === 'EQUITY') {
         totEquity = totEquity.plus(netCr);
         equityBalances.push({
           glAccountId: r.glAccountId,
-          glCode: r.glCode,
-          accountName: r.accountName,
+          glCode: acc.glCode,
+          accountName: acc.accountName,
           amount: fmt(netCr),
         });
-      } else if (r.accountType === 'REVENUE') {
+      } else if (acc.accountType === 'REVENUE') {
         cumulativeNetIncome = cumulativeNetIncome.plus(netCr);
-      } else if (r.accountType === 'CONTRA_REVENUE') {
+      } else if (acc.accountType === 'CONTRA_REVENUE') {
         cumulativeNetIncome = cumulativeNetIncome.minus(netDr);
-      } else if (r.accountType === 'EXPENSE') {
+      } else if (acc.accountType === 'EXPENSE') {
         cumulativeNetIncome = cumulativeNetIncome.minus(netDr);
       }
     }
@@ -615,25 +604,23 @@ export class FinancialReportsService {
     const asOfDate = dto.asOfDate || new Date().toISOString().slice(0, 10);
     const asOfTime = new Date(asOfDate).getTime();
 
-    const qb = this.invoiceRepo
-      .createQueryBuilder('inv')
-      .leftJoinAndSelect('inv.fiscalPeriod', 'period')
-      .where('inv.status IN (:...statuses)', {
-        statuses: dto.status ? [dto.status] : ['UNPAID', 'PARTIAL', 'OVERDUE'],
-      })
-      .orderBy('inv.dueDate', 'ASC');
+    const statuses = dto.status ? [dto.status] : ['UNPAID', 'PARTIAL', 'OVERDUE'];
 
-    const invoices = await qb.getMany();
+    const invoices = await this.prisma.studentInvoices.findMany({
+      where: {
+        status: { in: statuses },
+      },
+      orderBy: { dueDate: 'asc' },
+    });
 
     // Fetch student info
     const studentIds = Array.from(new Set(invoices.map((i) => i.studentId)));
     const users = studentIds.length
-      ? await this.userRepo
-          .createQueryBuilder('u')
-          .where('u.id IN (:...ids)', { ids: studentIds })
-          .getMany()
+      ? await this.prisma.users.findMany({
+          where: { id: { in: studentIds } },
+        })
       : [];
-    const userMap = new Map<string, User>(users.map((u) => [u.id, u]));
+    const userMap = new Map<string, any>(users.map((u) => [u.id, u]));
 
     let totOutstanding = new Decimal(0);
     const bucketTotals = {
@@ -714,9 +701,12 @@ export class FinancialReportsService {
    * 6. GENERAL LEDGER / ACCOUNT STATEMENT
    * ========================================================================= */
   async getGeneralLedger(dto: GeneralLedgerQueryDto) {
-    const account = await this.coaRepo.findOne({
+    const account = await this.prisma.chartOfAccounts.findUnique({
       where: { id: dto.glAccountId },
-      relations: ['parent', 'defaultFund'],
+      include: {
+        chartOfAccounts: true, // parent
+        funds: true, // defaultFund
+      },
     });
     if (!account) throw new NotFoundException(`GL Account #${dto.glAccountId} not found`);
 
@@ -725,20 +715,20 @@ export class FinancialReportsService {
     const endDate = dto.endDate || today;
 
     // 1. Opening balance (< startDate)
-    const openQb = this.lineRepo
-      .createQueryBuilder('l')
-      .innerJoin('l.entry', 'e')
-      .select('SUM(CAST(l.debitAmount AS DECIMAL(15,2)))', 'totDr')
-      .addSelect('SUM(CAST(l.creditAmount AS DECIMAL(15,2)))', 'totCr')
-      .where('l.glAccountId = :accId', { accId: dto.glAccountId })
-      .andWhere('e.status = :status', { status: 'APPROVED' })
-      .andWhere('e.transactionDate < :startDate', { startDate });
-
-    if (dto.fundId) openQb.andWhere('l.fundId = :fundId', { fundId: dto.fundId });
-    if (dto.costCenterId) openQb.andWhere('l.costCenterId = :ccId', { ccId: dto.costCenterId });
-    const openRaw = await openQb.getRawOne();
-    const openDr = dec(openRaw?.totDr);
-    const openCr = dec(openRaw?.totCr);
+    const openRaw = await this.prisma.journalLines.aggregate({
+      _sum: { debitAmount: true, creditAmount: true },
+      where: {
+        glAccountId: dto.glAccountId,
+        journalEntries: {
+          status: 'APPROVED',
+          transactionDate: { lt: toDateValue(startDate) },
+        },
+        ...(dto.fundId ? { fundId: dto.fundId } : {}),
+        ...(dto.costCenterId ? { costCenterId: dto.costCenterId } : {}),
+      },
+    });
+    const openDr = dec(openRaw._sum.debitAmount ?? 0);
+    const openCr = dec(openRaw._sum.creditAmount ?? 0);
 
     let openingBalance = new Decimal(0);
     if (account.normalBalance === 'DR') {
@@ -748,21 +738,26 @@ export class FinancialReportsService {
     }
 
     // 2. Transaction lines
-    const lineQb = this.lineRepo
-      .createQueryBuilder('l')
-      .innerJoinAndSelect('l.entry', 'e')
-      .leftJoinAndSelect('l.fund', 'fund')
-      .leftJoinAndSelect('l.costCenter', 'cc')
-      .where('l.glAccountId = :accId', { accId: dto.glAccountId })
-      .andWhere('e.status = :status', { status: 'APPROVED' })
-      .andWhere('e.transactionDate >= :startDate', { startDate })
-      .andWhere('e.transactionDate <= :endDate', { endDate })
-      .orderBy('e.transactionDate', 'ASC')
-      .addOrderBy('e.createdAt', 'ASC');
-
-    if (dto.fundId) lineQb.andWhere('l.fundId = :fundId', { fundId: dto.fundId });
-    if (dto.costCenterId) lineQb.andWhere('l.costCenterId = :ccId', { ccId: dto.costCenterId });
-    const lines = await lineQb.getMany();
+    const lines = await this.prisma.journalLines.findMany({
+      include: {
+        journalEntries: true,
+        funds: true,
+        costCenters: true,
+      },
+      where: {
+        glAccountId: dto.glAccountId,
+        journalEntries: {
+          status: 'APPROVED',
+          transactionDate: { gte: toDateValue(startDate), lte: toDateValue(endDate) },
+        },
+        ...(dto.fundId ? { fundId: dto.fundId } : {}),
+        ...(dto.costCenterId ? { costCenterId: dto.costCenterId } : {}),
+      },
+      orderBy: [
+        { journalEntries: { transactionDate: 'asc' } },
+        { journalEntries: { createdAt: 'asc' } },
+      ],
+    });
 
     let running = openingBalance;
     let totPeriodDr = new Decimal(0);
@@ -780,16 +775,17 @@ export class FinancialReportsService {
         running = running.plus(cr).minus(dr);
       }
 
+      const entry = l.journalEntries;
       return {
         lineId: l.id,
         voucherId: l.journalEntryId,
-        voucherNo: l.entry?.voucherNo || 'N/A',
-        voucherType: l.entry?.voucherType || 'JOURNAL',
-        transactionDate: l.entry?.transactionDate || '',
-        narration: l.entry?.narration || '',
+        voucherNo: entry?.voucherNo || 'N/A',
+        voucherType: entry?.voucherType || 'JOURNAL',
+        transactionDate: entry?.transactionDate || '',
+        narration: entry?.narration || '',
         lineMemo: l.lineMemo,
-        fundCode: l.fund?.fundCode,
-        costCenterCode: l.costCenter?.centerCode,
+        fundCode: l.funds?.fundCode,
+        costCenterCode: l.costCenters?.centerCode,
         subledgerType: l.subledgerType,
         subledgerId: l.subledgerId,
         debitAmount: l.debitAmount,

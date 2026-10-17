@@ -1,34 +1,38 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { StaffMember } from '../database/entities/staff-member.entity';
+import { PrismaService } from '../prisma/prisma.service';
+import { toWire, toWireList } from '../prisma/wire';
 import { CreateStaffMemberDto, UpdateStaffMemberDto } from './staff-member.dto';
 
 @Injectable()
 export class StaffService {
-  constructor(
-    @InjectRepository(StaffMember)
-    private readonly repo: Repository<StaffMember>,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
-  findAll(): Promise<StaffMember[]> {
-    return this.repo.find({ order: { sortOrder: 'ASC', id: 'ASC' } });
+  async findAll() {
+    const rows = await this.prisma.staffMembers.findMany({
+      orderBy: [{ sortOrder: 'asc' }, { id: 'asc' }],
+    });
+    return toWireList(rows);
   }
 
-  create(dto: CreateStaffMemberDto): Promise<StaffMember> {
-    return this.repo.save(this.repo.create(dto));
+  async create(dto: CreateStaffMemberDto) {
+    const row = await this.prisma.staffMembers.create({ data: { ...dto } });
+    return toWire(row);
   }
 
-  async update(id: string, dto: UpdateStaffMemberDto): Promise<StaffMember> {
-    const member = await this.repo.findOne({ where: { id } });
+  async update(id: string, dto: UpdateStaffMemberDto) {
+    const member = await this.prisma.staffMembers.findUnique({ where: { id } });
     if (!member) throw new NotFoundException(`Staff member ${id} not found`);
-    return this.repo.save(this.repo.merge(member, dto));
+    const row = await this.prisma.staffMembers.update({
+      where: { id },
+      data: { ...dto },
+    });
+    return toWire(row);
   }
 
   async remove(id: string): Promise<{ id: string }> {
-    const member = await this.repo.findOne({ where: { id } });
+    const member = await this.prisma.staffMembers.findUnique({ where: { id } });
     if (!member) throw new NotFoundException(`Staff member ${id} not found`);
-    await this.repo.remove(member);
+    await this.prisma.staffMembers.delete({ where: { id } });
     return { id };
   }
 }

@@ -34,6 +34,15 @@ dist/
 build/
 *.tsbuildinfo
 
+# Prisma — generated client (regenerate: `pnpm --filter api run prisma:generate`)
+apps/api/src/generated/
+
+# apps/api CLI helpers (scripts/) run via ts-node/tsx — never compile in place.
+# Stale in-place .js here shadow the .ts sources and break the parity harness.
+apps/api/scripts/**/*.js
+apps/api/scripts/**/*.js.map
+apps/api/scripts/**/*.d.ts
+
 # Turbo
 .turbo/
 

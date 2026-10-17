@@ -1,11 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, Repository } from 'typeorm';
 import Decimal from 'decimal.js';
-import { JournalEntry } from '../database/entities/journal-entry.entity';
-import { JournalLine } from '../database/entities/journal-line.entity';
-import { AccountingAuditLog } from '../database/entities/accounting-audit-log.entity';
-import { User } from '../database/entities/user.entity';
+import { PrismaService } from '../prisma/prisma.service';
+import { Prisma } from '../generated/prisma/client';
+import type { Prisma as PrismaTypes } from '../generated/prisma/client';
 import { AuditLogQueryDto, VoucherAuditQueryDto } from './audit.dto';
 
 const dec = (v: any) => new Decimal(v == null || v === '' ? '0' : String(v));
@@ -13,40 +10,41 @@ const fmt = (d: Decimal) => d.toFixed(2);
 
 @Injectable()
 export class AccountingAuditService {
-  constructor(
-    private readonly dataSource: DataSource,
-    @InjectRepository(JournalEntry)
-    private readonly entryRepo: Repository<JournalEntry>,
-    @InjectRepository(JournalLine)
-    private readonly lineRepo: Repository<JournalLine>,
-    @InjectRepository(AccountingAuditLog)
-    private readonly logRepo: Repository<AccountingAuditLog>,
-    @InjectRepository(User)
-    private readonly userRepo: Repository<User>,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   /* =========================================================================
    * 1. VOUCHER AUDIT TRAIL (Maker-Checker-Approver)
    * ========================================================================= */
   async getVoucherAuditTrail(dto: VoucherAuditQueryDto) {
-    const qb = this.entryRepo
-      .createQueryBuilder('e')
-      .leftJoinAndSelect('e.fiscalPeriod', 'period')
-      .orderBy('e.createdAt', 'DESC')
-      .take(Math.min(Math.max(dto.limit ?? 100, 1), 500));
+    const take = Math.min(Math.max(dto.limit ?? 100, 1), 500);
 
-    if (dto.status) qb.andWhere('e.status = :status', { status: dto.status });
-    if (dto.voucherType) qb.andWhere('e.voucherType = :vt', { vt: dto.voucherType });
-    if (dto.sourceModule) qb.andWhere('e.sourceModule = :sm', { sm: dto.sourceModule });
-    if (dto.startDate) qb.andWhere('e.transactionDate >= :start', { start: dto.startDate });
-    if (dto.endDate) qb.andWhere('e.transactionDate <= :end', { end: dto.endDate });
-    if (dto.search?.trim()) {
-      qb.andWhere('(e.voucherNo LIKE :s OR e.narration LIKE :s)', {
-        s: `%${dto.search.trim()}%`,
-      });
-    }
+    const entries = await this.prisma.journalEntries.findMany({
+      include: { fiscalPeriods: true },
+      where: {
+        ...(dto.status ? { status: dto.status } : {}),
+        ...(dto.voucherType ? { voucherType: dto.voucherType } : {}),
+        ...(dto.sourceModule ? { sourceModule: dto.sourceModule } : {}),
+        ...(dto.startDate || dto.endDate
+          ? {
+              transactionDate: {
+                ...(dto.startDate ? { gte: dto.startDate } : {}),
+                ...(dto.endDate ? { lte: dto.endDate } : {}),
+              },
+            }
+          : {}),
+        ...(dto.search?.trim()
+          ? {
+              OR: [
+                { voucherNo: { contains: dto.search.trim() } },
+                { narration: { contains: dto.search.trim() } },
+              ],
+            }
+          : {}),
+      },
+      orderBy: { createdAt: 'desc' },
+      take,
+    });
 
-    const entries = await qb.getMany();
     if (entries.length === 0) return { total: 0, items: [] };
 
     // Fetch actor details
@@ -58,23 +56,22 @@ export class AccountingAuditService {
     });
 
     const users = actorIds.size
-      ? await this.userRepo
-          .createQueryBuilder('u')
-          .where('u.id IN (:...ids)', { ids: Array.from(actorIds) })
-          .getMany()
+      ? await this.prisma.users.findMany({
+          where: { id: { in: Array.from(actorIds) } },
+        })
       : [];
-    const userMap = new Map<string, User>(users.map((u) => [u.id, u]));
+    const userMap = new Map<string, any>(users.map((u) => [u.id, u]));
 
     // Query debit sums for these vouchers
     const entryIds = entries.map((e) => e.id);
-    const sums = await this.lineRepo
-      .createQueryBuilder('l')
-      .select('l.journalEntryId', 'entryId')
-      .addSelect('SUM(CAST(l.debitAmount AS DECIMAL(15,2)))', 'totalDebit')
-      .where('l.journalEntryId IN (:...ids)', { ids: entryIds })
-      .groupBy('l.journalEntryId')
-      .getRawMany();
-    const sumMap = new Map<string, string>(sums.map((s) => [s.entryId, fmt(dec(s.totalDebit))]));
+    const sums = await this.prisma.journalLines.groupBy({
+      by: ['journalEntryId'],
+      _sum: { debitAmount: true },
+      where: { journalEntryId: { in: entryIds } },
+    });
+    const sumMap = new Map<string, string>(
+      sums.map((s) => [s.journalEntryId, fmt(dec(s._sum.debitAmount ?? 0))]),
+    );
 
     const items = entries.map((e) => {
       const maker = userMap.get(e.createdByUserId);
@@ -135,31 +132,33 @@ export class AccountingAuditService {
    * ========================================================================= */
   async getReversalRegistry() {
     // Reversal vouchers (RV-*) and their originals
-    const reversalVouchers = await this.entryRepo
-      .createQueryBuilder('e')
-      .leftJoinAndSelect('e.reversedEntry', 'orig')
-      .where('e.voucherType = :vt OR e.reversedEntryId IS NOT NULL', { vt: 'REVERSAL' })
-      .orderBy('e.createdAt', 'DESC')
-      .getMany();
+    const reversalVouchers = await this.prisma.journalEntries.findMany({
+      include: {
+        journalEntries: true, // reversedEntry (self relation: journal_entriesTojournal_entries)
+      },
+      where: {
+        OR: [{ voucherType: 'REVERSAL' }, { reversedEntryId: { not: null } }],
+      },
+      orderBy: { createdAt: 'desc' },
+    });
 
     const actorIds = new Set<string>();
     reversalVouchers.forEach((rv) => {
       if (rv.createdByUserId) actorIds.add(rv.createdByUserId);
       if (rv.approvedByUserId) actorIds.add(rv.approvedByUserId);
-      if (rv.reversedEntry?.createdByUserId) actorIds.add(rv.reversedEntry.createdByUserId);
-      if (rv.reversedEntry?.approvedByUserId) actorIds.add(rv.reversedEntry.approvedByUserId);
+      if (rv.journalEntries?.createdByUserId) actorIds.add(rv.journalEntries.createdByUserId);
+      if (rv.journalEntries?.approvedByUserId) actorIds.add(rv.journalEntries.approvedByUserId);
     });
 
     const users = actorIds.size
-      ? await this.userRepo
-          .createQueryBuilder('u')
-          .where('u.id IN (:...ids)', { ids: Array.from(actorIds) })
-          .getMany()
+      ? await this.prisma.users.findMany({
+          where: { id: { in: Array.from(actorIds) } },
+        })
       : [];
-    const userMap = new Map<string, User>(users.map((u) => [u.id, u]));
+    const userMap = new Map<string, any>(users.map((u) => [u.id, u]));
 
     const items = reversalVouchers.map((rv) => {
-      const orig = rv.reversedEntry;
+      const orig = rv.journalEntries;
       const reverser = userMap.get(rv.approvedByUserId || rv.createdByUserId);
       const origMaker = orig ? userMap.get(orig.createdByUserId) : null;
       const origApprover = orig?.approvedByUserId ? userMap.get(orig.approvedByUserId) : null;
@@ -199,84 +198,65 @@ export class AccountingAuditService {
    * 3. SOURCE MODULE BREAKDOWN
    * ========================================================================= */
   async getSourceModuleSummary() {
-    const raw = await this.entryRepo
-      .createQueryBuilder('e')
-      .innerJoin('e.lines', 'l')
-      .select('e.sourceModule', 'sourceModule')
-      .addSelect('COUNT(DISTINCT e.id)', 'count')
-      .addSelect('SUM(CAST(l.debitAmount AS DECIMAL(15,2)))', 'totalVolume')
-      .where('e.status = :status', { status: 'APPROVED' })
-      .groupBy('e.sourceModule')
-      .getRawMany();
+    const entries = await this.prisma.journalEntries.findMany({
+      include: { journalLines: { select: { debitAmount: true } } },
+      where: { status: 'APPROVED' },
+      take: 10000,
+    });
 
     const modules = [
-      {
-        key: 'MANUAL',
-        name: 'Manual Journal Vouchers',
-        description: 'Vouchers created manually by accountants',
-      },
-      {
-        key: 'STUDENT_BILLING',
-        name: 'Student Billing & Invoicing',
-        description: 'Automated accrual fee receivables & waiver postings',
-      },
-      {
-        key: 'MFS_COLLECTION',
-        name: 'Fee Collection & MFS Clearing',
-        description: 'bKash/Nagad/Counter receipts & TDR commission splits',
-      },
-      {
-        key: 'PROCUREMENT',
-        name: 'Procurement & Vendor AP',
-        description: 'Vendor bills & NBR statutory VDS/TDS withholding',
-      },
-      {
-        key: 'PAYROLL',
-        name: 'Payroll & MPO Salary Runs',
-        description: 'Institutional salary postings & PF liability splits',
-      },
+      { key: 'MANUAL', name: 'Manual Journal Vouchers', description: 'Vouchers created manually by accountants' },
+      { key: 'STUDENT_BILLING', name: 'Student Billing & Invoicing', description: 'Automated accrual fee receivables & waiver postings' },
+      { key: 'MFS_COLLECTION', name: 'Fee Collection & MFS Clearing', description: 'bKash/Nagad/Counter receipts & TDR commission splits' },
+      { key: 'PROCUREMENT', name: 'Procurement & Vendor AP', description: 'Vendor bills & NBR statutory VDS/TDS withholding' },
+      { key: 'PAYROLL', name: 'Payroll & MPO Salary Runs', description: 'Institutional salary postings & PF liability splits' },
     ];
 
-    const statsMap = new Map(raw.map((r) => [r.sourceModule, r]));
+    const statsMap = new Map<string, { voucherCount: number; totalVolume: Decimal }>();
+    for (const e of entries) {
+      const stat = statsMap.get(e.sourceModule) ?? { voucherCount: 0, totalVolume: new Decimal(0) };
+      stat.voucherCount += 1;
+      for (const l of e.journalLines ?? []) {
+        stat.totalVolume = stat.totalVolume.plus(new Decimal(l.debitAmount));
+      }
+      statsMap.set(e.sourceModule, stat);
+    }
 
-    const summary = modules.map((m) => {
+    return modules.map((m) => {
       const stat = statsMap.get(m.key);
       return {
         ...m,
-        voucherCount: stat ? Number(stat.count) : 0,
-        totalVolume: stat ? fmt(dec(stat.totalVolume)) : '0.00',
+        voucherCount: stat?.voucherCount ?? 0,
+        totalVolume: fmt(stat?.totalVolume ?? new Decimal(0)),
       };
     });
-
-    return summary;
   }
 
   /* =========================================================================
    * 4. AUDIT SUMMARY METRICS
    * ========================================================================= */
   async getAuditSummary() {
-    const counts = await this.entryRepo
-      .createQueryBuilder('e')
-      .select('e.status', 'status')
-      .addSelect('COUNT(*)', 'count')
-      .groupBy('e.status')
-      .getRawMany();
+    const counts = await this.prisma.journalEntries.groupBy({
+      by: ['status'],
+      _count: { id: true },
+    });
 
-    const countMap = new Map(counts.map((c) => [c.status, Number(c.count)]));
+    const countMap = new Map(
+      (counts as Array<{ status: string; _count: { id: number } }>).map((c) => [c.status, c._count.id]),
+    );
     const total = Array.from(countMap.values()).reduce((a, b) => a + b, 0);
     const approved = countMap.get('APPROVED') || 0;
     const reversed = countMap.get('REVERSED') || 0;
     const draft = countMap.get('DRAFT') || 0;
     const verified = countMap.get('VERIFIED') || 0;
 
-    const volumeRaw = await this.lineRepo
-      .createQueryBuilder('l')
-      .innerJoin('l.entry', 'e')
-      .select('SUM(CAST(l.debitAmount AS DECIMAL(15,2)))', 'totalDebit')
-      .where('e.status = :st', { st: 'APPROVED' })
-      .getRawOne();
-
-    const totalVolume = fmt(dec(volumeRaw?.totalDebit));
+    const volumeRaw = await this.prisma.journalLines.aggregate({
+      _sum: { debitAmount: true },
+      where: {
+        journalEntries: { status: 'APPROVED' },
+      },
+    });
+    const totalVolume = fmt(dec(volumeRaw._sum.debitAmount ?? 0));
     const reversalRate = total > 0 ? ((reversed / total) * 100).toFixed(1) : '0.0';
 
     return {
@@ -305,53 +285,61 @@ export class AccountingAuditService {
     details?: string | null;
     ipAddress?: string | null;
   }) {
-    const log = this.logRepo.create({
-      eventType: params.eventType,
-      entityType: params.entityType,
-      entityId: params.entityId,
-      entityReference: params.entityReference || null,
-      actorId: params.actorId || null,
-      action: params.action,
-      details: params.details || null,
-      ipAddress: params.ipAddress || null,
+    return this.prisma.accountingAuditLogs.create({
+      data: {
+        eventType: params.eventType,
+        entityType: params.entityType,
+        entityId: params.entityId,
+        entityReference: params.entityReference || null,
+        actorId: params.actorId || null,
+        action: params.action,
+        details: params.details || null,
+        ipAddress: params.ipAddress || null,
+      },
     });
-    return this.logRepo.save(log);
   }
 
   async getActivityLogs(dto: AuditLogQueryDto) {
-    const qb = this.logRepo
-      .createQueryBuilder('log')
-      .leftJoinAndSelect('log.actor', 'actor')
-      .orderBy('log.createdAt', 'DESC')
-      .take(Math.min(Math.max(dto.limit ?? 100, 1), 500));
+    const take = Math.min(Math.max(dto.limit ?? 100, 1), 500);
 
-    if (dto.eventType) qb.andWhere('log.eventType = :et', { et: dto.eventType });
-    if (dto.entityType) qb.andWhere('log.entityType = :ent', { ent: dto.entityType });
-    if (dto.actorId) qb.andWhere('log.actorId = :act', { act: dto.actorId });
-    if (dto.startDate) qb.andWhere('log.createdAt >= :start', { start: dto.startDate });
-    if (dto.endDate) qb.andWhere('log.createdAt <= :end', { end: dto.endDate });
-
-    const logs = await qb.getMany();
+    const logs = await this.prisma.accountingAuditLogs.findMany({
+      include: { users: true }, // actor relation
+      where: {
+        ...(dto.eventType ? { eventType: dto.eventType } : {}),
+        ...(dto.entityType ? { entityType: dto.entityType } : {}),
+        ...(dto.actorId ? { actorId: dto.actorId } : {}),
+        ...(dto.startDate || dto.endDate
+          ? {
+              createdAt: {
+                ...(dto.startDate ? { gte: dto.startDate } : {}),
+                ...(dto.endDate ? { lte: dto.endDate } : {}),
+              },
+            }
+          : {}),
+      },
+      orderBy: { createdAt: 'desc' },
+      take,
+    });
 
     // If audit log table has few/no entries yet, also supplement with historical journal entry milestones
     if (logs.length < 5) {
-      const historicalEntries = await this.entryRepo
-        .createQueryBuilder('e')
-        .orderBy('e.createdAt', 'DESC')
-        .take(50)
-        .getMany();
+      const historicalEntries = await this.prisma.journalEntries.findMany({
+        orderBy: { createdAt: 'desc' },
+        take: 50,
+      });
 
       const userIds = Array.from(
-        new Set(historicalEntries.map((e) => e.approvedByUserId || e.createdByUserId).filter(Boolean)),
+        new Set(
+          historicalEntries.map((e) => e.approvedByUserId || e.createdByUserId).filter(Boolean),
+        ),
       ) as string[];
 
       const users = userIds.length
-        ? await this.userRepo
-            .createQueryBuilder('u')
-            .where('u.id IN (:...ids)', { ids: userIds })
-            .getMany()
+        ? await this.prisma.users.findMany({
+            where: { id: { in: userIds } },
+          })
         : [];
-      const userMap = new Map<string, User>(users.map((u) => [u.id, u]));
+      const userMap = new Map<string, any>(users.map((u) => [u.id, u]));
 
       const syntheticLogs = historicalEntries.map((e) => {
         const actorId = e.approvedByUserId || e.createdByUserId;
@@ -396,11 +384,13 @@ export class AccountingAuditService {
         };
       });
 
+      const combined = [...logs, ...syntheticLogs].sort(
+        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      );
+
       return {
         total: logs.length + syntheticLogs.length,
-        items: [...logs, ...syntheticLogs].sort(
-          (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-        ),
+        items: combined,
       };
     }
 

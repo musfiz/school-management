@@ -11,6 +11,7 @@
     "outDir": "./dist",
     "rootDir": "./src",
     "incremental": true,
+    "tsBuildInfoFile": "./dist/tsconfig.tsbuildinfo",
     "skipLibCheck": true,
     "strictNullChecks": false,
     "noImplicitAny": false,
@@ -24,5 +25,18 @@
     "paths": {
       "@/*": ["./*"]
     }
-  }
+  },
+  "//": "Prisma's CLI files live outside rootDir (src) and are executed by the",
+  "//2": "Prisma CLI / tsx, not by nest build. Exclude them from the tsc program.",
+  "//3": "scripts/ (parity harness, smoke) are likewise tsx-run and live outside",
+  "//4": "rootDir, so they are excluded here; tsconfig.spec.json re-includes them.",
+  "exclude": [
+    "node_modules",
+    "dist",
+    "prisma",
+    "prisma7.config.ts",
+    "scripts",
+    "**/*.spec.ts",
+    "test"
+  ]
 }

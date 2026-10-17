@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { EntityManager, Repository } from 'typeorm';
-import { VoucherSequence } from '../database/entities/voucher-sequence.entity';
+import { Prisma } from '../generated/prisma/client';
+import type { Prisma as PrismaTypes } from '../generated/prisma/client';
 import {
   REVERSAL_VOUCHER_PREFIX,
   VOUCHER_PREFIX_BY_TYPE,
@@ -15,21 +14,20 @@ import {
  * MUST be called inside the caller's transaction: takes a pessimistic
  * write lock (`FOR UPDATE`) on the counter row so two concurrent
  * postings can never receive the same number.
+ *
+ * AD-P7: the Prisma `TransactionClient` is used for transaction scoping.
+ * The lock and the read are a single `SELECT … FOR UPDATE` (a *current*
+ * read) so the counter is never taken from a REPEATABLE READ snapshot.
  */
 @Injectable()
 export class VoucherSequenceService {
-  constructor(
-    @InjectRepository(VoucherSequence)
-    private readonly seqRepo: Repository<VoucherSequence>,
-  ) {}
-
   private prefixFor(type: VoucherType): string {
     if (type === 'REVERSAL') return REVERSAL_VOUCHER_PREFIX;
     return VOUCHER_PREFIX_BY_TYPE[type];
   }
 
   async nextVoucherNo(
-    manager: EntityManager,
+    tx: PrismaTypes.TransactionClient,
     voucherType: VoucherType,
     transactionDate: string,
   ): Promise<string> {
@@ -38,25 +36,29 @@ export class VoucherSequenceService {
       throw new Error(`Cannot derive fiscal year from "${transactionDate}"`);
     }
 
-    let seq = await manager
-      .getRepository(VoucherSequence)
-      .createQueryBuilder('seq')
-      .setLock('pessimistic_write')
-      .where('seq.fiscalYear = :fiscalYear', { fiscalYear })
-      .andWhere('seq.voucherType = :voucherType', { voucherType })
-      .getOne();
+    const locked = () =>
+      tx.$queryRaw<{ last_number: number }[]>(Prisma.sql`
+        SELECT last_number FROM voucher_sequences
+        WHERE fiscal_year = ${fiscalYear} AND voucher_type = ${voucherType}
+        FOR UPDATE
+      `);
+    const row = (await locked())[0];
 
-    if (!seq) {
-      seq = manager.getRepository(VoucherSequence).create({
-        fiscalYear,
-        voucherType,
-        lastNumber: 0,
+    let lastNumber: number;
+    if (!row) {
+      lastNumber = 1;
+      await tx.voucherSequences.create({
+        data: { fiscalYear, voucherType, lastNumber },
+      });
+    } else {
+      lastNumber = row.last_number + 1;
+      await tx.voucherSequences.update({
+        where: { fiscalYear_voucherType: { fiscalYear, voucherType } },
+        data: { lastNumber },
       });
     }
-    seq.lastNumber += 1;
-    await manager.getRepository(VoucherSequence).save(seq);
 
-    const padded = String(seq.lastNumber).padStart(6, '0');
+    const padded = String(lastNumber).padStart(6, '0');
     return `${this.prefixFor(voucherType)}-${fiscalYear}-${padded}`;
   }
 }

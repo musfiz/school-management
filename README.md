@@ -55,7 +55,7 @@ A monorepo for a school management platform — a **Next.js** web frontend, a
 | Package mgr. | [pnpm](https://pnpm.io) 11+ with workspaces            |
 | Monorepo     | [Turborepo](https://turborepo.dev)                     |
 | Frontend     | [Next.js](https://nextjs.org) 16, React 19, Tailwind 4 |
-| Backend      | [NestJS](https://nestjs.com) 11, TypeScript 6          |
+| Backend      | [NestJS](https://nestjs.com) 11, TypeScript 6, [Prisma ORM](https://www.prisma.io) 7 |
 | Shared       | TypeScript 6 (compiled to CommonJS + `.d.ts`)          |
 | Lint/Format  | ESLint (Next config) + Prettier                        |
 
@@ -217,10 +217,13 @@ All scripts run from the repo root and are powered by Turborepo.
 | `pnpm lint`                  | Lints every workspace                                      |
 | `pnpm clean`                 | Removes build artifacts (delegated to each workspace)      |
 | `pnpm typecheck`             | Type-checks every workspace (if configured)                |
-| `pnpm migration:make <name>` | Generates a migration with a `Y_m_d_His_name.ts` filename  |
-| `pnpm migration:run`         | Applies all pending database migrations                    |
-| `pnpm migration:revert`      | Reverts the last database migration                        |
-| `pnpm seed`                  | Seeds the database with initial data                       |
+| `pnpm prisma:migrate`        | Applies pending Prisma migrations (dev)                    |
+| `pnpm prisma:deploy`         | Applies pending Prisma migrations (production)             |
+| `pnpm prisma:status`         | Checks migration drift status                              |
+| `pnpm prisma:studio`         | Opens Prisma Studio (database GUI)                         |
+| `pnpm prisma:generate`       | Regenerates Prisma Client from schema                      |
+| `pnpm prisma:pull`           | Pulls schema changes from the database                     |
+| `pnpm prisma:smoke`          | Runs a smoke test against the Prisma client                |
 | `pnpm ports:free [port…]`    | Force-frees stuck dev server ports (default `3030 3031`)   |
 
 Filter any of these with `--filter`:
@@ -265,6 +268,9 @@ school-management/
 │       │   ├── app.controller.ts
 │       │   ├── app.service.ts
 │       │   └── main.ts
+│       ├── prisma/
+│       │   ├── schema.prisma     # Prisma data model (single source of truth)
+│       │   └── migrations/       # Prisma migration SQL files
 │       ├── .env.example
 │       ├── nest-cli.json
 │       └── package.json
@@ -331,11 +337,29 @@ without stepping on each other.
 
 - Owns `apps/api/`.
 - Defines and exports new shapes via `packages/shared-types`.
+- Manages the data model in `apps/api/prisma/schema.prisma`.
 - Daily loop:
   ```sh
   pnpm --filter api dev
   pnpm --filter api lint
   pnpm --filter api build
+  ```
+- Prisma workflow:
+  ```sh
+  # regenerate Prisma Client after editing schema.prisma
+  pnpm --filter api prisma:generate
+
+  # create and apply a new migration
+  pnpm --filter api prisma:migrate
+
+  # apply migrations in production
+  pnpm --filter api prisma:deploy
+
+  # open Prisma Studio (visual DB browser)
+  pnpm --filter api prisma:studio
+
+  # check for migration drift
+  pnpm --filter api prisma:status
   ```
 
 ### Cross-cutting / shared types owner
@@ -377,6 +401,72 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for branching, commit, and PR conventions
 
 > Tip: keep the shared package **types only** (interfaces, type aliases, enums,
 > Zod schemas) — no runtime framework code. That keeps the dependency cheap.
+
+## 🗄️ Using Prisma ORM
+
+The `apps/api` backend uses **Prisma ORM 7** as its data access layer (replacing
+TypeORM). Prisma 7 runs without a Rust query engine and connects to MySQL/MariaDB
+via `@prisma/adapter-mariadb` over the `mariadb` driver.
+
+### Schema
+
+The single source of truth is `apps/api/prisma/schema.prisma`. It defines all
+database models (e.g. `JournalEntries`, `Students`, `VendorBills`, `PayrollRuns`)
+and maps them to snake_case table/column names.
+
+### Prisma Client
+
+The generated client lives at `apps/api/src/generated/prisma/client` and is
+exposed through `PrismaService` (`apps/api/src/prisma/prisma.service.ts`), which
+is a `@Global()` NestJS module — inject `PrismaService` into any service:
+
+```ts
+import { Injectable } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
+
+@Injectable()
+export class SomeService {
+  constructor(private readonly prisma: PrismaService) {}
+
+  async findAll() {
+    return this.prisma.students.findMany();
+  }
+}
+```
+
+### Common Prisma commands
+
+These root shortcuts forward to `apps/api` (`pnpm --filter api run …`), so they
+work from the repo root. Extra flags are forwarded too, e.g.
+`pnpm prisma:migrate -- --name add_students_nid`.
+
+| Command | Purpose |
+|---------|---------|
+| `pnpm prisma:generate` | Regenerate Prisma Client after editing `schema.prisma` |
+| `pnpm prisma:migrate` | Create and apply a new migration in development |
+| `pnpm prisma:deploy` | Apply migrations in production |
+| `pnpm prisma:status` | Check for migration drift |
+| `pnpm prisma:studio` | Open Prisma Studio (visual database browser) |
+| `pnpm prisma:pull` | Pull schema changes from an existing database |
+| `pnpm prisma:smoke` | Run a smoke test against the Prisma client |
+
+### Adding a new model
+
+1. Edit `apps/api/prisma/schema.prisma` — add your `model` block.
+2. Run `pnpm --filter api prisma:migrate` to create + apply the migration.
+3. Run `pnpm --filter api prisma:generate` to regenerate the client.
+4. Use the new model in a service via `PrismaService`.
+
+### Transactions
+
+Use `prisma.$transaction()` for atomic multi-model writes:
+
+```ts
+await this.prisma.$transaction(async (tx) => {
+  await tx.students.create({ data: { ... } });
+  await tx.studentEnrollments.create({ data: { ... } });
+}, { isolationLevel: 'RepeatableRead' });
+```
 
 ## 🤖 CI / Build & Lint
 
@@ -422,7 +512,3 @@ jobs:
 ## 📄 License
 
 [MIT](./LICENSE) © Contributors
-
-netstat -ano | findstr "3030 3031 3032"
-
-taskkill /PID /F

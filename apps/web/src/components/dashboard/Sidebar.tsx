@@ -110,7 +110,7 @@ function LeafLink({ leaf, pathname }: { leaf: NavLeaf; pathname: string }) {
         href={leaf.href}
         aria-current={active ? "page" : undefined}
         title={leaf.description ?? leaf.label}
-        className={`sidebar-leaf-link ${active ? "active" : ""} ${leaf.highlight ? "sidebar-leaf-highlight" : ""}`}
+        className={`sidebar-leaf-link ${active ? "active" : ""}`}
       >
         <span className="sidebar-icon-chip">
           <LeafIcon className="h-4 w-4 shrink-0" />
@@ -223,7 +223,7 @@ function FlyoutLeaf({ leaf, onNavigate }: { leaf: NavLeaf; onNavigate: () => voi
         onClick={onNavigate}
         aria-current={active ? "page" : undefined}
         title={leaf.description ?? leaf.label}
-        className={`sidebar-flyout-link ${active ? "active" : ""} ${leaf.highlight ? "sidebar-leaf-highlight" : ""}`}
+        className={`sidebar-flyout-link ${active ? "active" : ""}`}
       >
         <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-current opacity-40" aria-hidden />
         <span className="min-w-0 flex-1 truncate">{leaf.label}</span>
@@ -483,6 +483,7 @@ function RailItem({
 export default function Sidebar({ role, name }: { role: Role; name?: string }) {
   const pathname = usePathname();
   const mounted = useMounted();
+  const navRef = useRef<HTMLElement>(null);
 
   const items: NavItem[] = useMemo(() => filterNavForRole(navItems, role), [role]);
 
@@ -514,6 +515,39 @@ export default function Sidebar({ role, name }: { role: Role; name?: string }) {
   useEffect(() => {
     setCollapsed(window.localStorage.getItem(COLLAPSE_STORAGE_KEY) === "1");
   }, []);
+
+  // Reveal the active item whenever the route changes (deep links, palette
+  // jumps, browser back/forward). The parent group expands over 200ms, so
+  // re-measure once the transition settles. Only the nav scrolls — never the
+  // page — and the rail (collapsed) is left alone.
+  useEffect(() => {
+    const nav = navRef.current;
+    if (!nav || collapsed) return;
+    const el: HTMLElement = nav;
+
+    let raf = 0;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+
+    function reveal() {
+      const active = el.querySelector<HTMLElement>('[aria-current="page"]');
+      if (!active) return;
+      const navRect = el.getBoundingClientRect();
+      const elRect = active.getBoundingClientRect();
+      const pad = 12;
+      if (elRect.top < navRect.top + pad) {
+        el.scrollTo({ top: Math.max(0, el.scrollTop - (navRect.top - elRect.top) - pad), behavior: "smooth" });
+      } else if (elRect.bottom > navRect.bottom - pad) {
+        el.scrollTo({ top: el.scrollTop + (elRect.bottom - navRect.bottom) + pad, behavior: "smooth" });
+      }
+    }
+
+    raf = requestAnimationFrame(reveal);
+    timer = setTimeout(reveal, 240);
+    return () => {
+      cancelAnimationFrame(raf);
+      if (timer) clearTimeout(timer);
+    };
+  }, [pathname, collapsed]);
 
   function toggleCollapsed() {
     // Leaving the rail mode must not strand a flyout over the expanded nav.
@@ -572,6 +606,7 @@ export default function Sidebar({ role, name }: { role: Role; name?: string }) {
           a short icon column and every group reaches its submenu through a
           flyout, so a permanent scroll gutter only steals width. */}
       <nav
+        ref={navRef}
         className={`${collapsed ? "sidebar-scroll-none" : "scroll-slim"} flex-1 overflow-y-auto px-3 py-3`}
         aria-label="Dashboard navigation"
       >

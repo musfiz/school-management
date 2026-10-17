@@ -1,0 +1,1487 @@
+{
+  "users.by_role": [
+    {
+      "count": 1,
+      "role": "accountant"
+    },
+    {
+      "count": 1,
+      "role": "admin"
+    },
+    {
+      "count": 1,
+      "role": "guardian"
+    },
+    {
+      "count": 2,
+      "role": "management"
+    },
+    {
+      "count": 1,
+      "role": "student"
+    },
+    {
+      "count": 1,
+      "role": "teacher"
+    }
+  ],
+  "academic-subjects.sample": [],
+  "journal.totals": {
+    "count": 0,
+    "credit": null,
+    "debit": null
+  },
+  "chart-of-accounts.sample": [
+    {
+      "accountName": "ASSETS",
+      "accountType": "ASSET",
+      "glCode": "10000"
+    },
+    {
+      "accountName": "Cash in Hand – Main Campus Petty Cash",
+      "accountType": "ASSET",
+      "glCode": "11101"
+    },
+    {
+      "accountName": "Cash in Hand – Madrasa Lillah Collection Box (Restricted)",
+      "accountType": "ASSET",
+      "glCode": "11102"
+    },
+    {
+      "accountName": "Commercial Bank – General Operating A/C",
+      "accountType": "ASSET",
+      "glCode": "11201"
+    },
+    {
+      "accountName": "Commercial Bank – Statutory Reserve Fund A/C (FDR/STD)",
+      "accountType": "ASSET",
+      "glCode": "11202"
+    },
+    {
+      "accountName": "Islami Bank – Lillah / Zakat Fund A/C (Restricted)",
+      "accountType": "ASSET",
+      "glCode": "11203"
+    },
+    {
+      "accountName": "Provident Fund Trust Bank A/C",
+      "accountType": "ASSET",
+      "glCode": "11204"
+    },
+    {
+      "accountName": "bKash Merchant Settlement Clearing A/C",
+      "accountType": "ASSET",
+      "glCode": "11301"
+    },
+    {
+      "accountName": "Nagad Merchant Settlement Clearing A/C",
+      "accountType": "ASSET",
+      "glCode": "11302"
+    },
+    {
+      "accountName": "SSLCommerz / EkPay Gateway Clearing A/C",
+      "accountType": "ASSET",
+      "glCode": "11303"
+    }
+  ],
+  "wave1.site-settings.find": {
+    "address": null,
+    "addressBn": null,
+    "copyrightText": null,
+    "copyrightTextBn": null,
+    "created_at": "2026-10-14T05:08:13.000Z",
+    "description": null,
+    "descriptionBn": null,
+    "eiin": null,
+    "email": null,
+    "established": null,
+    "facebookUrl": null,
+    "headerDisplay": "both",
+    "id": "00000000-0000-0000-0000-000000000001",
+    "linkedinUrl": null,
+    "logoUrl": null,
+    "phone": null,
+    "siteName": "My School",
+    "siteNameBn": null,
+    "tagline": null,
+    "taglineBn": null,
+    "twitterUrl": null,
+    "updated_at": "2026-10-14T05:08:13.000Z",
+    "youtubeUrl": null
+  },
+  "wave1.pages.by-slug": {
+    "about-us": {
+      "contentBn": "তুলাসার গুরুদাস ইংরেজি বিদ্যালয়ের প্রতিষ্ঠাতা শচীনাথ রায় চৌধুরীর পিতা গুরুদাস রায় চৌধুরীর আদি নিবাস ছিল শরীয়তপুর জেলার নড়িয়া থানায়।বরিশালে সুপ্রচুর সম্পত্তির মালিক ছিলেন তিনি।নদী ভাঙ্গনের ফলে তারা সপরিবারে পালং থানা তুলাসার গ্রামে এসে বাড়ি করেন।গুরুদাস বাবু শিক্ষানুরাগী ছিলেন।তিনি এখানে এসে একটি মধ্য ইংরেজি বিদ্যালয় স্থাপন করেন।তার মৃত্যুর পর একমাত্র পুত্র শচীনাথ রায় চৌধুরী ১৮৯৯খ্রিস্টাব্দের ২ রা ফেব্রুয়ারি পিতার নামে বিদ্যালয়টিকে তুলাসার গুরুদাস ইংরেজি উচ্চ বিদ্যালয়ে রূপান্তরিত করেন।তখন তার বয়স ছিল মাত্র ২০/২১ বছর।স্বল্প শিক্ষিত হলেও পিতার ন্যায়বিদ্যানুরাগ জন্মসূত্রে লাভ করেছিলেন শচীনাথ।মাধ্যমিক ইংরেজি বিদ্যালয়ের প্রধান শিক্ষক ছিলেন নবীন চন্দ্র চট্টোপাধ্যায়।শচীনাথ রায় চৌধুরীর পিসিমা (পিতার ভগিনী) ছিলেন অত্যন্ত বুদ্ধিমতি।এরা উভয়েই প্রতিষ্ঠানটিকে ইংরেজি উচ্চ বিদ্যালয়ে উন্নীতকরার কাজে পরামর্শ এবং প্রোৎসাহ দিয়ে সুপ্রচুর সাহায্য করেছিলেন।এই কারণে বিদ্যালয়ের ইতিহাসে তার চির স্মরণীয় হয়ে আছেন।তিনি ১৯০৯ সালের ৩রা সেপ্টেম্বর তুলাসার গুরুদাস ইংরেজি উচ্চ বিদ্যালয়ের প্রধান শিক্ষক হিসেবে যোগদান করেন।বরিশালের গাভার জমিদার বংশের ভবেশচন্দ্র ঘোষ,তার পূর্ব পর্যন্ত শচীবাবু বিদ্যালয়ের পরিচালনার জন্য অকাতরে অর্থ পরিব্যয় করেছিলেন।প্রথম থেকেই বিদ্যালয়ের গরিব ছাত্রদের থাকা খাওয়ার জন্য একটি বোর্ডিং এর ব্যবস্থা করেছিলেন।তাতেও সুপ্রচুর অর্থ ব্যয় করতে হতো।এই মাত্রাহীন অর্থব্যয়েতার কোন কোন আত্মীয় এবং বন্ধুবান্ধব তার উপর ক্রমশ বিরুপ হয়ে উঠেছিলেন।কিন্তু তার পিসিমা এবং স্ত্রীর শরৎরানী চৌধুরানীর প্রোৎসাহে তিনি এসব বিরুপ সমালোচনায় একটু ও বিচলিত হননি।সে যুগে দু’জন স্বল্প শিক্ষিতা মহিলার এই শিক্ষানুরাগের কথা ভাবতেও আশ্চর্যন্বিত হতে হয়। ভবেশ বাবুর আমলে বিদ্যালয়টি ক্রমশ আর্থিক ক্ষেত্রে আত্মনির্ভরশীল হয়ে ওঠে এবং বিদ্যালয়ের আরও শ্রীবৃদ্ধি হয়।ছাত্র সংখ্যা বৃদ্ধি পেতে থাকে।বিদ্যালয়ের আয়েই শিক্ষক সংখ্যা প্রায় দ্বিগুণ করা সম্ভব হয়েছিল।পরীক্ষার ফল আরও ভালো হতে লাগল।পরপর কয়েকজন ছাত্র পরীক্ষায় বৃত্তি লাভ করে। বিদ্যালয়ের এই উন্নতির যুগে আকস্মাৎ ১৯১৭ সালের ১০ইএপ্রিল বিদ্যালয়ের প্রতিষ্ঠাতা মহান বিদ্যানুরাগী এবং দানশীল শচীনাথ রায় চৌধুরী মহাশয় মাত্র ৩৯ বছর বয়সে বরিশালে ইহলীলা সাঙ্গ করেন।",
+      "contentEn": "Guru Das Roy Chowdhury, the father of Sachinath Roy Chowdhury, the founder of Tulashar Gurudas English School, originally lived in Narail Thana of Shariatpur district. He owned a great deal of property in Barisal. After river erosion, the family came to the village of Tulashar in Palong Thana and built a home there. Gurudas Babu was a lover of education. After coming here, he established a Middle English School.\n\nAfter his death, his only son Sachinath Roy Chowdhury converted the school into Tulashar Gurudas English High School in his father's name on 2 February 1899. He was only 20 or 21 years old at the time. Though not highly educated himself, Sachinath had inherited his father's love of learning. The head teacher of the Middle English School was Nabin Chandra Chattopadhyay. Sachinath Roy Chowdhury's paternal aunt (his father's sister) was a very intelligent woman. Both of them gave generous help by offering advice and encouragement in upgrading the institution to an English High School. For this reason, they remain forever memorable in the history of the school.\n\nOn 3 September 1909, he joined as head teacher of Tulashar Gurudas English High School. Until Bhabesh Chandra Ghosh of the Gabha zamindar family of Barisal took charge, Sachi Babu spent money without reserve to run the school. From the very beginning, he had arranged a boarding house for the school's poor students to live and eat, which also required a great deal of money. Because of this unrestrained spending, some of his relatives and friends gradually turned against him. But with the encouragement of his aunt and his wife, Sharatrani Chowdhurani, he was not in the least disturbed by such hostile criticism. It is astonishing even to think of the devotion to education shown by these two women, who had little schooling themselves, in that era.\n\nIn Bhabesh Babu's time, the school gradually became financially self-reliant and prospered further. The number of students kept growing. It became possible to nearly double the number of teachers from the school's own income. Examination results improved even more, and several students in a row won scholarships.\n\nIn this era of the school's progress, on 10 April 1917, the school's founder, the great lover of learning and generous donor Sachinath Roy Chowdhury, suddenly passed away in Barisal at the age of only 39.",
+      "created_at": "2026-10-09T11:11:07.000Z",
+      "imageUrl": "/uploads/4772df8f-5b32-4b6c-b6c6-ae3c7c204e4a.jpg",
+      "showInHomepage": true,
+      "slug": "about-us",
+      "titleBn": "আমাদের সম্পর্কে",
+      "titleEn": "About Us",
+      "updated_at": "2026-10-15T09:14:47.000Z"
+    },
+    "chairman-speech": {
+      "contentBn": "**আল্লাহ (সুবহানাহু ওয়া তা‘আলা) বলেন:**\n“আল্লাহর বান্দাদের মধ্যে জ্ঞানীরাই কেবল তাঁকে যথাযথভাবে ভয় করে।”\n— **সূরা ফাতির, ৩৫:২৮**\n<br>\n**হযরত মুহাম্মদ (সাল্লাল্লাহু আলাইহি ওয়া সাল্লাম) বলেছেন:**\n“প্রত্যেক মুসলিমের ওপর জ্ঞান অর্জন করা ফরজ।”\n<br>\n### **বিসমিল্লাহির রাহমানির রাহিম**\n<br>\n**আসসালামু আলাইকুম ওয়া রাহমাতুল্লাহি ওয়া বারাকাতুহ।**\n<br>\nসমস্ত প্রশংসা একমাত্র আল্লাহ (সুবহানাহু ওয়া তা‘আলা)-এর জন্য এবং সর্বশেষ নবী হযরত মুহাম্মদ (সাল্লাল্লাহু আলাইহি ওয়া সাল্লাম)-এর প্রতি দরুদ ও সালাম বর্ষিত হোক।\n<br>\nআলহামদুলিল্লাহ, **২০১৪ সাল থেকে আল হেরা কিডস হেভেন (AHKH)** কুরআন ও সুন্নাহভিত্তিক নৈতিক শিক্ষার পাশাপাশি হিফজ ও সাধারণ শিক্ষার সমন্বয়ে একটি ব্যতিক্রমধর্মী শিক্ষাব্যবস্থা পরিচালনা করে আসছে। আমাদের সাধারণ শিক্ষার অন্তর্ভুক্ত বিষয়গুলোর মধ্যে রয়েছে ইংরেজি, গণিত, আইসিটি/বিজ্ঞান ইত্যাদি। একই সঙ্গে ইংরেজি ও বাংলা মাধ্যমের শিক্ষাব্যবস্থার সমন্বয় করে আমরা একটি যুগোপযোগী শিক্ষা পরিবেশ নিশ্চিত করার চেষ্টা করছি।\n<br>\nআমাদের মূল লক্ষ্য হলো—মুসলিম ছেলে ও মেয়েদের উপযুক্ত বয়সে **হাফেজ/হাফেজা** হিসেবে গড়ে তোলা, পাশাপাশি তাদের সাধারণ শিক্ষায় যেন কোনো ঘাটতি না থাকে তা নিশ্চিত করা।\n\nআমাদের পাঠ্যক্রমের অন্যতম প্রধান লক্ষ্য হলো শিক্ষার্থীদের **আরবি ও ইংরেজি ভাষায় দক্ষ ও আত্মবিশ্বাসী** করে গড়ে তোলা এবং একই সঙ্গে তাদের মাতৃভাষা বাংলায় একটি শক্তিশালী ভিত্তি তৈরি করা। এই সমন্বিত শিক্ষা ব্যবস্থা শিক্ষার্থীদের ভবিষ্যৎ কর্মজীবনে সফল হতে যেমন সহায়তা করবে, তেমনি তাদের একজন **আন্তর্জাতিক মানের ইসলামী জ্ঞানী (Scholar)** হিসেবে গড়ে উঠতেও সহায়তা করবে। তারা যেন কুরআন ও সুন্নাহকে তার মূল ভাষায়—আরবি ভাষায়—বোঝার সক্ষমতা অর্জন করে এবং পরবর্তীতে বাংলা, আরবি কিংবা ইংরেজি ভাষায় ইসলামের শিক্ষা মানুষের কাছে পৌঁছে দিতে পারে—**ইন শা আল্লাহ।**\n<br>\nআমাদের লক্ষ্য ও উদ্দেশ্যকে সামনে রেখে পাঠ্যক্রমটি মোট **পাঁচটি স্তরে** বিভক্ত করা হয়েছে:\n<br>\n**লেভেল–১: Alphabet Introduction**\nP1 — বয়সসীমা: **৪ থেকে ৫ বছর**\n<br>\n**লেভেল–২: কায়দাহ বিভাগ (Qaidah Department)**\nP2 & G1/SP — বয়সসীমা: **৫ থেকে ৬ বছর**\n<br>\n**লেভেল–৩: আমপারা বিভাগ (Amparah Department)**\nG1 — বয়সসীমা: **৬ থেকে ৭ বছর**\n<br>\n**লেভেল–৪: নাজেরা বিভাগ (Nazerah Department)**\nG2 & G3 — বয়সসীমা: **৭ থেকে ৮+ বছর**\n<br>\n**লেভেল–৫: হিফজ বিভাগ (Hifz Department)**\nG4 & G5 — বয়সসীমা: **৯ থেকে ১১ বছর**\n\n**আল হেরা কিডস হেভেন** কুরআন, সুন্নাহ এবং আধুনিক শিক্ষার সমন্বয়ে সর্বোচ্চ মানের সমন্বিত শিক্ষা প্রদানে প্রতিশ্রুতিবদ্ধ। আমাদের উদ্দেশ্য হলো শিক্ষার্থীদের বিশুদ্ধ ও বাস্তবভিত্তিক ইসলামী জ্ঞান অর্জনে সহায়তা করা এবং একই সঙ্গে একবিংশ শতাব্দীর আধুনিক ও সমসাময়িক চ্যালেঞ্জ মোকাবিলায় তাদের যোগ্য করে গড়ে তোলা।\n<br>\nআমরা নিয়মিতভাবে আমাদের শিক্ষা কার্যক্রমের প্রতিটি দিক মূল্যায়ন ও পুনর্মূল্যায়ন করব এবং শিক্ষার্থীরা যেন অর্জিত জ্ঞানকে বাস্তব জীবনে প্রয়োগ করার জন্য সর্বোচ্চ চেষ্টা করে—সে বিষয়টির ওপর বিশেষ গুরুত্ব দেব।\n<br>\nআমার দৃঢ় বিশ্বাস, **শিক্ষা হলো শিক্ষার্থী, শিক্ষক ও অভিভাবকের সম্মিলিত প্রচেষ্টার ফল।** এই তিনটি পক্ষের প্রচেষ্টাকে যদি আমরা সুন্দরভাবে সমন্বয় করতে পারি, তাহলে আমরা অবশ্যই কাঙ্ক্ষিত ফলাফল অর্জন করতে সক্ষম হব।\n<br>\nআর যদি আমরা এই তিনটি পক্ষের প্রচেষ্টাকে যথাযথভাবে সমন্বয় ও সমন্বিতভাবে পরিচালনা করতে পারি, তাহলে কোনো সন্দেহ নেই—**আপনার সন্তান একদিন জাতির জন্য একজন মূল্যবান সম্পদে পরিণত হবে, ইন শা আল্লাহ!**\n",
+      "contentEn": "Allah (SWT) said, “Indeed it is only knowledgeable among His servants who truly fear Allah.” (35:28). Mohammad (SAW) said, “Seeking knowledge is obligatory on every Muslim.”\nAssalamualaikum Wa Rahmatullahi Wa Barakatuh. All praise is due to Allah (SWT) only and sending the prayer and salutation to the last Prophet Muhammad (SAW).\nAlhamdulillah, since 2014, Al Hera Kids Heaven (AHKH) is striving to achieve Quran-Sunnah-based moral education along with Hifz and general education consisting of subjects like English, Mathematics, and ICT/Science, in an unprecedented combination of teaching systems in English and Bangla mediums. Ensuring our vision, of creating a platform for Muslim boys and girls to become Hafez/Hafeza at their proper ages with no lack of general education at the same time.\nOne of the major focuses of our curriculum is to make the students Hafez/Hafeza confident in Arabic and in English with having a strong edifice in our mother tongue. This curriculum will not only assist the student to excel in their individual career but will also aid them in be International Scholar, who will comprehend the Quran and Sunnah in their original language and preach them in Bangla, Arabic, or English, In Sha Allah! Keeping our focuses in mind, the curriculum has been developed in five different levels: <br>\nLevel – 1: Alphabet Introduction – P1 (Age Limit 4 to 5 years) <br>\nLevel – 2: Qaidah Department – P2 & G1/SP (Age Limit 5 to 6 years) <br>\nLevel – 3: Amparah Department – G1 (Age limit 6 to 7 years) <br>\nLevel – 4: Nazerah Department – G2 & G3 (Age limit 7 to 8+ years) <br>\nLevel – 5: Hifz Department – G4 & G5 (Age limit 9 to 11 years) <br>\nAl Hera Kids Heaven is committed to providing top-quality blended education of the Quran, Sunnah and modern subjects to convey the authentic and practical Islamic knowledge, while at the same time enabling its students to face the contemporary challenges of the 21st century. We will assess and re-evaluate every aspect of our academic model on an ongoing basis and will emphasize that they must strive their utmost to put the knowledge into practice.\nIt is my strong belief, that education is a combined tuned effort of the students, teachers, and parents. If we can harmonize the efforts of all these three components, we will achieve the desired result. And be sure of it, if we can synchronize properly, no doubt, your child would be an invaluable asset to the Nation, In Sha Allah!",
+      "created_at": "2026-09-01T07:55:26.000Z",
+      "imageUrl": "/uploads/f2b4f2c5-c289-415c-89d4-0b958404701d.png",
+      "showInHomepage": true,
+      "slug": "chairman-speech",
+      "titleBn": "সভাপতির বানী",
+      "titleEn": "Message from Chairman",
+      "updated_at": "2026-10-15T09:14:47.000Z"
+    },
+    "missing-page": null,
+    "principal-speech": {
+      "contentBn": "সুকুমার বৃত্তির সুষ্ঠু বহিপ্রকাশ সাহিত্য। এই প্রকাশ মানুষকে নান্দনিক করে, মহিমান্বিত করে। শিক্ষা, শিল্প, সাহিত্য ও সংস্কৃতি চর্চা সেই নান্দনিকতার উপায় মাত্র যা প্রতিরূপ পায় বিদ্যালয় বার্ষীকীতে। প্রতিষ্ঠালগ্ন থেকেই সুনামলব্ধ পালং তুলাশার গুরুদাস সরকারি বালক উচ্চ বিদ্যালয় কোমলমতি শিক্ষার্থীদের পিরপূর্ণ বিকাশ ও পরিচর্যার লক্ষ্যে নানাবিধ উদ্যোগ গ্রহণ করে আসছে। শরীয়তপুরের প্রাণ কেন্দ্রে প্রায় এক হাজার একশো শিক্ষার্থী নিয়ে অবস্থিত স্বনামধন্য এই প্রতিষ্ঠানের বিভিন্ন সরকারি পরীক্ষার ফলাফল যেরূপ সন্তোষজনক তেমনি সহ-পাঠক্রমিক নানা কার্যাবলিতেও রয়েছে গৌরবৌজ্জ্বল ভূমিকা। সৃজনশীল মেধা অন্বেষণ প্রতিযোগিতা, বিতর্ক প্রতিযোগিতাসহ নানা ক্ষেত্রে শ্রেষ্ঠ শিক্ষার্থী এই বিদ্যালয়েরই ছাত্র। এ বিদ্যাপীঠ শুধু জ্ঞান বিতরণের ক্ষেত্ররূপে নয় বরং সুপ্ত প্রতিভার বিকাশ ঘটিয়ে জীবনেক সুস্থ, সুন্দর ও সুশৃঙ্খলরূপে গড়ে তোলার সৃজনক্ষেত্রও বটে। এই বার্ষীকীর লেখকরা সাহিত্য ও লেখালেখির জগতে একেবারেই নবীন। তাই তাদের লেখায় ক্রুটি থাকা স্বাভাবিক। তাদের স্বভাবসুলভ বৈশিষ্ট্যে কোন লেখায় অনুকরণও হয়ে যেতে পারে। আমার দৃঢ় বিশ্বাস সম্মানিত পাঠকবৃন্দ সে সমস্ত ভুল-ক্রুটি ক্ষমাসুন্দর দৃষ্টিতে দেখবেন।",
+      "contentEn": "Literature is the refined outward expression of one's finer sensibilities. This expression makes a person aesthetic and dignified. Education, art, literature and the cultivation of culture are merely the means to that aesthetic sense, and they find their reflection in the school annual magazine.\n\nSince its founding, the Palong Tulashar Gurudas Government Boys' High School has been widely respected, and it has continued to undertake various initiatives for the all-round development and nurturing of its young students. Located in the heart of Shariatpur with nearly eleven hundred students, this renowned institution has achieved satisfactory results in various government examinations, and it also plays a proud and distinguished role in many co-curricular activities. The best students in the Creative Talent Hunt competition, debate competitions and many other fields have come from this very school.\n\nThis seat of learning is not merely a place for imparting knowledge. It is also a creative ground where latent talents are nurtured, and where lives are shaped to be healthy, beautiful and disciplined.\n\nThe writers of this annual magazine are complete newcomers to the world of literature and writing, so it is natural for errors to appear in their work. Owing to their youthful nature, some pieces may even turn out to be imitative. I firmly believe that our esteemed readers will view all such mistakes and shortcomings with a forgiving and gracious eye.",
+      "created_at": "2026-10-09T10:22:46.000Z",
+      "imageUrl": "/uploads/5bfe7fc3-239a-43fb-bc6c-6ee524ba959d.jfif",
+      "showInHomepage": true,
+      "slug": "principal-speech",
+      "titleBn": "প্রধান শিক্ষকের বানী",
+      "titleEn": "Headmaster Speech",
+      "updated_at": "2026-10-15T09:14:47.000Z"
+    }
+  },
+  "wave1.sliders.lists": {
+    "active": [
+      {
+        "created_at": "2026-09-01T10:11:35.000Z",
+        "id": "b33f9604-ede3-4d20-ad0e-92da16bbe4e0",
+        "imageUrl": "/uploads/hero-slider/7d32faad-3d7b-4325-ade2-e8ffe229e650.jpg",
+        "isActive": true,
+        "sortOrder": 1,
+        "titleBn": "প্রতিদিন শেখা, খেলাধুলা ও সৃজনশীলতার উদযাপন।",
+        "titleEn": "Celebrating learning, sport and creativity every day. make it bangla",
+        "updated_at": "2026-10-15T09:14:47.000Z"
+      }
+    ],
+    "all": [
+      {
+        "created_at": "2026-09-01T10:11:35.000Z",
+        "id": "b33f9604-ede3-4d20-ad0e-92da16bbe4e0",
+        "imageUrl": "/uploads/hero-slider/7d32faad-3d7b-4325-ade2-e8ffe229e650.jpg",
+        "isActive": true,
+        "sortOrder": 1,
+        "titleBn": "প্রতিদিন শেখা, খেলাধুলা ও সৃজনশীলতার উদযাপন।",
+        "titleEn": "Celebrating learning, sport and creativity every day. make it bangla",
+        "updated_at": "2026-10-15T09:14:47.000Z"
+      }
+    ]
+  },
+  "wave1.hero-section.find": {
+    "admissionYear": "2026–2027",
+    "created_at": "2026-10-14T05:08:48.000Z",
+    "id": "00000000-0000-0000-0000-000000000001",
+    "instituteOpenInfo": "Open house: Sep 19 · 10am",
+    "instituteOpenInfoBn": "খোলা থাকার সময়: রবি - বৃহস্পতি সকাল ৯টা - বিকাল ৪টা",
+    "isVisible": true,
+    "phone": "+880 1700-000000",
+    "shortDescription": "Empowering students to achieve their full potential through rigorous academics, holistic development, and a vibrant learning community.",
+    "shortDescriptionBn": "কঠোর পাঠ্যক্রম, সামগ্রিক বিকাশ এবং একটি প্রাণবন্ত শিক্ষার পরিবেশের মাধ্যমে শিক্ষার্থীদের সম্ভাবনাকে বিকশিত করা।",
+    "showApplyButton": true,
+    "tagline1": "Building Tomorrow’s Leaders",
+    "tagline1Bn": "ভবিষ্যতের নেতৃত্ব গড়ে তোলা",
+    "tagline2": "Inspiring Excellence in Every Student",
+    "tagline2Bn": "প্রতিটি শিক্ষার্থীর শ্রেষ্ঠত্ব বিকাশ",
+    "tagline3": "Through Knowledge & Values",
+    "tagline3Bn": "জ্ঞান ও মূল্যবোধের আলোয়",
+    "updated_at": "2026-10-14T05:08:48.000Z"
+  },
+  "wave1.governing-body.findAll": [],
+  "wave1.ex-principals.findAll": [],
+  "wave1.staff.findAll": [],
+  "wave1.teachers.findAll": [],
+  "wave1.notices.lists": {
+    "active": [],
+    "all": []
+  },
+  "wave1.modules.findAll": [],
+  "wave2.users.findAll": [
+    {
+      "created_at": "2026-08-31T08:30:03.000Z",
+      "email": "student@school.com",
+      "id": "359c17c9-5b4d-4f7b-8d9c-14718238e4fe",
+      "isActive": true,
+      "isVerified": true,
+      "name": "Jane Student",
+      "phone": null,
+      "role": "student"
+    },
+    {
+      "created_at": "2026-08-31T08:30:02.000Z",
+      "email": "principal@school.com",
+      "id": "4b739161-4f64-4ee6-bce0-53e72329dcbd",
+      "isActive": true,
+      "isVerified": true,
+      "name": "Principal",
+      "phone": null,
+      "role": "management"
+    },
+    {
+      "created_at": "2026-08-31T08:30:03.000Z",
+      "email": "teacher@school.com",
+      "id": "4f6d6bf3-7bdb-44c7-a9cf-1601b9dbfb9a",
+      "isActive": true,
+      "isVerified": true,
+      "name": "John Teacher",
+      "phone": null,
+      "role": "teacher"
+    },
+    {
+      "created_at": "2026-08-31T08:30:02.000Z",
+      "email": "admin@school.com",
+      "id": "5a19ccd7-1057-4ad8-8e06-486815fe1b1e",
+      "isActive": true,
+      "isVerified": true,
+      "name": "Admin User",
+      "phone": null,
+      "role": "admin"
+    },
+    {
+      "created_at": "2026-08-31T08:30:03.000Z",
+      "email": "guardian@school.com",
+      "id": "83f6a14d-a1bd-4bab-941c-675ffe47c96d",
+      "isActive": true,
+      "isVerified": true,
+      "name": "Mr. Guardian",
+      "phone": null,
+      "role": "guardian"
+    },
+    {
+      "created_at": "2026-10-14T07:41:58.000Z",
+      "email": "manager2@school.com",
+      "id": "c570e0e5-da35-404b-b218-4cccda4953fe",
+      "isActive": true,
+      "isVerified": false,
+      "name": "Manager Two",
+      "phone": null,
+      "role": "management"
+    },
+    {
+      "created_at": "2026-10-14T07:41:46.000Z",
+      "email": "accountant@school.com",
+      "id": "fd12d588-b510-47a0-8c70-7aec20ec9608",
+      "isActive": true,
+      "isVerified": false,
+      "name": "Accountant",
+      "phone": null,
+      "role": "accountant"
+    }
+  ],
+  "wave2.users.findByEmail": {
+    "admin@school.com": {
+      "created_at": "2026-08-31T08:30:02.000Z",
+      "email": "admin@school.com",
+      "id": "5a19ccd7-1057-4ad8-8e06-486815fe1b1e",
+      "isActive": true,
+      "isVerified": true,
+      "lastLoginAt": "2026-10-15T10:57:10.000Z",
+      "name": "Admin User",
+      "password": "$2a$10$cVw25u9A6uoyytSZtF.vLusFeDYCfnMEWFRfpiHoaUWuiw9ynvQkS",
+      "phone": null,
+      "role": "admin",
+      "updated_at": "2026-10-15T10:57:10.000Z"
+    },
+    "nobody@example.com": null,
+    "student@school.com": {
+      "created_at": "2026-08-31T08:30:03.000Z",
+      "email": "student@school.com",
+      "id": "359c17c9-5b4d-4f7b-8d9c-14718238e4fe",
+      "isActive": true,
+      "isVerified": true,
+      "lastLoginAt": null,
+      "name": "Jane Student",
+      "password": "$2a$10$CijTK9K32J0TyZO6WI.DCOovRPqMdsTHzAoFHBQOi4HOeWneJXzcW",
+      "phone": null,
+      "role": "student",
+      "updated_at": "2026-08-31T08:30:03.000Z"
+    }
+  },
+  "wave2.users.findOne": {
+    "created_at": "2026-08-31T08:30:02.000Z",
+    "email": "admin@school.com",
+    "id": "5a19ccd7-1057-4ad8-8e06-486815fe1b1e",
+    "isActive": true,
+    "isVerified": true,
+    "lastLoginAt": "2026-10-15T10:57:10.000Z",
+    "name": "Admin User",
+    "phone": null,
+    "role": "admin"
+  },
+  "wave2.permissions.findAll": [
+    {
+      "created_at": "2026-09-02T09:13:24.000Z",
+      "description": "Webiste Management Module",
+      "id": "aae0a651-b416-4472-8e21-d0e437501968",
+      "module": null,
+      "module_id": null,
+      "name": "update-navigation-menu"
+    },
+    {
+      "created_at": "2026-09-02T08:37:55.000Z",
+      "description": "test",
+      "id": "b9c20086-8b08-45aa-969a-ebb95dbffce0",
+      "module": null,
+      "module_id": null,
+      "name": "view-website-management"
+    }
+  ],
+  "wave2.permissions.getUserPermissions": {
+    "admin": [],
+    "unknown": []
+  },
+  "wave2.menus.publicTree": [
+    {
+      "children": [],
+      "href": "/",
+      "id": "27164f58-d8fc-453e-9aaf-92825e1b13aa",
+      "isVisible": true,
+      "labelBn": "হোমপেইজ",
+      "labelEn": "Home"
+    },
+    {
+      "children": [
+        {
+          "children": [],
+          "href": "/about/about-us",
+          "id": "51783178-8c5e-44b2-a5b8-52d23492a450",
+          "isVisible": true,
+          "labelBn": "আমাদের কথা",
+          "labelEn": "About Us"
+        },
+        {
+          "children": [],
+          "href": "/about/history",
+          "id": "4db73da5-e0cf-477e-a9d1-c284a50bdaf7",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "History"
+        },
+        {
+          "children": [],
+          "href": "/about/chairman-speech",
+          "id": "8a3dce17-39ae-4824-b867-f03afd353a6c",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "Chairman Speech"
+        },
+        {
+          "children": [],
+          "href": "/about/governing-body",
+          "id": "bb224a88-42e5-4e4d-9ab7-c27bf1179fd7",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "Governing Body"
+        },
+        {
+          "children": [],
+          "href": "/about/principal-speech",
+          "id": "75fd4bfc-0db2-40e9-a53f-207cf1f65db1",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "Principal Speech"
+        },
+        {
+          "children": [],
+          "href": "/about/ex-principals",
+          "id": "0e4b8da9-2545-4519-9029-88f43fe1581d",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "Ex-Principals"
+        },
+        {
+          "children": [],
+          "href": "/about/teachers",
+          "id": "4228fa1d-cb12-4e90-8f22-890e296d9bbf",
+          "isVisible": true,
+          "labelBn": "শিক্ষক মন্ডলী",
+          "labelEn": "Teachers"
+        },
+        {
+          "children": [],
+          "href": "/about/staff",
+          "id": "fc31a695-f8ae-4074-a9d5-7bf436da9b88",
+          "isVisible": true,
+          "labelBn": "স্টাফদের তথ্য",
+          "labelEn": "Staff Information"
+        }
+      ],
+      "href": "/about",
+      "id": "7dcb2ba4-fc34-4f5e-8401-242be6fbf9d7",
+      "isVisible": true,
+      "labelBn": "আমাদের সম্পর্কে",
+      "labelEn": "About"
+    },
+    {
+      "children": [
+        {
+          "children": [],
+          "href": "/information/permission-recognition-letter",
+          "id": "2b6400f3-8d96-4d6e-b517-6b878331cbd0",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "Permission Recognition Letter"
+        },
+        {
+          "children": [],
+          "href": "/information/nationalization",
+          "id": "6970efb3-b52b-43fe-ba00-5033e4747582",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "Nationalization"
+        },
+        {
+          "children": [],
+          "href": "/information/statistics-report",
+          "id": "41877d0f-ee3a-490f-849a-234f547c8853",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "Statistics Report"
+        },
+        {
+          "children": [],
+          "href": "/information/govt-approval-letter",
+          "id": "0a877f0b-5226-4888-a6c4-8eadedbf18b7",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "Govt. Approval Letter"
+        }
+      ],
+      "href": "/information",
+      "id": "83cd73d9-b5e4-4f72-9acb-0646075553c6",
+      "isVisible": true,
+      "labelBn": null,
+      "labelEn": "Information"
+    },
+    {
+      "children": [
+        {
+          "children": [],
+          "href": "/academic/class-schedule",
+          "id": "6e1f82dc-f428-4087-ad71-ac4c0c881a95",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "Class Schedule"
+        },
+        {
+          "children": [],
+          "href": "/academic/teachers",
+          "id": "75e8a6da-f3f7-4f3b-91a3-f6e5a7352e77",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "Teachers"
+        },
+        {
+          "children": [],
+          "href": "/academic/staffs",
+          "id": "4337527c-03ba-41c5-89cf-4fc871c2a420",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "Staffs"
+        },
+        {
+          "children": [],
+          "href": "/academic/academic-rules",
+          "id": "9847ba26-dfbd-4f14-8fc4-b684bcb7815e",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "Academic Rules"
+        },
+        {
+          "children": [],
+          "href": "/academic/calendar",
+          "id": "29431413-5d90-4018-b241-b1cc99f65662",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "Calendar"
+        },
+        {
+          "children": [],
+          "href": "/academic/attendance",
+          "id": "f8a002d4-9000-442d-9d17-0c67db3ea76c",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "Attendance"
+        },
+        {
+          "children": [],
+          "href": "/academic/leave-info",
+          "id": "30960de4-0334-4233-b5f8-694c65f76573",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "Leave Info"
+        }
+      ],
+      "href": "/academic",
+      "id": "21f291c8-fe35-42d6-8338-5e13acec7186",
+      "isVisible": true,
+      "labelBn": null,
+      "labelEn": "Academic"
+    },
+    {
+      "children": [
+        {
+          "children": [],
+          "href": "/admission/why-study",
+          "id": "59cb5080-40bb-45f5-8457-2cdd5530e187",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "Why Study Here"
+        },
+        {
+          "children": [],
+          "href": "/admission/how-to-apply",
+          "id": "a15f470a-4d27-412e-a2ca-22813f779f58",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "How to Apply"
+        },
+        {
+          "children": [],
+          "href": "/admission/admission-test",
+          "id": "800d0ea5-e9f6-47ef-afe2-dc08114f3cdf",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "Admission Test"
+        },
+        {
+          "children": [],
+          "href": "/admission/policy",
+          "id": "b9d641a2-5ee9-4ff6-a69a-83ceef04233e",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "Policy"
+        },
+        {
+          "children": [],
+          "href": "/admission/registration-system",
+          "id": "8e86330d-51a0-41a0-9b41-847a691a1888",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "Registration System"
+        }
+      ],
+      "href": "/admission",
+      "id": "a6d55c42-bb05-4d0f-aa48-3eddef2cd2b7",
+      "isVisible": true,
+      "labelBn": null,
+      "labelEn": "Admission"
+    },
+    {
+      "children": [
+        {
+          "children": [],
+          "href": "/student/student-list",
+          "id": "cb72e19b-67e6-4147-901b-8e188c89d95f",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "Student List"
+        },
+        {
+          "children": [],
+          "href": "/student/tuition-fees",
+          "id": "8aa5d0d3-96bd-47f1-b695-5cd1b802b67b",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "Tuition Fees"
+        },
+        {
+          "children": [],
+          "href": "/student/mobile-banking",
+          "id": "a28c2d25-0f83-4676-9b1d-af3d14076f6b",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "Mobile Banking"
+        },
+        {
+          "children": [],
+          "href": "/student/daily-activities",
+          "id": "9d8d2de2-1e1f-468e-a8b4-1739bc75aa70",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "Daily Activities"
+        },
+        {
+          "children": [],
+          "href": "/student/exam-schedule",
+          "id": "6ba6d837-e4d3-4a71-ac7c-a6fc5b0a4c30",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "Exam Schedule"
+        },
+        {
+          "children": [],
+          "href": "/student/uniform",
+          "id": "b33f7841-f70a-4ff4-bc2d-1f4e3682949f",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "Uniform"
+        },
+        {
+          "children": [],
+          "href": "/student/exam-system",
+          "id": "2aee5744-7dfe-4d42-88f8-b74c89bab228",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "Exam System"
+        },
+        {
+          "children": [],
+          "href": "/student/rules",
+          "id": "0f32b4af-6223-48b8-9201-565ba5038a5d",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "Rules"
+        }
+      ],
+      "href": "/student",
+      "id": "5dc4f63e-b471-47c9-b7f5-fc06ab181fff",
+      "isVisible": true,
+      "labelBn": null,
+      "labelEn": "Student"
+    },
+    {
+      "children": [
+        {
+          "children": [],
+          "href": "/facilities/library",
+          "id": "57d22f80-da26-4580-920d-935a7e03c847",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "Library"
+        },
+        {
+          "children": [],
+          "href": "/facilities/playground",
+          "id": "6dc26d8e-5e24-41a9-8255-66c9a40aae74",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "Playground"
+        },
+        {
+          "children": [],
+          "href": "/facilities/physics-lab",
+          "id": "a07048f3-6cc9-486a-a04b-5636418d318d",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "Physics Lab"
+        },
+        {
+          "children": [],
+          "href": "/facilities/biology-lab",
+          "id": "68d2b4aa-0a2a-497e-8f35-9a24b1166132",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "Biology Lab"
+        },
+        {
+          "children": [],
+          "href": "/facilities/ict-lab",
+          "id": "dae0c8c3-2a94-4473-b0e0-67a62d4c24f8",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "ICT Lab"
+        },
+        {
+          "children": [],
+          "href": "/facilities/chemistry-lab",
+          "id": "92eda9f8-be9e-451c-bb00-c713262fc7f6",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "Chemistry Lab"
+        },
+        {
+          "children": [],
+          "href": "/facilities/extra-activities",
+          "id": "0b239039-7ec0-4af7-bb6e-c77506c64e05",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "Extra Activities"
+        }
+      ],
+      "href": "/facilities",
+      "id": "f1d4e81a-dc61-4e40-afb2-4bd328e5757d",
+      "isVisible": true,
+      "labelBn": null,
+      "labelEn": "Facilities"
+    },
+    {
+      "children": [
+        {
+          "children": [],
+          "href": "/result/exam-result",
+          "id": "83652187-fb20-42bb-826e-bf7ce9c902fb",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "Exam Result"
+        },
+        {
+          "children": [],
+          "href": "/result/academic-result",
+          "id": "f4333342-5537-439f-bf73-d5cbafa702c4",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "Academic Result"
+        },
+        {
+          "children": [],
+          "href": "/result/evaluation-result",
+          "id": "e10a438c-c69f-40ba-aa76-f66955477fb0",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "Evaluation Result"
+        },
+        {
+          "children": [],
+          "href": "/result/board-exam-result",
+          "id": "d94a2ce6-8445-4957-a580-3194c88b63b4",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "Board Exam Result"
+        }
+      ],
+      "href": "/result",
+      "id": "cc3ac81f-0c84-4954-adf2-608673ecba98",
+      "isVisible": true,
+      "labelBn": null,
+      "labelEn": "Result"
+    },
+    {
+      "children": [
+        {
+          "children": [],
+          "href": "/others/notice",
+          "id": "eb721320-8795-4955-aafe-a8d705549f52",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "Notice"
+        },
+        {
+          "children": [],
+          "href": "/others/news",
+          "id": "13eed83b-9052-40e0-8419-56f212d629ca",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "News"
+        },
+        {
+          "children": [],
+          "href": "/others/gallery",
+          "id": "45888ba9-adc6-493c-911b-943cc11ad31d",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "Gallery"
+        },
+        {
+          "children": [],
+          "href": "/others/event",
+          "id": "30ee3cda-0289-40c7-9c1c-76e09dded866",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "Event"
+        },
+        {
+          "children": [],
+          "href": "/others/routine",
+          "id": "fecd1a1a-a784-4053-8d3c-fca2b26509ae",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "Routine"
+        },
+        {
+          "children": [],
+          "href": "/others/download",
+          "id": "04d4f74c-489e-4887-b732-c41072d62265",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "Download"
+        }
+      ],
+      "href": "/others",
+      "id": "61add037-f9d7-4ed8-8688-aef8e639f5ca",
+      "isVisible": true,
+      "labelBn": null,
+      "labelEn": "Others"
+    },
+    {
+      "children": [],
+      "href": "/contact",
+      "id": "0a8d357e-83c6-4a11-977a-e7acb5f86969",
+      "isVisible": true,
+      "labelBn": null,
+      "labelEn": "Contact"
+    }
+  ],
+  "wave2.menus.fullTree": [
+    {
+      "children": [],
+      "href": "/",
+      "id": "27164f58-d8fc-453e-9aaf-92825e1b13aa",
+      "isVisible": true,
+      "labelBn": "হোমপেইজ",
+      "labelEn": "Home"
+    },
+    {
+      "children": [
+        {
+          "children": [],
+          "href": "/about/about-us",
+          "id": "51783178-8c5e-44b2-a5b8-52d23492a450",
+          "isVisible": true,
+          "labelBn": "আমাদের কথা",
+          "labelEn": "About Us"
+        },
+        {
+          "children": [],
+          "href": "/about/history",
+          "id": "4db73da5-e0cf-477e-a9d1-c284a50bdaf7",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "History"
+        },
+        {
+          "children": [],
+          "href": "/about/chairman-speech",
+          "id": "8a3dce17-39ae-4824-b867-f03afd353a6c",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "Chairman Speech"
+        },
+        {
+          "children": [],
+          "href": "/about/governing-body",
+          "id": "bb224a88-42e5-4e4d-9ab7-c27bf1179fd7",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "Governing Body"
+        },
+        {
+          "children": [],
+          "href": "/about/principal-speech",
+          "id": "75fd4bfc-0db2-40e9-a53f-207cf1f65db1",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "Principal Speech"
+        },
+        {
+          "children": [],
+          "href": "/about/ex-principals",
+          "id": "0e4b8da9-2545-4519-9029-88f43fe1581d",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "Ex-Principals"
+        },
+        {
+          "children": [],
+          "href": "/about/teachers",
+          "id": "4228fa1d-cb12-4e90-8f22-890e296d9bbf",
+          "isVisible": true,
+          "labelBn": "শিক্ষক মন্ডলী",
+          "labelEn": "Teachers"
+        },
+        {
+          "children": [],
+          "href": "/about/staff",
+          "id": "fc31a695-f8ae-4074-a9d5-7bf436da9b88",
+          "isVisible": true,
+          "labelBn": "স্টাফদের তথ্য",
+          "labelEn": "Staff Information"
+        }
+      ],
+      "href": "/about",
+      "id": "7dcb2ba4-fc34-4f5e-8401-242be6fbf9d7",
+      "isVisible": true,
+      "labelBn": "আমাদের সম্পর্কে",
+      "labelEn": "About"
+    },
+    {
+      "children": [
+        {
+          "children": [],
+          "href": "/information/permission-recognition-letter",
+          "id": "2b6400f3-8d96-4d6e-b517-6b878331cbd0",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "Permission Recognition Letter"
+        },
+        {
+          "children": [],
+          "href": "/information/nationalization",
+          "id": "6970efb3-b52b-43fe-ba00-5033e4747582",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "Nationalization"
+        },
+        {
+          "children": [],
+          "href": "/information/statistics-report",
+          "id": "41877d0f-ee3a-490f-849a-234f547c8853",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "Statistics Report"
+        },
+        {
+          "children": [],
+          "href": "/information/govt-approval-letter",
+          "id": "0a877f0b-5226-4888-a6c4-8eadedbf18b7",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "Govt. Approval Letter"
+        }
+      ],
+      "href": "/information",
+      "id": "83cd73d9-b5e4-4f72-9acb-0646075553c6",
+      "isVisible": true,
+      "labelBn": null,
+      "labelEn": "Information"
+    },
+    {
+      "children": [
+        {
+          "children": [],
+          "href": "/academic/class-schedule",
+          "id": "6e1f82dc-f428-4087-ad71-ac4c0c881a95",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "Class Schedule"
+        },
+        {
+          "children": [],
+          "href": "/academic/teachers",
+          "id": "75e8a6da-f3f7-4f3b-91a3-f6e5a7352e77",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "Teachers"
+        },
+        {
+          "children": [],
+          "href": "/academic/staffs",
+          "id": "4337527c-03ba-41c5-89cf-4fc871c2a420",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "Staffs"
+        },
+        {
+          "children": [],
+          "href": "/academic/academic-rules",
+          "id": "9847ba26-dfbd-4f14-8fc4-b684bcb7815e",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "Academic Rules"
+        },
+        {
+          "children": [],
+          "href": "/academic/calendar",
+          "id": "29431413-5d90-4018-b241-b1cc99f65662",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "Calendar"
+        },
+        {
+          "children": [],
+          "href": "/academic/attendance",
+          "id": "f8a002d4-9000-442d-9d17-0c67db3ea76c",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "Attendance"
+        },
+        {
+          "children": [],
+          "href": "/academic/leave-info",
+          "id": "30960de4-0334-4233-b5f8-694c65f76573",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "Leave Info"
+        }
+      ],
+      "href": "/academic",
+      "id": "21f291c8-fe35-42d6-8338-5e13acec7186",
+      "isVisible": true,
+      "labelBn": null,
+      "labelEn": "Academic"
+    },
+    {
+      "children": [
+        {
+          "children": [],
+          "href": "/admission/why-study",
+          "id": "59cb5080-40bb-45f5-8457-2cdd5530e187",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "Why Study Here"
+        },
+        {
+          "children": [],
+          "href": "/admission/how-to-apply",
+          "id": "a15f470a-4d27-412e-a2ca-22813f779f58",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "How to Apply"
+        },
+        {
+          "children": [],
+          "href": "/admission/admission-test",
+          "id": "800d0ea5-e9f6-47ef-afe2-dc08114f3cdf",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "Admission Test"
+        },
+        {
+          "children": [],
+          "href": "/admission/policy",
+          "id": "b9d641a2-5ee9-4ff6-a69a-83ceef04233e",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "Policy"
+        },
+        {
+          "children": [],
+          "href": "/admission/registration-system",
+          "id": "8e86330d-51a0-41a0-9b41-847a691a1888",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "Registration System"
+        }
+      ],
+      "href": "/admission",
+      "id": "a6d55c42-bb05-4d0f-aa48-3eddef2cd2b7",
+      "isVisible": true,
+      "labelBn": null,
+      "labelEn": "Admission"
+    },
+    {
+      "children": [
+        {
+          "children": [],
+          "href": "/student/student-list",
+          "id": "cb72e19b-67e6-4147-901b-8e188c89d95f",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "Student List"
+        },
+        {
+          "children": [],
+          "href": "/student/tuition-fees",
+          "id": "8aa5d0d3-96bd-47f1-b695-5cd1b802b67b",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "Tuition Fees"
+        },
+        {
+          "children": [],
+          "href": "/student/mobile-banking",
+          "id": "a28c2d25-0f83-4676-9b1d-af3d14076f6b",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "Mobile Banking"
+        },
+        {
+          "children": [],
+          "href": "/student/daily-activities",
+          "id": "9d8d2de2-1e1f-468e-a8b4-1739bc75aa70",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "Daily Activities"
+        },
+        {
+          "children": [],
+          "href": "/student/exam-schedule",
+          "id": "6ba6d837-e4d3-4a71-ac7c-a6fc5b0a4c30",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "Exam Schedule"
+        },
+        {
+          "children": [],
+          "href": "/student/uniform",
+          "id": "b33f7841-f70a-4ff4-bc2d-1f4e3682949f",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "Uniform"
+        },
+        {
+          "children": [],
+          "href": "/student/exam-system",
+          "id": "2aee5744-7dfe-4d42-88f8-b74c89bab228",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "Exam System"
+        },
+        {
+          "children": [],
+          "href": "/student/rules",
+          "id": "0f32b4af-6223-48b8-9201-565ba5038a5d",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "Rules"
+        }
+      ],
+      "href": "/student",
+      "id": "5dc4f63e-b471-47c9-b7f5-fc06ab181fff",
+      "isVisible": true,
+      "labelBn": null,
+      "labelEn": "Student"
+    },
+    {
+      "children": [
+        {
+          "children": [],
+          "href": "/facilities/library",
+          "id": "57d22f80-da26-4580-920d-935a7e03c847",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "Library"
+        },
+        {
+          "children": [],
+          "href": "/facilities/playground",
+          "id": "6dc26d8e-5e24-41a9-8255-66c9a40aae74",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "Playground"
+        },
+        {
+          "children": [],
+          "href": "/facilities/physics-lab",
+          "id": "a07048f3-6cc9-486a-a04b-5636418d318d",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "Physics Lab"
+        },
+        {
+          "children": [],
+          "href": "/facilities/biology-lab",
+          "id": "68d2b4aa-0a2a-497e-8f35-9a24b1166132",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "Biology Lab"
+        },
+        {
+          "children": [],
+          "href": "/facilities/ict-lab",
+          "id": "dae0c8c3-2a94-4473-b0e0-67a62d4c24f8",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "ICT Lab"
+        },
+        {
+          "children": [],
+          "href": "/facilities/chemistry-lab",
+          "id": "92eda9f8-be9e-451c-bb00-c713262fc7f6",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "Chemistry Lab"
+        },
+        {
+          "children": [],
+          "href": "/facilities/extra-activities",
+          "id": "0b239039-7ec0-4af7-bb6e-c77506c64e05",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "Extra Activities"
+        }
+      ],
+      "href": "/facilities",
+      "id": "f1d4e81a-dc61-4e40-afb2-4bd328e5757d",
+      "isVisible": true,
+      "labelBn": null,
+      "labelEn": "Facilities"
+    },
+    {
+      "children": [
+        {
+          "children": [],
+          "href": "/result/exam-result",
+          "id": "83652187-fb20-42bb-826e-bf7ce9c902fb",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "Exam Result"
+        },
+        {
+          "children": [],
+          "href": "/result/academic-result",
+          "id": "f4333342-5537-439f-bf73-d5cbafa702c4",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "Academic Result"
+        },
+        {
+          "children": [],
+          "href": "/result/evaluation-result",
+          "id": "e10a438c-c69f-40ba-aa76-f66955477fb0",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "Evaluation Result"
+        },
+        {
+          "children": [],
+          "href": "/result/board-exam-result",
+          "id": "d94a2ce6-8445-4957-a580-3194c88b63b4",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "Board Exam Result"
+        }
+      ],
+      "href": "/result",
+      "id": "cc3ac81f-0c84-4954-adf2-608673ecba98",
+      "isVisible": true,
+      "labelBn": null,
+      "labelEn": "Result"
+    },
+    {
+      "children": [
+        {
+          "children": [],
+          "href": "/others/notice",
+          "id": "eb721320-8795-4955-aafe-a8d705549f52",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "Notice"
+        },
+        {
+          "children": [],
+          "href": "/others/news",
+          "id": "13eed83b-9052-40e0-8419-56f212d629ca",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "News"
+        },
+        {
+          "children": [],
+          "href": "/others/gallery",
+          "id": "45888ba9-adc6-493c-911b-943cc11ad31d",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "Gallery"
+        },
+        {
+          "children": [],
+          "href": "/others/event",
+          "id": "30ee3cda-0289-40c7-9c1c-76e09dded866",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "Event"
+        },
+        {
+          "children": [],
+          "href": "/others/routine",
+          "id": "fecd1a1a-a784-4053-8d3c-fca2b26509ae",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "Routine"
+        },
+        {
+          "children": [],
+          "href": "/others/download",
+          "id": "04d4f74c-489e-4887-b732-c41072d62265",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "Download"
+        }
+      ],
+      "href": "/others",
+      "id": "61add037-f9d7-4ed8-8688-aef8e639f5ca",
+      "isVisible": true,
+      "labelBn": null,
+      "labelEn": "Others"
+    },
+    {
+      "children": [],
+      "href": "/contact",
+      "id": "0a8d357e-83c6-4a11-977a-e7acb5f86969",
+      "isVisible": true,
+      "labelBn": null,
+      "labelEn": "Contact"
+    }
+  ],
+  "wave2.auth.register-login": {
+    "loginEmail": "parity-wave2-auth@example.com",
+    "loginPermissions": [],
+    "registeredRole": "student",
+    "tokenIsString": true,
+    "wrongRejected": true
+  },
+  "wave2.permissions.assign-revoke": {
+    "after": [
+      "view-website-management"
+    ],
+    "assignedIsIdempotentRecord": true,
+    "before": [],
+    "revoked": []
+  },
+  "wave2.menus.replace-tree": [
+    {
+      "children": [
+        {
+          "children": [],
+          "href": "/alpha/one",
+          "isVisible": true,
+          "labelBn": null,
+          "labelEn": "Alpha One"
+        },
+        {
+          "children": [],
+          "href": "/alpha/two",
+          "isVisible": false,
+          "labelBn": null,
+          "labelEn": "Alpha Two"
+        }
+      ],
+      "href": "/alpha",
+      "isVisible": true,
+      "labelBn": null,
+      "labelEn": "Alpha"
+    },
+    {
+      "children": [],
+      "href": "/beta",
+      "isVisible": false,
+      "labelBn": null,
+      "labelEn": "Beta"
+    }
+  ],
+  "wave3.documents.money-receipt.not-found": {
+    "status": 404
+  },
+  "wave3.documents.student-invoice.not-found": {
+    "status": 404
+  },
+  "wave3.documents.generic-report-pdf": {
+    "filename": "parity-wave-3-report-<TODAY>.pdf",
+    "text": [
+      "MY SCHOOL",
+      "Parity Wave 3 Report",
+      "Documents migration",
+      "Office copy | Student copy",
+      "Prepared: ",
+      "Parity harness",
+      "#",
+      "Particulars",
+      "Amount (BDT)",
+      "1",
+      "Tuition",
+      "1000.00",
+      "2",
+      "Exam fee",
+      "250.50",
+      "Total",
+      "1250.50 BDT",
+      "Notes:",
+      "- Parity fixture note",
+      "Prepared By",
+      "Principal",
+      "Page 1  |  System generated  <TODAY>",
+      "of 1"
+    ]
+  },
+  "wave3.documents.fixture-pdfs": {
+    "invoice": {
+      "filename": "PARITY-W3-INV-1.pdf",
+      "text": [
+        "MY SCHOOL",
+        "Student Invoice",
+        "PARITY-W3-INV-1  |  PARITY-W3-BP  |  UNPAID",
+        "Invoice No: ",
+        "PARITY-W3-INV-1",
+        "Billing Period: ",
+        "PARITY-W3-BP",
+        "Issue Date: ",
+        "2026-04-01",
+        "Due Date: ",
+        "2026-05-01",
+        "Student ID: ",
+        "5a19ccd7-1057-4ad8-8e06-486815fe1b1e",
+        "Status: ",
+        "UNPAID",
+        "#",
+        "Fee Head",
+        "GL",
+        "Gross",
+        "Waiver",
+        "Net",
+        "1",
+        "Student Transport Fee",
+        "21302",
+        "4000.00",
+        "500.00",
+        "3500.00",
+        "2",
+        "Student Transport Fee",
+        "21302",
+        "2000.00",
+        "500.00",
+        "1500.00",
+        "Gross amount",
+        "6000.00 BDT",
+        "Less: Waiver",
+        "1000.00 BDT",
+        "Net payable",
+        "5000.00 BDT",
+        "Late fine",
+        "100.00 BDT",
+        "Paid",
+        "2000.00 BDT",
+        "Balance due",
+        "3100.00 BDT",
+        "Notes:",
+        "- Parity Wave 3 fixture invoice",
+        "Prepared By (Accountant)",
+        "Checked By",
+        "Principal",
+        "Page 1  |  System generated  <TODAY>",
+        "of 1"
+      ]
+    },
+    "receipt": {
+      "filename": "PARITY-W3-MR-1.pdf",
+      "text": [
+        "MY SCHOOL",
+        "Money Receipt",
+        "PARITY-W3-MR-1  |  CASH  |  COLLECTED",
+        "Office copy  |  Student copy  |  Audit copy",
+        "Receipt No: ",
+        "PARITY-W3-MR-1",
+        "Date: ",
+        "<TODAY>",
+        "Invoice: ",
+        "PARITY-W3-INV-1",
+        "Billing Period: ",
+        "PARITY-W3-BP",
+        "Student ID: ",
+        "5a19ccd7-1057-4ad8-8e06-486815fe1b1e",
+        "Cash/Bank GL: ",
+        "21302 - TDS Payable Suppliers & Contractors",
+        "Gateway Trx: ",
+        "-",
+        "Bank Ref: ",
+        "-",
+        "Collected By: ",
+        "Admin User",
+        "Voucher: ",
+        "-",
+        "#",
+        "Particulars",
+        "GL",
+        "Amount (BDT)",
+        "1",
+        "Tuition",
+        "21302",
+        "2000.00",
+        "Gross received",
+        "2000.00 BDT",
+        "Net to cash/bank",
+        "2000.00 BDT",
+        "Notes:",
+        "- Student ledger is credited with the full gross amount; TDR is booked as gateway commission expense.",
+        "- Remark: Parity Wave 3 fixture receipt",
+        "Received By (Cashier)",
+        "Checked By (Accountant)",
+        "Principal",
+        "Page 1  |  System generated  <TODAY>",
+        "of 1"
+      ]
+    }
+  }
+}
