@@ -139,6 +139,17 @@ model AdmissionSequences {
   @@map("admission_sequences")
 }
 
+model AttendanceMarkSlabs {
+  id               String  @id @default(dbgenerated("(uuid())")) @db.Char(36)
+  name             String  @db.VarChar(100)
+  minAttendancePct Decimal @map("min_attendance_pct") @db.Decimal(5, 2)
+  maxAttendancePct Decimal @map("max_attendance_pct") @db.Decimal(5, 2)
+  awardedMarks     Decimal @map("awarded_marks") @db.Decimal(5, 2)
+
+  @@index([minAttendancePct], map: "IDX_ATT_SLAB_MIN")
+  @@map("attendance_mark_slabs")
+}
+
 model ChartOfAccounts {
   id                     String                   @id @default(dbgenerated("(uuid())")) @db.Char(36)
   glCode                 String                   @unique(map: "UQ_6bb8e35e8b83eeaa49218ac45cc") @map("gl_code") @db.VarChar(20)
@@ -184,7 +195,10 @@ model ClassSyllabusSubjects {
   passEvaluationMode        String                      @default("SEPARATE_COMPONENTS") @map("pass_evaluation_mode") @db.VarChar(40)
   displayOrder              Int                         @default(1) @map("display_order")
   academicSubjects          AcademicSubjects            @relation(fields: [subjectId], references: [id], onUpdate: Restrict, map: "FK_6db9c01b5b77757cb51ec8963dd")
+  examSubjectComponents     ExamSubjectComponents[]
+  studentComponentMarks     StudentComponentMarks[]
   studentSubjectEnrollments StudentSubjectEnrollments[]
+  studentSubjectResults     StudentSubjectResults[]
 
   @@index([subjectId], map: "FK_6db9c01b5b77757cb51ec8963dd")
   @@index([academicSessionId, classOrDeptId], map: "IDX_SYLLABUS_SESSION_CLASS")
@@ -225,6 +239,78 @@ model ExPrincipals {
   updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
 
   @@map("ex_principals")
+}
+
+model ExamSubjectComponents {
+  id                    String                  @id @default(dbgenerated("(uuid())")) @db.Char(36)
+  examTermId            String                  @map("exam_term_id") @db.Char(36)
+  syllabusSubjectId     String                  @map("syllabus_subject_id") @db.Char(36)
+  componentCode         String                  @map("component_code") @db.VarChar(30)
+  componentName         String                  @map("component_name") @db.VarChar(60)
+  sourceType            String                  @default("MANUAL_ENTRY") @map("source_type") @db.VarChar(30)
+  sourceComponentCode   String?                 @map("source_component_code") @db.VarChar(30)
+  maxRawMarks           Decimal                 @map("max_raw_marks") @db.Decimal(6, 2)
+  conversionWeightPct   Decimal                 @default(100.00) @map("conversion_weight_pct") @db.Decimal(5, 2)
+  convertedMaxMarks     Decimal                 @map("converted_max_marks") @db.Decimal(6, 2)
+  minPassMarks          Decimal                 @default(0.00) @map("min_pass_marks") @db.Decimal(6, 2)
+  displayOrder          Int                     @default(1) @map("display_order")
+  classSyllabusSubjects ClassSyllabusSubjects   @relation(fields: [syllabusSubjectId], references: [id], onUpdate: Restrict, map: "FK_exam_components_syllabus")
+  examTerms             ExamTerms               @relation(fields: [examTermId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "FK_exam_components_term")
+  studentComponentMarks StudentComponentMarks[]
+
+  @@unique([examTermId, syllabusSubjectId, componentCode], map: "uq_exam_subject_components")
+  @@index([examTermId, syllabusSubjectId], map: "IDX_EXAM_COMPONENTS_TERM_SUBJECT")
+  @@index([syllabusSubjectId], map: "FK_exam_components_syllabus")
+  @@map("exam_subject_components")
+}
+
+model ExamTermWeights {
+  id               String    @id @default(dbgenerated("(uuid())")) @db.Char(36)
+  parentExamTermId String    @map("parent_exam_term_id") @db.Char(36)
+  childExamTermId  String    @map("child_exam_term_id") @db.Char(36)
+  weightPct        Decimal   @map("weight_pct") @db.Decimal(5, 2)
+  childExamTerm    ExamTerms @relation("exam_term_weights_child", fields: [childExamTermId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "FK_term_weights_child")
+  parentExamTerm   ExamTerms @relation("exam_term_weights_parent", fields: [parentExamTermId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "FK_term_weights_parent")
+
+  @@unique([parentExamTermId, childExamTermId], map: "uq_exam_term_weights")
+  @@index([childExamTermId], map: "FK_term_weights_child")
+  @@map("exam_term_weights")
+}
+
+model ExamTerms {
+  id                         String                       @id @default(dbgenerated("(uuid())")) @db.Char(36)
+  academicSessionId          String                       @map("academic_session_id") @db.Char(36)
+  classOrDeptId              String                       @map("class_or_dept_id") @db.Char(36)
+  gradingScaleId             String                       @map("grading_scale_id") @db.Char(36)
+  termName                   String                       @map("term_name") @db.VarChar(100)
+  termType                   String                       @map("term_type") @db.VarChar(30)
+  parentTerminalExamId       String?                      @map("parent_terminal_exam_id") @db.Char(36)
+  sequenceNo                 Int                          @default(1) @map("sequence_no")
+  ctAggregationMode          String                       @default("BEST_N_AVERAGE") @map("ct_aggregation_mode") @db.VarChar(30)
+  ctBestCount                Int                          @default(2) @map("ct_best_count")
+  annualWeightPct            Decimal                      @default(100.00) @map("annual_weight_pct") @db.Decimal(5, 2)
+  markRoundingMode           String                       @default("HALF_UP_INTEGER") @map("mark_rounding_mode") @db.VarChar(20)
+  minCoursesToPromote        Int                          @default(0) @map("min_courses_to_promote")
+  minCgpaToPromote           Decimal                      @default(0.00) @map("min_cgpa_to_promote") @db.Decimal(4, 2)
+  status                     String                       @default("SETUP") @db.VarChar(20)
+  createdAt                  DateTime                     @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt                  DateTime                     @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+  childTerms                 ExamTerms[]                  @relation("exam_terms_parent")
+  examSubjectComponents      ExamSubjectComponents[]
+  examTermWeightsChild       ExamTermWeights[]            @relation("exam_term_weights_child")
+  examTermWeightsParent      ExamTermWeights[]            @relation("exam_term_weights_parent")
+  gradingScales              GradingScales                @relation(fields: [gradingScaleId], references: [id], onUpdate: Restrict, map: "FK_exam_terms_scale")
+  parentTerminalExam         ExamTerms?                   @relation("exam_terms_parent", fields: [parentTerminalExamId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "FK_exam_terms_parent")
+  resultGenerationJobs       ResultGenerationJobs[]
+  studentAttendanceSummaries StudentAttendanceSummaries[]
+  studentComponentMarks      StudentComponentMarks[]
+  studentSubjectResults      StudentSubjectResults[]
+  studentTermMarksheets      StudentTermMarksheets[]
+
+  @@index([academicSessionId, classOrDeptId], map: "IDX_EXAM_TERMS_SESSION_CLASS")
+  @@index([parentTerminalExamId], map: "FK_exam_terms_parent")
+  @@index([status], map: "IDX_EXAM_TERMS_STATUS")
+  @@map("exam_terms")
 }
 
 model FamilyProfiles {
@@ -335,6 +421,37 @@ model GoverningBodyMembers {
   updatedAt     DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
 
   @@map("governing_body_members")
+}
+
+model GradingScaleRanges {
+  id                String        @id @default(dbgenerated("(uuid())")) @db.Char(36)
+  gradingScaleId    String        @map("grading_scale_id") @db.Char(36)
+  minPercentage     Decimal       @map("min_percentage") @db.Decimal(5, 2)
+  maxPercentage     Decimal       @map("max_percentage") @db.Decimal(5, 2)
+  letterGrade       String        @map("letter_grade") @db.VarChar(10)
+  gradePoint        Decimal       @map("grade_point") @db.Decimal(4, 2)
+  descriptiveRemark String?       @map("descriptive_remark") @db.VarChar(100)
+  gradingScales     GradingScales @relation(fields: [gradingScaleId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "FK_grading_ranges_scale")
+
+  @@index([gradingScaleId, minPercentage], map: "IDX_GRADING_RANGES_SCALE_MIN")
+  @@map("grading_scale_ranges")
+}
+
+model GradingScales {
+  id                     String               @id @default(dbgenerated("(uuid())")) @db.Char(36)
+  name                   String               @db.VarChar(100)
+  scaleType              String               @map("scale_type") @db.VarChar(30)
+  maxPoint               Decimal              @map("max_point") @db.Decimal(4, 2)
+  minPassPoint           Decimal              @map("min_pass_point") @db.Decimal(4, 2)
+  minPassPercentage      Decimal              @default(33.00) @map("min_pass_percentage") @db.Decimal(5, 2)
+  fourthSubjectDeduction Decimal              @default(2.00) @map("fourth_subject_deduction") @db.Decimal(4, 2)
+  isActive               Boolean              @default(true) @map("is_active")
+  createdAt              DateTime             @default(now()) @map("created_at") @db.Timestamp(0)
+  examTerms              ExamTerms[]
+  gradingScaleRanges     GradingScaleRanges[]
+
+  @@index([isActive], map: "IDX_GRADING_SCALES_ACTIVE")
+  @@map("grading_scales")
 }
 
 model HeroSections {
@@ -618,6 +735,27 @@ model RequiredDocumentRules {
   @@map("required_document_rules")
 }
 
+model ResultGenerationJobs {
+  id                String    @id @default(dbgenerated("(uuid())")) @db.Char(36)
+  examTermId        String    @map("exam_term_id") @db.Char(36)
+  status            String    @default("QUEUED") @db.VarChar(20)
+  progressPct       Int       @default(0) @map("progress_pct")
+  currentStage      String?   @map("current_stage") @db.VarChar(60)
+  totalStudents     Int       @default(0) @map("total_students")
+  processedStudents Int       @default(0) @map("processed_students")
+  errorMessage      String?   @map("error_message") @db.VarChar(500)
+  requestedBy       String?   @map("requested_by") @db.Char(36)
+  startedAt         DateTime? @map("started_at") @db.Timestamp(0)
+  finishedAt        DateTime? @map("finished_at") @db.Timestamp(0)
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamp(0)
+  examTerms         ExamTerms @relation(fields: [examTermId], references: [id], onUpdate: Restrict, map: "FK_result_jobs_term")
+  users             Users?    @relation(fields: [requestedBy], references: [id], onUpdate: Restrict, map: "FK_result_jobs_requested_by")
+
+  @@index([examTermId, status], map: "IDX_RESULT_JOBS_TERM_STATUS")
+  @@index([requestedBy], map: "FK_result_jobs_requested_by")
+  @@map("result_generation_jobs")
+}
+
 model SiteSettings {
   id              String   @id @db.Char(36)
   siteName        String   @default("My School") @map("site_name") @db.VarChar(150)
@@ -673,6 +811,21 @@ model StaffMembers {
   @@map("staff_members")
 }
 
+model StudentAttendanceSummaries {
+  id                   String    @id @default(dbgenerated("(uuid())")) @db.Char(36)
+  examTermId           String    @map("exam_term_id") @db.Char(36)
+  studentId            String    @map("student_id") @db.Char(36)
+  attendancePercentage Decimal   @map("attendance_percentage") @db.Decimal(5, 2)
+  source               String    @default("MANUAL") @db.VarChar(20)
+  updatedAt            DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+  examTerms            ExamTerms @relation(fields: [examTermId], references: [id], onUpdate: Restrict, map: "FK_attendance_summaries_term")
+  students             Students  @relation(fields: [studentId], references: [id], onUpdate: Restrict, map: "FK_attendance_summaries_student")
+
+  @@unique([examTermId, studentId], map: "uq_attendance_summaries")
+  @@index([studentId], map: "FK_attendance_summaries_student")
+  @@map("student_attendance_summaries")
+}
+
 model StudentCautionDeposits {
   id                  String          @id @default(dbgenerated("(uuid())")) @db.Char(36)
   studentId           String          @map("student_id") @db.Char(36)
@@ -689,6 +842,34 @@ model StudentCautionDeposits {
   @@index([glAccountId], map: "FK_fc4ae3d9ab90adc7384becbe386")
   @@index([studentId], map: "IDX_CAUTION_STUDENT")
   @@map("student_caution_deposits")
+}
+
+model StudentComponentMarks {
+  id                    String                @id @default(dbgenerated("(uuid())")) @db.Char(36)
+  examTermId            String                @map("exam_term_id") @db.Char(36)
+  studentId             String                @map("student_id") @db.Char(36)
+  syllabusSubjectId     String                @map("syllabus_subject_id") @db.Char(36)
+  componentId           String                @map("component_id") @db.Char(36)
+  rawMarksObtained      Decimal               @default(0.00) @map("raw_marks_obtained") @db.Decimal(6, 2)
+  convertedMarks        Decimal               @default(0.00) @map("converted_marks") @db.Decimal(6, 2)
+  isAbsent              Boolean               @default(false) @map("is_absent")
+  isExempted            Boolean               @default(false) @map("is_exempted")
+  isPassedComponent     Boolean               @default(true) @map("is_passed_component")
+  enteredBy             String                @map("entered_by") @db.Char(36)
+  updatedAt             DateTime              @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+  classSyllabusSubjects ClassSyllabusSubjects @relation(fields: [syllabusSubjectId], references: [id], onUpdate: Restrict, map: "FK_student_component_marks_syllabus")
+  examSubjectComponents ExamSubjectComponents @relation(fields: [componentId], references: [id], onUpdate: Restrict, map: "FK_student_component_marks_component")
+  examTerms             ExamTerms             @relation(fields: [examTermId], references: [id], onUpdate: Restrict, map: "FK_student_component_marks_term")
+  students              Students              @relation(fields: [studentId], references: [id], onUpdate: Restrict, map: "FK_student_component_marks_student")
+  users                 Users                 @relation(fields: [enteredBy], references: [id], onUpdate: Restrict, map: "FK_student_component_marks_entered_by")
+
+  @@unique([examTermId, studentId, componentId], map: "uq_student_exam_comp")
+  @@index([examTermId, syllabusSubjectId], map: "IDX_STUDENT_COMP_MARKS_TERM_SUBJECT")
+  @@index([studentId], map: "IDX_STUDENT_COMP_MARKS_STUDENT")
+  @@index([syllabusSubjectId], map: "FK_student_component_marks_syllabus")
+  @@index([componentId], map: "FK_student_component_marks_component")
+  @@index([enteredBy], map: "FK_student_component_marks_entered_by")
+  @@map("student_component_marks")
 }
 
 model StudentDocuments {
@@ -835,6 +1016,74 @@ model StudentSubjectEnrollments {
   @@map("student_subject_enrollments")
 }
 
+model StudentSubjectResults {
+  id                     String                 @id @default(dbgenerated("(uuid())")) @db.Char(36)
+  examTermId             String                 @map("exam_term_id") @db.Char(36)
+  studentId              String                 @map("student_id") @db.Char(36)
+  syllabusSubjectId      String?                @map("syllabus_subject_id") @db.Char(36)
+  combinedGroupCode      String?                @map("combined_group_code") @db.VarChar(40)
+  isMergedSummaryRow     Boolean                @default(false) @map("is_merged_summary_row")
+  assignedRole           String                 @map("assigned_role") @db.VarChar(30)
+  creditHours            Decimal                @default(0.00) @map("credit_hours") @db.Decimal(4, 2)
+  fullMarks              Decimal                @map("full_marks") @db.Decimal(6, 2)
+  componentBreakdownJson String?                @map("component_breakdown_json") @db.Text
+  totalObtainedMarks     Decimal                @map("total_obtained_marks") @db.Decimal(6, 2)
+  highestMarksInClass    Decimal                @default(0.00) @map("highest_marks_in_class") @db.Decimal(6, 2)
+  percentageMarks        Decimal                @map("percentage_marks") @db.Decimal(5, 2)
+  letterGrade            String                 @map("letter_grade") @db.VarChar(10)
+  gradePoint             Decimal                @map("grade_point") @db.Decimal(4, 2)
+  effectiveGpForGpa      Decimal                @map("effective_gp_for_gpa") @db.Decimal(4, 2)
+  weightedCreditPoints   Decimal                @default(0.00) @map("weighted_credit_points") @db.Decimal(6, 2)
+  isPassed               Boolean                @map("is_passed")
+  failReason             String?                @map("fail_reason") @db.VarChar(100)
+  classSyllabusSubjects  ClassSyllabusSubjects? @relation(fields: [syllabusSubjectId], references: [id], onUpdate: Restrict, map: "FK_subject_results_syllabus")
+  examTerms              ExamTerms              @relation(fields: [examTermId], references: [id], onUpdate: Restrict, map: "FK_subject_results_term")
+  students               Students               @relation(fields: [studentId], references: [id], onUpdate: Restrict, map: "FK_subject_results_student")
+
+  @@unique([examTermId, studentId, syllabusSubjectId], map: "uq_result_subject")
+  @@index([examTermId, studentId, combinedGroupCode], map: "IDX_SUBJECT_RESULTS_TERM_STUDENT_GROUP")
+  @@index([examTermId, assignedRole], map: "IDX_SUBJECT_RESULTS_TERM_ROLE")
+  @@index([examTermId, isMergedSummaryRow], map: "IDX_SUBJECT_RESULTS_TERM_MERGED")
+  @@index([studentId], map: "FK_subject_results_student")
+  @@index([syllabusSubjectId], map: "FK_subject_results_syllabus")
+  @@map("student_subject_results")
+}
+
+model StudentTermMarksheets {
+  id                      String    @id @default(dbgenerated("(uuid())")) @db.Char(36)
+  examTermId              String    @map("exam_term_id") @db.Char(36)
+  studentId               String    @map("student_id") @db.Char(36)
+  sectionId               String?   @map("section_id") @db.Char(36)
+  shiftId                 String?   @map("shift_id") @db.Char(36)
+  totalCompulsorySubjects Int       @map("total_compulsory_subjects")
+  totalCreditsAttempted   Decimal   @default(0.00) @map("total_credits_attempted") @db.Decimal(5, 2)
+  totalCreditsEarned      Decimal   @default(0.00) @map("total_credits_earned") @db.Decimal(5, 2)
+  marksWithoutFourth      Decimal   @map("marks_without_fourth") @db.Decimal(8, 2)
+  marksWithFourth         Decimal   @map("marks_with_fourth") @db.Decimal(8, 2)
+  gpaWithoutFourth        Decimal   @map("gpa_without_fourth") @db.Decimal(4, 2)
+  fourthSubjectBonusGp    Decimal   @default(0.00) @map("fourth_subject_bonus_gp") @db.Decimal(4, 2)
+  finalGpaOrCgpa          Decimal   @map("final_gpa_or_cgpa") @db.Decimal(4, 2)
+  finalLetterGrade        String    @map("final_letter_grade") @db.VarChar(10)
+  failedSubjectCount      Int       @default(0) @map("failed_subject_count")
+  attendancePercentage    Decimal   @default(100.00) @map("attendance_percentage") @db.Decimal(5, 2)
+  resultStatus            String    @map("result_status") @db.VarChar(30)
+  meritPositionSection    Int?      @map("merit_position_section")
+  meritPositionClass      Int?      @map("merit_position_class")
+  meritPositionShift      Int?      @map("merit_position_shift")
+  principalRemark         String?   @map("principal_remark") @db.VarChar(255)
+  generatedAt             DateTime  @default(now()) @map("generated_at") @db.Timestamp(0)
+  examTerms               ExamTerms @relation(fields: [examTermId], references: [id], onUpdate: Restrict, map: "FK_term_marksheets_term")
+  students                Students  @relation(fields: [studentId], references: [id], onUpdate: Restrict, map: "FK_term_marksheets_student")
+
+  @@unique([examTermId, studentId], map: "uq_term_marksheet")
+  @@index([examTermId, sectionId], map: "IDX_TERM_MARKSHEETS_TERM_SECTION")
+  @@index([examTermId, shiftId], map: "IDX_TERM_MARKSHEETS_TERM_SHIFT")
+  @@index([examTermId, finalGpaOrCgpa], map: "IDX_TERM_MARKSHEETS_TERM_GPA")
+  @@index([examTermId, resultStatus], map: "IDX_TERM_MARKSHEETS_TERM_STATUS")
+  @@index([studentId], map: "FK_term_marksheets_student")
+  @@map("student_term_marksheets")
+}
+
 model StudentWaivers {
   id                  String                @id @default(dbgenerated("(uuid())")) @db.Char(36)
   studentId           String                @map("student_id") @db.Char(36)
@@ -862,36 +1111,40 @@ model StudentWaivers {
 }
 
 model Students {
-  id                        String                      @id @default(dbgenerated("(uuid())")) @db.Char(36)
-  studentUniqueId           String                      @unique(map: "UQ_643b46fc455dff465cda83b289a") @map("student_unique_id") @db.VarChar(30)
-  govtUidCrvs               String?                     @unique(map: "UQ_8d22ce0313314d70b8410dcd54f") @map("govt_uid_crvs") @db.VarChar(30)
-  familyProfileId           String                      @map("family_profile_id") @db.Char(36)
-  fullNameEn                String                      @map("full_name_en") @db.VarChar(120)
-  fullNameBn                String?                     @map("full_name_bn") @db.VarChar(120)
-  gender                    String                      @db.VarChar(15)
-  dateOfBirth               DateTime                    @map("date_of_birth") @db.Date
-  birthRegNo                String?                     @unique(map: "UQ_572defa4aaf30e866caceb2aeff") @map("birth_reg_no") @db.VarChar(25)
-  nationalIdNo              String?                     @map("national_id_no") @db.VarChar(25)
-  religion                  String                      @db.VarChar(25)
-  bloodGroup                String?                     @map("blood_group") @db.VarChar(10)
-  photoUrl                  String?                     @map("photo_url") @db.VarChar(255)
-  medicalAllergyNotes       String?                     @map("medical_allergy_notes") @db.Text
-  stipendMfsType            String?                     @map("stipend_mfs_type") @db.VarChar(20)
-  stipendAccountNo          String?                     @map("stipend_account_no") @db.VarChar(30)
-  admissionDate             DateTime                    @map("admission_date") @db.Date
-  currentStatus             String                      @default("ACTIVE") @map("current_status") @db.VarChar(25)
-  createdAt                 DateTime                    @default(now()) @map("created_at") @db.Timestamp(0)
-  updatedAt                 DateTime                    @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
-  pickupGuardianName        String?                     @map("pickup_guardian_name") @db.VarChar(120)
-  pickupGuardianPhone       String?                     @map("pickup_guardian_phone") @db.VarChar(20)
-  tcNumber                  String?                     @map("tc_number") @db.VarChar(50)
-  tcIssueDate               DateTime?                   @map("tc_issue_date") @db.Date
-  tcRemark                  String?                     @map("tc_remark") @db.VarChar(255)
-  admissionApplications     AdmissionApplications[]
-  studentDocuments          StudentDocuments[]
-  studentEnrollments        StudentEnrollments[]
-  studentPreviousEducations StudentPreviousEducations[]
-  familyProfiles            FamilyProfiles              @relation(fields: [familyProfileId], references: [id], onUpdate: Restrict, map: "FK_d0964695550b73c47dcc55b6f80")
+  id                         String                       @id @default(dbgenerated("(uuid())")) @db.Char(36)
+  studentUniqueId            String                       @unique(map: "UQ_643b46fc455dff465cda83b289a") @map("student_unique_id") @db.VarChar(30)
+  govtUidCrvs                String?                      @unique(map: "UQ_8d22ce0313314d70b8410dcd54f") @map("govt_uid_crvs") @db.VarChar(30)
+  familyProfileId            String                       @map("family_profile_id") @db.Char(36)
+  fullNameEn                 String                       @map("full_name_en") @db.VarChar(120)
+  fullNameBn                 String?                      @map("full_name_bn") @db.VarChar(120)
+  gender                     String                       @db.VarChar(15)
+  dateOfBirth                DateTime                     @map("date_of_birth") @db.Date
+  birthRegNo                 String?                      @unique(map: "UQ_572defa4aaf30e866caceb2aeff") @map("birth_reg_no") @db.VarChar(25)
+  nationalIdNo               String?                      @map("national_id_no") @db.VarChar(25)
+  religion                   String                       @db.VarChar(25)
+  bloodGroup                 String?                      @map("blood_group") @db.VarChar(10)
+  photoUrl                   String?                      @map("photo_url") @db.VarChar(255)
+  medicalAllergyNotes        String?                      @map("medical_allergy_notes") @db.Text
+  stipendMfsType             String?                      @map("stipend_mfs_type") @db.VarChar(20)
+  stipendAccountNo           String?                      @map("stipend_account_no") @db.VarChar(30)
+  admissionDate              DateTime                     @map("admission_date") @db.Date
+  currentStatus              String                       @default("ACTIVE") @map("current_status") @db.VarChar(25)
+  createdAt                  DateTime                     @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt                  DateTime                     @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+  pickupGuardianName         String?                      @map("pickup_guardian_name") @db.VarChar(120)
+  pickupGuardianPhone        String?                      @map("pickup_guardian_phone") @db.VarChar(20)
+  tcNumber                   String?                      @map("tc_number") @db.VarChar(50)
+  tcIssueDate                DateTime?                    @map("tc_issue_date") @db.Date
+  tcRemark                   String?                      @map("tc_remark") @db.VarChar(255)
+  admissionApplications      AdmissionApplications[]
+  studentAttendanceSummaries StudentAttendanceSummaries[]
+  studentComponentMarks      StudentComponentMarks[]
+  studentDocuments           StudentDocuments[]
+  studentEnrollments         StudentEnrollments[]
+  studentPreviousEducations  StudentPreviousEducations[]
+  studentSubjectResults      StudentSubjectResults[]
+  studentTermMarksheets      StudentTermMarksheets[]
+  familyProfiles             FamilyProfiles               @relation(fields: [familyProfileId], references: [id], onUpdate: Restrict, map: "FK_d0964695550b73c47dcc55b6f80")
 
   @@index([familyProfileId], map: "IDX_STUDENTS_FAMILY")
   @@index([currentStatus], map: "IDX_STUDENTS_STATUS")
@@ -985,6 +1238,8 @@ model Users {
   journalEntriesJournalEntriesCreatedByUserIdTousers  JournalEntries[]         @relation("journal_entries_created_by_user_idTousers")
   journalEntriesJournalEntriesVerifiedByUserIdTousers JournalEntries[]         @relation("journal_entries_verified_by_user_idTousers")
   payrollRuns                                         PayrollRuns[]
+  resultGenerationJobs                                ResultGenerationJobs[]
+  studentComponentMarks                               StudentComponentMarks[]
   studentDocuments                                    StudentDocuments[]
   taxChallans                                         TaxChallans[]
   userPermissionsUserPermissionsUserIdTousers         UserPermissions[]        @relation("user_permissions_user_idTousers")
@@ -1101,6 +1356,7 @@ enum UsersRole {
   teacher
   student
   guardian
+  exam_controller
 
   @@map("users_role")
 }

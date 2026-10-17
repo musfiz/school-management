@@ -5,4 +5,5 @@ export enum UserRole {
   TEACHER = 'teacher',
   STUDENT = 'student',
   GUARDIAN = 'guardian',
+  EXAM_CONTROLLER = 'exam_controller',
 }
