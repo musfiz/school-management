@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { BookOpen, Bookmark, CalendarDays, Layers, Pencil, Plus, RefreshCw, Trash2 } from "lucide-react";
+import { BookOpen, Bookmark, CalendarDays, Layout, Layers, Pencil, Plus, RefreshCw, Shield, Trash2 } from "lucide-react";
 import { DashCard, DashPageHeader } from "@/components/dashboard/DashPage";
 import AdminPageLoader from "@/components/dashboard/AdminPageLoader";
 import SearchSelect from "@/components/ui/SearchSelect";
@@ -11,25 +11,35 @@ import {
   CLASS_LEVELS,
   ENGINE_BEHAVIORS,
   createAcademicSession,
+  createAcademicGroup,
   createClassOrDept,
   createExamTermType,
   createMasterSubject,
+  createSectionOrBatch,
   deleteAcademicSession,
+  deleteAcademicGroup,
   deleteClassOrDept,
   deleteExamTermType,
   deleteMasterSubject,
+  deleteSectionOrBatch,
+  listAcademicGroups,
   listAcademicSessions,
   listClassOrDepts,
   listExamTermTypes,
   listMasterSubjects,
+  listSectionOrBatches,
   updateAcademicSession,
+  updateAcademicGroup,
   updateClassOrDept,
   updateExamTermType,
   updateMasterSubject,
+  updateSectionOrBatch,
+  type AcademicGroup,
   type AcademicSession,
   type ClassOrDept,
   type ExamTermType,
   type MasterSubject,
+  type SectionOrBatch,
 } from "@/lib/academic-results";
 import {
   ActionCell,
@@ -48,7 +58,7 @@ import {
   TableWrap,
 } from "../../_components/shared";
 
-export type TabId = "sessions" | "classes" | "term-types" | "subjects";
+export type TabId = "sessions" | "classes" | "term-types" | "subjects" | "sections" | "groups";
 
 interface SessionForm {
   id: string;
@@ -85,6 +95,15 @@ interface SubjectForm {
   subjectName: string;
   boardStream: string;
   paperNumber: string;
+}
+
+interface SectionForm {
+  id: string;
+  name: string;
+  code: string;
+  description: string;
+  displayOrder: string;
+  isActive: boolean;
 }
 
 const emptySessionForm = (): SessionForm => ({
@@ -124,6 +143,33 @@ const emptySubjectForm = (): SubjectForm => ({
   paperNumber: "",
 });
 
+const emptySectionForm = (): SectionForm => ({
+  id: "",
+  name: "",
+  code: "",
+  description: "",
+  displayOrder: "1",
+  isActive: true,
+});
+
+interface GroupForm {
+  id: string;
+  name: string;
+  code: string;
+  description: string;
+  displayOrder: string;
+  isActive: boolean;
+}
+
+const emptyGroupForm = (): GroupForm => ({
+  id: "",
+  name: "",
+  code: "",
+  description: "",
+  displayOrder: "1",
+  isActive: true,
+});
+
 const LEVEL_OPTIONS = CLASS_LEVELS.map((level) => ({ value: level, label: level }));
 
 const ENGINE_BEHAVIOR_OPTIONS = [
@@ -154,6 +200,8 @@ export default function SessionsClassesView({ initialTab = "sessions" }: { initi
   const [classes, setClasses] = useState<ClassOrDept[]>([]);
   const [termTypes, setTermTypes] = useState<ExamTermType[]>([]);
   const [subjects, setSubjects] = useState<MasterSubject[]>([]);
+  const [sections, setSections] = useState<SectionOrBatch[]>([]);
+  const [groups, setGroups] = useState<AcademicGroup[]>([]);
 
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -166,22 +214,28 @@ export default function SessionsClassesView({ initialTab = "sessions" }: { initi
   const [classForm, setClassForm] = useState<ClassForm | null>(null);
   const [termTypeForm, setTermTypeForm] = useState<TermTypeForm | null>(null);
   const [subjectForm, setSubjectForm] = useState<SubjectForm | null>(null);
+  const [sectionForm, setSectionForm] = useState<SectionForm | null>(null);
+  const [groupForm, setGroupForm] = useState<GroupForm | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [sessionRes, classRes, termTypeRes, subjectRes] = await Promise.allSettled([
+      const [sessionRes, classRes, termTypeRes, subjectRes, sectionRes, groupRes] = await Promise.allSettled([
         listAcademicSessions(showInactive),
         listClassOrDepts({ includeInactive: showInactive, level: levelFilter || undefined }),
         listExamTermTypes(showInactive),
         listMasterSubjects(streamFilter || undefined),
+        listSectionOrBatches(showInactive),
+        listAcademicGroups(showInactive),
       ]);
       if (sessionRes.status === "fulfilled") setSessions(sessionRes.value);
       if (classRes.status === "fulfilled") setClasses(classRes.value);
       if (termTypeRes.status === "fulfilled") setTermTypes(termTypeRes.value);
       if (subjectRes.status === "fulfilled") setSubjects(subjectRes.value);
+      if (sectionRes.status === "fulfilled") setSections(sectionRes.value);
+      if (groupRes.status === "fulfilled") setGroups(groupRes.value);
 
-      const rejected = [sessionRes, classRes, termTypeRes, subjectRes].find(
+      const rejected = [sessionRes, classRes, termTypeRes, subjectRes, sectionRes, groupRes].find(
         (r) => r.status === "rejected",
       );
       if (rejected && rejected.status === "rejected") {
@@ -231,6 +285,23 @@ export default function SessionsClassesView({ initialTab = "sessions" }: { initi
           .includes(q),
     );
   }, [subjects, search]);
+
+  const filteredSections = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return sections;
+    return sections.filter(
+      (s) =>
+        `${s.name} ${s.code} ${s.description ?? ""}`.toLowerCase().includes(q),
+    );
+  }, [sections, search]);
+
+  const filteredGroups = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return groups;
+    return groups.filter(
+      (g) => `${g.name} ${g.code} ${g.description ?? ""}`.toLowerCase().includes(q),
+    );
+  }, [groups, search]);
 
   /* ================= sessions ================= */
 
@@ -525,11 +596,149 @@ export default function SessionsClassesView({ initialTab = "sessions" }: { initi
     }
   };
 
+  const openSectionCreate = () => setSectionForm(emptySectionForm());
+  const openSectionEdit = (row: SectionOrBatch) =>
+    setSectionForm({
+      id: row.id,
+      name: row.name,
+      code: row.code,
+      description: row.description ?? "",
+      displayOrder: String(row.displayOrder),
+      isActive: row.isActive,
+    });
+
+  const saveSection = async () => {
+    if (!sectionForm) return;
+    if (!sectionForm.name.trim()) {
+      toast("Section name is required (e.g. Section A)", "error");
+      return;
+    }
+    if (!sectionForm.code.trim()) {
+      toast("Section code is required (e.g. SEC-A)", "error");
+      return;
+    }
+    const order = Number(sectionForm.displayOrder);
+    setBusy(true);
+    try {
+      if (sectionForm.id) {
+        await updateSectionOrBatch(sectionForm.id, {
+          name: sectionForm.name.trim(),
+          code: sectionForm.code.trim().toUpperCase(),
+          description: sectionForm.description.trim() || null,
+          displayOrder: Number.isFinite(order) ? order : 1,
+          isActive: sectionForm.isActive,
+        });
+        toast("Section updated", "success");
+      } else {
+        await createSectionOrBatch({
+          name: sectionForm.name.trim(),
+          code: sectionForm.code.trim().toUpperCase(),
+          description: sectionForm.description.trim() || null,
+          displayOrder: Number.isFinite(order) ? order : 1,
+          isActive: sectionForm.isActive,
+        });
+        toast("Section created — ready to use in enrollments", "success");
+      }
+      setSectionForm(null);
+      await load();
+    } catch (error) {
+      toast(error instanceof Error ? error.message : "Could not save the section", "error");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const removeSection = async (row: SectionOrBatch) => {
+    const ok = await confirmDialog({
+      title: `Delete "${row.name}" (${row.code})?`,
+      text: "Sections referenced by active enrollments cannot be deleted — deactivate them instead.",
+      confirmText: "Delete section",
+      danger: true,
+    });
+    if (!ok) return;
+    try {
+      await deleteSectionOrBatch(row.id);
+      toast("Section deleted", "success");
+      await load();
+    } catch (error) {
+      toast(error instanceof Error ? error.message : "Could not delete the section", "error");
+    }
+  };
+
+  const openGroupCreate = () => setGroupForm(emptyGroupForm());
+  const openGroupEdit = (row: AcademicGroup) =>
+    setGroupForm({
+      id: row.id,
+      name: row.name,
+      code: row.code,
+      description: row.description ?? "",
+      displayOrder: String(row.displayOrder),
+      isActive: row.isActive,
+    });
+
+  const saveGroup = async () => {
+    if (!groupForm) return;
+    if (!groupForm.name.trim()) {
+      toast("Group name is required (e.g. Science)", "error");
+      return;
+    }
+    if (!groupForm.code.trim()) {
+      toast("Group code is required (e.g. SCI)", "error");
+      return;
+    }
+    const order = Number(groupForm.displayOrder);
+    setBusy(true);
+    try {
+      if (groupForm.id) {
+        await updateAcademicGroup(groupForm.id, {
+          name: groupForm.name.trim(),
+          code: groupForm.code.trim().toUpperCase(),
+          description: groupForm.description.trim() || null,
+          displayOrder: Number.isFinite(order) ? order : 1,
+          isActive: groupForm.isActive,
+        });
+        toast("Group updated", "success");
+      } else {
+        await createAcademicGroup({
+          name: groupForm.name.trim(),
+          code: groupForm.code.trim().toUpperCase(),
+          description: groupForm.description.trim() || null,
+          displayOrder: Number.isFinite(order) ? order : 1,
+          isActive: groupForm.isActive,
+        });
+        toast("Group created — ready to use in enrollments", "success");
+      }
+      setGroupForm(null);
+      await load();
+    } catch (error) {
+      toast(error instanceof Error ? error.message : "Could not save the group", "error");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const removeGroup = async (row: AcademicGroup) => {
+    const ok = await confirmDialog({
+      title: `Delete "${row.name}" (${row.code})?`,
+      text: "Groups referenced by active enrollments cannot be deleted — deactivate them instead.",
+      confirmText: "Delete group",
+      danger: true,
+    });
+    if (!ok) return;
+    try {
+      await deleteAcademicGroup(row.id);
+      toast("Group deleted", "success");
+      await load();
+    } catch (error) {
+      toast(error instanceof Error ? error.message : "Could not delete the group", "error");
+    }
+  };
+
   return (
     <div className="space-y-4">
       <DashPageHeader
         title="Academic Master Setup"
-        description="Master data center — manage Academic Sessions, Classes / Departments, Exam Term Types, and Master Subjects."
+        description="Master data center — manage Academic Sessions, Classes / Departments, Exam Term Types, Master Subjects, and Sections / Batches."
       />
 
       <TabNav
@@ -538,6 +747,8 @@ export default function SessionsClassesView({ initialTab = "sessions" }: { initi
           { id: "classes", label: `Classes (${classes.length})`, icon: <BookOpen className="h-3.5 w-3.5" /> },
           { id: "term-types", label: `Term Types (${termTypes.length})`, icon: <Layers className="h-3.5 w-3.5" /> },
           { id: "subjects", label: `Master Subjects (${subjects.length})`, icon: <Bookmark className="h-3.5 w-3.5" /> },
+          { id: "sections", label: `Sections (${sections.length})`, icon: <Layout className="h-3.5 w-3.5" /> },
+          { id: "groups", label: `Groups (${groups.length})`, icon: <Shield className="h-3.5 w-3.5" /> },
         ]}
         active={tab}
         onChange={(id) => setTab(id as TabId)}
@@ -551,7 +762,11 @@ export default function SessionsClassesView({ initialTab = "sessions" }: { initi
               ? "classes"
               : tab === "term-types"
                 ? "term types"
-                : "master subjects"
+                : tab === "subjects"
+                  ? "master subjects"
+                  : tab === "sections"
+                    ? "sections"
+                    : "groups"
         }`}
       >
         <Field label="Search">
@@ -566,7 +781,11 @@ export default function SessionsClassesView({ initialTab = "sessions" }: { initi
                   ? "Search name, code or level…"
                   : tab === "term-types"
                     ? "Search name, code or behavior…"
-                    : "Search code, name, stream…"
+                    : tab === "sections"
+                      ? "Search name, code or description…"
+                      : tab === "groups"
+                        ? "Search name, code or description…"
+                        : "Search code, name, stream…"
             }
           />
         </Field>
@@ -595,7 +814,7 @@ export default function SessionsClassesView({ initialTab = "sessions" }: { initi
           </Field>
         )}
 
-        {(tab === "sessions" || tab === "classes" || tab === "term-types") && (
+        {(tab === "sessions" || tab === "classes" || tab === "term-types" || tab === "sections" || tab === "groups") && (
           <Field label="Visibility">
             <label className="flex cursor-pointer items-center gap-2 py-1 text-sm text-ink-700">
               <input
@@ -638,6 +857,18 @@ export default function SessionsClassesView({ initialTab = "sessions" }: { initi
               New subject
             </button>
           )}
+          {tab === "sections" && (
+            <button type="button" className={BTN_PRIMARY} onClick={openSectionCreate}>
+              <Plus className="h-3.5 w-3.5" />
+              New section
+            </button>
+          )}
+          {tab === "groups" && (
+            <button type="button" className={BTN_PRIMARY} onClick={openGroupCreate}>
+              <Plus className="h-3.5 w-3.5" />
+              New group
+            </button>
+          )}
         </ActionCell>
       </FilterCard>
 
@@ -673,6 +904,20 @@ export default function SessionsClassesView({ initialTab = "sessions" }: { initi
             <KpiTile label="General stream" value={String(subjects.filter((s) => s.boardStream === "GENERAL").length)} tone="emerald" />
             <KpiTile label="Science stream" value={String(subjects.filter((s) => s.boardStream === "SCIENCE").length)} tone="navy" />
             <KpiTile label="Multi-paper subjects" value={String(subjects.filter((s) => s.paperNumber != null).length)} tone="amber" />
+          </>
+        )}
+        {tab === "sections" && (
+          <>
+            <KpiTile label="Total sections" value={String(sections.length)} />
+            <KpiTile label="Active sections" value={String(sections.filter((s) => s.isActive).length)} tone="emerald" />
+            <KpiTile label="Inactive sections" value={String(sections.filter((s) => !s.isActive).length)} tone="ink" />
+          </>
+        )}
+        {tab === "groups" && (
+          <>
+            <KpiTile label="Total groups" value={String(groups.length)} />
+            <KpiTile label="Active groups" value={String(groups.filter((g) => g.isActive).length)} tone="emerald" />
+            <KpiTile label="Inactive groups" value={String(groups.filter((g) => !g.isActive).length)} tone="ink" />
           </>
         )}
       </div>
@@ -885,6 +1130,130 @@ export default function SessionsClassesView({ initialTab = "sessions" }: { initi
                                 ? "Built-in types cannot be deleted"
                                 : "Delete term type"
                             }
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </TableWrap>
+        </DashCard>
+      ) : tab === "sections" ? (
+        /* Sections Table */
+        <DashCard
+          title="Sections & Batches"
+          action={
+            <button type="button" className={BTN} onClick={openSectionCreate}>
+              <Plus className="h-3.5 w-3.5" />
+              New section
+            </button>
+          }
+        >
+          <TableWrap>
+            <table className="w-full text-left text-xs">
+              <thead className="bg-ink-50 text-ink-700">
+                <tr>
+                  <th className="px-2.5 py-1.5 font-semibold">Section</th>
+                  <th className="px-2.5 py-1.5 font-semibold">Code</th>
+                  <th className="px-2.5 py-1.5 font-semibold">Description</th>
+                  <th className="px-2.5 py-1.5 text-right font-semibold">Order</th>
+                  <th className="px-2.5 py-1.5 font-semibold">Flags</th>
+                  <th className="px-2.5 py-1.5 font-semibold">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-ink-100 bg-white">
+                {filteredSections.length === 0 ? (
+                  <EmptyRow colSpan={6} message="No sections found. Click 'New section' to add Section A, B, etc." />
+                ) : (
+                  filteredSections.map((row) => (
+                    <tr key={row.id} className="hover:bg-ink-50">
+                      <td className="px-2.5 py-1 font-medium">{row.name}</td>
+                      <td className="px-2.5 py-1 font-mono text-ink-600">{row.code}</td>
+                      <td className="px-2.5 py-1 text-ink-600">{row.description || "—"}</td>
+                      <td className="px-2.5 py-1 text-right font-mono">{row.displayOrder}</td>
+                      <td className="px-2.5 py-1">
+                        {!row.isActive && (
+                          <span className="rounded-xs bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold text-slate-700">
+                            INACTIVE
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-2.5 py-1">
+                        <div className="flex items-center gap-1">
+                          <button type="button" className={BTN_ROW} onClick={() => openSectionEdit(row)}>
+                            <Pencil className="h-3 w-3" />
+                            Edit
+                          </button>
+                          <button
+                            type="button"
+                            className={`${BTN_ROW} text-rose-700`}
+                            onClick={() => void removeSection(row)}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </TableWrap>
+        </DashCard>
+      ) : tab === "groups" ? (
+        /* Groups Table */
+        <DashCard
+          title="Groups"
+          action={
+            <button type="button" className={BTN} onClick={openGroupCreate}>
+              <Plus className="h-3.5 w-3.5" />
+              New group
+            </button>
+          }
+        >
+          <TableWrap>
+            <table className="w-full text-left text-xs">
+              <thead className="bg-ink-50 text-ink-700">
+                <tr>
+                  <th className="px-2.5 py-1.5 font-semibold">Group</th>
+                  <th className="px-2.5 py-1.5 font-semibold">Code</th>
+                  <th className="px-2.5 py-1.5 font-semibold">Description</th>
+                  <th className="px-2.5 py-1.5 text-right font-semibold">Order</th>
+                  <th className="px-2.5 py-1.5 font-semibold">Flags</th>
+                  <th className="px-2.5 py-1.5 font-semibold">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-ink-100 bg-white">
+                {filteredGroups.length === 0 ? (
+                  <EmptyRow colSpan={6} message="No groups found. Click 'New group' to add Science, Humanities, etc." />
+                ) : (
+                  filteredGroups.map((row) => (
+                    <tr key={row.id} className="hover:bg-ink-50">
+                      <td className="px-2.5 py-1 font-medium">{row.name}</td>
+                      <td className="px-2.5 py-1 font-mono text-ink-600">{row.code}</td>
+                      <td className="px-2.5 py-1 text-ink-600">{row.description || "—"}</td>
+                      <td className="px-2.5 py-1 text-right font-mono">{row.displayOrder}</td>
+                      <td className="px-2.5 py-1">
+                        {!row.isActive && (
+                          <span className="rounded-xs bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold text-slate-700">
+                            INACTIVE
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-2.5 py-1">
+                        <div className="flex items-center gap-1">
+                          <button type="button" className={BTN_ROW} onClick={() => openGroupEdit(row)}>
+                            <Pencil className="h-3 w-3" />
+                            Edit
+                          </button>
+                          <button
+                            type="button"
+                            className={`${BTN_ROW} text-rose-700`}
+                            onClick={() => void removeGroup(row)}
                           >
                             <Trash2 className="h-3 w-3" />
                           </button>
@@ -1241,6 +1610,144 @@ export default function SessionsClassesView({ initialTab = "sessions" }: { initi
                 ariaLabel="Board stream"
               />
             </Field>
+          </div>
+        </Modal>
+      )}
+
+      {/* Modal: Section / Batch */}
+      {sectionForm && (
+        <Modal
+          title={sectionForm.id ? "Edit section / batch" : "New section / batch"}
+          onClose={() => setSectionForm(null)}
+          footer={
+            <>
+              <button type="button" className={BTN_MODAL} onClick={() => setSectionForm(null)}>
+                Cancel
+              </button>
+              <button
+                type="button"
+                className={BTN_MODAL_PRIMARY}
+                onClick={() => void saveSection()}
+                disabled={busy}
+              >
+                {busy ? "Saving…" : "Save section"}
+              </button>
+            </>
+          }
+        >
+          <div className="space-y-3">
+            <Field label="Section / batch name">
+              <input
+                className={INPUT}
+                value={sectionForm.name}
+                onChange={(e) => setSectionForm({ ...sectionForm, name: e.target.value })}
+                placeholder="e.g. Section A or Morning Batch"
+              />
+            </Field>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <Field label="Code (unique UPPERCASE)">
+                <input
+                  className={INPUT}
+                  value={sectionForm.code}
+                  onChange={(e) => setSectionForm({ ...sectionForm, code: e.target.value })}
+                  placeholder="e.g. SEC-A"
+                />
+              </Field>
+              <Field label="Display order">
+                <input
+                  type="number"
+                  className={INPUT}
+                  value={sectionForm.displayOrder}
+                  onChange={(e) => setSectionForm({ ...sectionForm, displayOrder: e.target.value })}
+                />
+              </Field>
+            </div>
+            <Field label="Description (optional)">
+              <input
+                className={INPUT}
+                value={sectionForm.description}
+                onChange={(e) => setSectionForm({ ...sectionForm, description: e.target.value })}
+                placeholder="e.g. Section A — 30 students"
+              />
+            </Field>
+            <label className="flex cursor-pointer items-center gap-2 pt-1 text-sm text-ink-700">
+              <input
+                type="checkbox"
+                className="cursor-pointer"
+                checked={sectionForm.isActive}
+                onChange={(e) => setSectionForm({ ...sectionForm, isActive: e.target.checked })}
+              />
+              Active
+            </label>
+          </div>
+        </Modal>
+      )}
+
+      {/* Modal: Group */}
+      {groupForm && (
+        <Modal
+          title={groupForm.id ? "Edit group" : "New group"}
+          onClose={() => setGroupForm(null)}
+          footer={
+            <>
+              <button type="button" className={BTN_MODAL} onClick={() => setGroupForm(null)}>
+                Cancel
+              </button>
+              <button
+                type="button"
+                className={BTN_MODAL_PRIMARY}
+                onClick={() => void saveGroup()}
+                disabled={busy}
+              >
+                {busy ? "Saving…" : "Save group"}
+              </button>
+            </>
+          }
+        >
+          <div className="space-y-3">
+            <Field label="Group name">
+              <input
+                className={INPUT}
+                value={groupForm.name}
+                onChange={(e) => setGroupForm({ ...groupForm, name: e.target.value })}
+                placeholder="e.g. Science or Humanities"
+              />
+            </Field>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <Field label="Code (unique UPPERCASE)">
+                <input
+                  className={INPUT}
+                  value={groupForm.code}
+                  onChange={(e) => setGroupForm({ ...groupForm, code: e.target.value })}
+                  placeholder="e.g. SCI"
+                />
+              </Field>
+              <Field label="Display order">
+                <input
+                  type="number"
+                  className={INPUT}
+                  value={groupForm.displayOrder}
+                  onChange={(e) => setGroupForm({ ...groupForm, displayOrder: e.target.value })}
+                />
+              </Field>
+            </div>
+            <Field label="Description (optional)">
+              <input
+                className={INPUT}
+                value={groupForm.description}
+                onChange={(e) => setGroupForm({ ...groupForm, description: e.target.value })}
+                placeholder="e.g. Science group — Physics, Chemistry, Biology"
+              />
+            </Field>
+            <label className="flex cursor-pointer items-center gap-2 pt-1 text-sm text-ink-700">
+              <input
+                type="checkbox"
+                className="cursor-pointer"
+                checked={groupForm.isActive}
+                onChange={(e) => setGroupForm({ ...groupForm, isActive: e.target.checked })}
+              />
+              Active
+            </label>
           </div>
         </Modal>
       )}

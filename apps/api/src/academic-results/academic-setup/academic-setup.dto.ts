@@ -41,6 +41,42 @@ export class UpdateClassOrDeptDto {
   @IsOptional() @IsBoolean() isActive?: boolean;
 }
 
+/* ================= sections / batches (dynamic) ================= */
+
+export class CreateSectionOrBatchDto {
+  @IsString() @MaxLength(100) name!: string;
+  @IsString() @MaxLength(20) code!: string;
+  @IsOptional() @IsString() @MaxLength(255) description?: string;
+  @IsOptional() @Type(() => Number) @IsInt() @Min(1) displayOrder?: number;
+  @IsOptional() @IsBoolean() isActive?: boolean;
+}
+
+export class UpdateSectionOrBatchDto {
+  @IsOptional() @IsString() @MaxLength(100) name?: string;
+  @IsOptional() @IsString() @MaxLength(20) code?: string;
+  @IsOptional() @IsString() @MaxLength(255) description?: string | null;
+  @IsOptional() @Type(() => Number) @IsInt() @Min(1) displayOrder?: number;
+  @IsOptional() @IsBoolean() isActive?: boolean;
+}
+
+/* ================= groups (dynamic) ================= */
+
+export class CreateAcademicGroupDto {
+  @IsString() @MaxLength(100) name!: string;
+  @IsString() @MaxLength(20) code!: string;
+  @IsOptional() @IsString() @MaxLength(255) description?: string;
+  @IsOptional() @Type(() => Number) @IsInt() @Min(1) displayOrder?: number;
+  @IsOptional() @IsBoolean() isActive?: boolean;
+}
+
+export class UpdateAcademicGroupDto {
+  @IsOptional() @IsString() @MaxLength(100) name?: string;
+  @IsOptional() @IsString() @MaxLength(20) code?: string;
+  @IsOptional() @IsString() @MaxLength(255) description?: string | null;
+  @IsOptional() @Type(() => Number) @IsInt() @Min(1) displayOrder?: number;
+  @IsOptional() @IsBoolean() isActive?: boolean;
+}
+
 /* ================= exam term types (dynamic) ================= */
 
 export const ENGINE_BEHAVIORS = ['SUB_EXAM_CT', 'TERMINAL', 'CUMULATIVE_ANNUAL'] as const;

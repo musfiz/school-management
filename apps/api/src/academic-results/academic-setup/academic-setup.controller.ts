@@ -3,11 +3,15 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AcademicSetupService } from './academic-setup.service';
 import {
   CreateAcademicSessionDto,
+  CreateAcademicGroupDto,
   CreateClassOrDeptDto,
   CreateExamTermTypeDto,
+  CreateSectionOrBatchDto,
   UpdateAcademicSessionDto,
+  UpdateAcademicGroupDto,
   UpdateClassOrDeptDto,
   UpdateExamTermTypeDto,
+  UpdateSectionOrBatchDto,
 } from './academic-setup.dto';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { RolesGuard } from '../../common/guards/roles.guard';
@@ -113,5 +117,65 @@ export class AcademicSetupController {
   @ApiOperation({ summary: 'Delete an unused term type (built-ins and used types are protected)' })
   deleteTermType(@Param('id', ParseUUIDPipe) id: string) {
     return this.setup.deleteTermType(id);
+  }
+
+  /* ================= sections / batches (dynamic) ================= */
+
+  @Get('sections')
+  @Roles(UserRole.ADMIN, UserRole.MANAGEMENT, UserRole.EXAM_CONTROLLER, UserRole.TEACHER)
+  @ApiOperation({ summary: 'List sections/batches (?includeInactive=true)' })
+  listSections(@Query('includeInactive') includeInactive?: string) {
+    return this.setup.listSectionOrBatches(includeInactive === 'true');
+  }
+
+  @Post('sections')
+  @Roles(UserRole.ADMIN, UserRole.MANAGEMENT, UserRole.EXAM_CONTROLLER)
+  @ApiOperation({ summary: 'Create a section/batch (e.g. Section A + SEC-A)' })
+  createSection(@Body() dto: CreateSectionOrBatchDto) {
+    return this.setup.createSectionOrBatch(dto);
+  }
+
+  @Patch('sections/:id')
+  @Roles(UserRole.ADMIN, UserRole.MANAGEMENT, UserRole.EXAM_CONTROLLER)
+  @ApiOperation({ summary: 'Update a section/batch' })
+  updateSection(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateSectionOrBatchDto) {
+    return this.setup.updateSectionOrBatch(id, dto);
+  }
+
+  @Delete('sections/:id')
+  @Roles(UserRole.ADMIN, UserRole.MANAGEMENT, UserRole.EXAM_CONTROLLER)
+  @ApiOperation({ summary: 'Delete an unused section (blocked while referenced — deactivate instead)' })
+  deleteSection(@Param('id', ParseUUIDPipe) id: string) {
+    return this.setup.deleteSectionOrBatch(id);
+  }
+
+  /* ================= groups (dynamic) ================= */
+
+  @Get('groups')
+  @Roles(UserRole.ADMIN, UserRole.MANAGEMENT, UserRole.EXAM_CONTROLLER, UserRole.TEACHER)
+  @ApiOperation({ summary: 'List groups (?includeInactive=true)' })
+  listGroups(@Query('includeInactive') includeInactive?: string) {
+    return this.setup.listAcademicGroups(includeInactive === 'true');
+  }
+
+  @Post('groups')
+  @Roles(UserRole.ADMIN, UserRole.MANAGEMENT, UserRole.EXAM_CONTROLLER)
+  @ApiOperation({ summary: 'Create a group (e.g. Science + SCI)' })
+  createGroup(@Body() dto: CreateAcademicGroupDto) {
+    return this.setup.createAcademicGroup(dto);
+  }
+
+  @Patch('groups/:id')
+  @Roles(UserRole.ADMIN, UserRole.MANAGEMENT, UserRole.EXAM_CONTROLLER)
+  @ApiOperation({ summary: 'Update a group' })
+  updateGroup(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateAcademicGroupDto) {
+    return this.setup.updateAcademicGroup(id, dto);
+  }
+
+  @Delete('groups/:id')
+  @Roles(UserRole.ADMIN, UserRole.MANAGEMENT, UserRole.EXAM_CONTROLLER)
+  @ApiOperation({ summary: 'Delete an unused group (blocked while referenced — deactivate instead)' })
+  deleteGroup(@Param('id', ParseUUIDPipe) id: string) {
+    return this.setup.deleteAcademicGroup(id);
   }
 }

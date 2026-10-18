@@ -265,30 +265,13 @@ export const navItems: NavItem[] = [
     children: [
       {
         kind: "leaf",
-        label: "Sessions & Classes",
-        href: "/admin/academic-results/settings/sessions-classes",
-        description: "Academic session + class/dept master data",
+        label: "Initial setup",
+        href: "/admin/academic-results/settings/initial-setup",
+        description: "Academic session, classes & departments, exam term types, master subjects, and sections/batches",
+        icon: CalendarDays,
         roles: EXAM_FULL,
         legacyRoles: ["admin", "management"],
-        keywords: ["session", "class", "department", "master", "setup"],
-      },
-      {
-        kind: "leaf",
-        label: "Exam Term Types",
-        href: "/admin/academic-results/settings/term-types",
-        description: "Terminal, CT/Sub-exam, Cumulative Annual definitions",
-        roles: EXAM_FULL,
-        legacyRoles: ["admin", "management"],
-        keywords: ["term", "type", "terminal", "sub-exam", "behavior", "setup"],
-      },
-      {
-        kind: "leaf",
-        label: "Master Subjects",
-        href: "/admin/academic-results/settings/subjects",
-        description: "Subject codes, names, streams, and papers catalogue",
-        roles: EXAM_FULL,
-        legacyRoles: ["admin", "management"],
-        keywords: ["subject", "stream", "paper", "catalogue", "master"],
+        keywords: ["session", "class", "department", "term", "subject", "master", "setup", "section", "batch"],
       },
       {
         kind: "leaf",
@@ -316,6 +299,7 @@ export const navItems: NavItem[] = [
         roles: EXAM_FULL,
         legacyRoles: ["admin", "management"],
         keywords: ["exam", "term", "ct", "class test", "weight"],
+        exactMatch: true,
       },
       {
         kind: "leaf",
@@ -343,6 +327,7 @@ export const navItems: NavItem[] = [
         roles: ["SUPER_ADMIN", "EXAM_CONTROLLER", "TEACHER"],
         legacyRoles: ["admin", "management", "teacher"],
         keywords: ["marks", "entry", "spreadsheet", "grid", "input"],
+        exactMatch: true,
       },
       {
         kind: "leaf",

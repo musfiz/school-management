@@ -67,6 +67,34 @@ model ExamTermTypes {
   @@map("exam_term_types")
 }
 
+model SectionOrBatches {
+  id           String   @id @default(dbgenerated("(uuid())")) @db.Char(36)
+  name         String   @db.VarChar(100)
+  code         String   @unique(map: "uq_section_or_batches_code") @map("section_code") @db.VarChar(20)
+  description  String?  @map("description") @db.VarChar(255)
+  displayOrder Int      @default(1) @map("display_order")
+  isActive     Boolean  @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  @@index([isActive], map: "IDX_SECTION_OR_BATCHES_ACTIVE")
+  @@map("section_or_batches")
+}
+
+model AcademicGroups {
+  id           String   @id @default(dbgenerated("(uuid())")) @db.Char(36)
+  name         String   @db.VarChar(100)
+  code         String   @unique(map: "uq_academic_groups_code") @map("group_code") @db.VarChar(20)
+  description  String?  @map("description") @db.VarChar(255)
+  displayOrder Int      @default(1) @map("display_order")
+  isActive     Boolean  @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  @@index([isActive], map: "IDX_ACADEMIC_GROUPS_ACTIVE")
+  @@map("academic_groups")
+}
+
 model AccountingAuditLogs {
   id              String   @id @default(dbgenerated("(uuid())")) @db.Char(36)
   eventType       String   @map("event_type") @db.VarChar(50)

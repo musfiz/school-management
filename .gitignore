@@ -122,3 +122,4 @@ $RECYCLE.BIN/
 .tmp/
 tmp/
 .opencode/*
+graphify-out/*

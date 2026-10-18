@@ -2,12 +2,16 @@ import { BadRequestException, Injectable, Logger, NotFoundException, OnModuleIni
 import { randomUUID } from 'crypto';
 import { PrismaService } from '../../prisma/prisma.service';
 import type {
+  CreateAcademicGroupDto,
   CreateAcademicSessionDto,
   CreateClassOrDeptDto,
   CreateExamTermTypeDto,
+  CreateSectionOrBatchDto,
+  UpdateAcademicGroupDto,
   UpdateAcademicSessionDto,
   UpdateClassOrDeptDto,
   UpdateExamTermTypeDto,
+  UpdateSectionOrBatchDto,
 } from './academic-setup.dto';
 import { CLASS_LEVELS, ENGINE_BEHAVIORS } from './academic-setup.dto';
 
@@ -86,6 +90,38 @@ export class AcademicSetupService implements OnModuleInit {
           UNIQUE INDEX \`uq_exam_term_types_code\`(\`code\`),
           INDEX \`IDX_EXAM_TERM_TYPES_ACTIVE\`(\`is_active\`),
           INDEX \`IDX_EXAM_TERM_TYPES_BEHAVIOR\`(\`engine_behavior\`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+      `);
+
+      await this.prisma.$executeRawUnsafe(`
+        CREATE TABLE IF NOT EXISTS \`section_or_batches\` (
+          \`id\` CHAR(36) NOT NULL,
+          \`name\` VARCHAR(100) NOT NULL,
+          \`section_code\` VARCHAR(20) NOT NULL,
+          \`description\` VARCHAR(255) NULL,
+          \`display_order\` INT NOT NULL DEFAULT 1,
+          \`is_active\` TINYINT(1) NOT NULL DEFAULT 1,
+          \`created_at\` TIMESTAMP(0) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          \`updated_at\` TIMESTAMP(0) NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+          PRIMARY KEY (\`id\`),
+          UNIQUE INDEX \`uq_section_or_batches_code\`(\`section_code\`),
+          INDEX \`IDX_SECTION_OR_BATCHES_ACTIVE\`(\`is_active\`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+      `);
+
+      await this.prisma.$executeRawUnsafe(`
+        CREATE TABLE IF NOT EXISTS \`academic_groups\` (
+          \`id\` CHAR(36) NOT NULL,
+          \`name\` VARCHAR(100) NOT NULL,
+          \`group_code\` VARCHAR(20) NOT NULL,
+          \`description\` VARCHAR(255) NULL,
+          \`display_order\` INT NOT NULL DEFAULT 1,
+          \`is_active\` TINYINT(1) NOT NULL DEFAULT 1,
+          \`created_at\` TIMESTAMP(0) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          \`updated_at\` TIMESTAMP(0) NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+          PRIMARY KEY (\`id\`),
+          UNIQUE INDEX \`uq_academic_groups_code\`(\`group_code\`),
+          INDEX \`IDX_ACADEMIC_GROUPS_ACTIVE\`(\`is_active\`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
       `);
 
@@ -429,6 +465,242 @@ export class AcademicSetupService implements OnModuleInit {
       code.trim().toUpperCase(),
     );
     if (rows && rows.length) throw new BadRequestException(`Term type code "${code.trim().toUpperCase()}" already exists`);
+  }
+
+  /* ================= sections / batches (dynamic) ================= */
+
+  async listSectionOrBatches(includeInactive = false) {
+    await this.ensureTables();
+    try {
+      const rows = await this.prisma.$queryRawUnsafe<any[]>(
+        `SELECT id, name, section_code AS code, description, display_order AS displayOrder, is_active AS isActive, created_at AS createdAt, updated_at AS updatedAt
+         FROM \`section_or_batches\`
+         ${includeInactive ? '' : 'WHERE is_active = 1'}
+         ORDER BY display_order ASC, name ASC`
+      );
+      return (rows || []).map((r) => ({
+        id: String(r.id),
+        name: String(r.name),
+        code: String(r.code),
+        description: r.description ? String(r.description) : null,
+        displayOrder: Number(r.displayOrder ?? 1),
+        isActive: Boolean(Number(r.isActive)),
+        createdAt: r.createdAt,
+        updatedAt: r.updatedAt,
+      }));
+    } catch (err) {
+      this.logger.error('listSectionOrBatches query error:', err);
+      return [];
+    }
+  }
+
+  async createSectionOrBatch(dto: CreateSectionOrBatchDto) {
+    await this.ensureTables();
+    await this.assertSectionOrBatchCodeFree(dto.code);
+    const id = randomUUID();
+    const name = dto.name.trim();
+    const code = dto.code.trim().toUpperCase();
+    const description = dto.description?.trim() || null;
+    const displayOrder = dto.displayOrder ?? 1;
+    const isActive = dto.isActive ?? true;
+
+    await this.prisma.$executeRawUnsafe(
+      `INSERT INTO \`section_or_batches\` (\`id\`, \`name\`, \`section_code\`, \`description\`, \`display_order\`, \`is_active\`)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      id,
+      name,
+      code,
+      description,
+      displayOrder,
+      isActive ? 1 : 0,
+    );
+
+    return this.getSectionOrBatch(id);
+  }
+
+  async updateSectionOrBatch(id: string, dto: UpdateSectionOrBatchDto) {
+    await this.ensureTables();
+    const existing = await this.getSectionOrBatch(id);
+    if (dto.code && dto.code.trim().toUpperCase() !== existing.code) {
+      await this.assertSectionOrBatchCodeFree(dto.code);
+    }
+
+    const name = dto.name?.trim() ?? existing.name;
+    const code = dto.code?.trim().toUpperCase() ?? existing.code;
+    const description = dto.description === undefined ? existing.description : dto.description?.trim() || null;
+    const displayOrder = dto.displayOrder ?? existing.displayOrder;
+    const isActive = dto.isActive === undefined ? existing.isActive : dto.isActive;
+
+    await this.prisma.$executeRawUnsafe(
+      `UPDATE \`section_or_batches\`
+       SET \`name\` = ?, \`section_code\` = ?, \`description\` = ?, \`display_order\` = ?, \`is_active\` = ?
+       WHERE \`id\` = ?`,
+      name,
+      code,
+      description,
+      displayOrder,
+      isActive ? 1 : 0,
+      id,
+    );
+
+    return this.getSectionOrBatch(id);
+  }
+
+  async deleteSectionOrBatch(id: string) {
+    await this.ensureTables();
+    const existing = await this.getSectionOrBatch(id);
+    const used = await this.prisma.studentEnrollments.count({ where: { sectionOrBatchId: id } });
+    if (used > 0) {
+      throw new BadRequestException(`Section is used by ${used} enrollment(s) — deactivate it instead of deleting`);
+    }
+    await this.prisma.$executeRawUnsafe(`DELETE FROM \`section_or_batches\` WHERE \`id\` = ?`, id);
+    return { deleted: true as const };
+  }
+
+  private async getSectionOrBatch(id: string) {
+    const rows = await this.prisma.$queryRawUnsafe<any[]>(
+      `SELECT id, name, section_code AS code, description, display_order AS displayOrder, is_active AS isActive, created_at AS createdAt, updated_at AS updatedAt
+       FROM \`section_or_batches\` WHERE \`id\` = ? LIMIT 1`,
+      id,
+    );
+    if (!rows || !rows.length) throw new NotFoundException(`Section #${id} not found`);
+    const r = rows[0];
+    return {
+      id: String(r.id),
+      name: String(r.name),
+      code: String(r.code),
+      description: r.description ? String(r.description) : null,
+      displayOrder: Number(r.displayOrder ?? 1),
+      isActive: Boolean(Number(r.isActive)),
+      createdAt: r.createdAt,
+      updatedAt: r.updatedAt,
+    };
+  }
+
+  private async assertSectionOrBatchCodeFree(code: string) {
+    const rows = await this.prisma.$queryRawUnsafe<any[]>(
+      `SELECT id FROM \`section_or_batches\` WHERE \`section_code\` = ? LIMIT 1`,
+      code.trim().toUpperCase(),
+    );
+    if (rows && rows.length) throw new BadRequestException(`Section code "${code.trim().toUpperCase()}" already exists`);
+  }
+
+  /* ================= groups (dynamic) ================= */
+
+  async listAcademicGroups(includeInactive = false) {
+    await this.ensureTables();
+    try {
+      const rows = await this.prisma.$queryRawUnsafe<any[]>(
+        `SELECT id, name, group_code AS code, description, display_order AS displayOrder, is_active AS isActive, created_at AS createdAt, updated_at AS updatedAt
+         FROM \`academic_groups\`
+         ${includeInactive ? '' : 'WHERE is_active = 1'}
+         ORDER BY display_order ASC, name ASC`
+      );
+      return (rows || []).map((r) => ({
+        id: String(r.id),
+        name: String(r.name),
+        code: String(r.code),
+        description: r.description ? String(r.description) : null,
+        displayOrder: Number(r.displayOrder ?? 1),
+        isActive: Boolean(Number(r.isActive)),
+        createdAt: r.createdAt,
+        updatedAt: r.updatedAt,
+      }));
+    } catch (err) {
+      this.logger.error('listAcademicGroups query error:', err);
+      return [];
+    }
+  }
+
+  async createAcademicGroup(dto: CreateAcademicGroupDto) {
+    await this.ensureTables();
+    await this.assertAcademicGroupCodeFree(dto.code);
+    const id = randomUUID();
+    const name = dto.name.trim();
+    const code = dto.code.trim().toUpperCase();
+    const description = dto.description?.trim() || null;
+    const displayOrder = dto.displayOrder ?? 1;
+    const isActive = dto.isActive ?? true;
+
+    await this.prisma.$executeRawUnsafe(
+      `INSERT INTO \`academic_groups\` (\`id\`, \`name\`, \`group_code\`, \`description\`, \`display_order\`, \`is_active\`)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      id,
+      name,
+      code,
+      description,
+      displayOrder,
+      isActive ? 1 : 0,
+    );
+
+    return this.getAcademicGroup(id);
+  }
+
+  async updateAcademicGroup(id: string, dto: UpdateAcademicGroupDto) {
+    await this.ensureTables();
+    const existing = await this.getAcademicGroup(id);
+    if (dto.code && dto.code.trim().toUpperCase() !== existing.code) {
+      await this.assertAcademicGroupCodeFree(dto.code);
+    }
+
+    const name = dto.name?.trim() ?? existing.name;
+    const code = dto.code?.trim().toUpperCase() ?? existing.code;
+    const description = dto.description === undefined ? existing.description : dto.description?.trim() || null;
+    const displayOrder = dto.displayOrder ?? existing.displayOrder;
+    const isActive = dto.isActive === undefined ? existing.isActive : dto.isActive;
+
+    await this.prisma.$executeRawUnsafe(
+      `UPDATE \`academic_groups\`
+       SET \`name\` = ?, \`group_code\` = ?, \`description\` = ?, \`display_order\` = ?, \`is_active\` = ?
+       WHERE \`id\` = ?`,
+      name,
+      code,
+      description,
+      displayOrder,
+      isActive ? 1 : 0,
+      id,
+    );
+
+    return this.getAcademicGroup(id);
+  }
+
+  async deleteAcademicGroup(id: string) {
+    await this.ensureTables();
+    const existing = await this.getAcademicGroup(id);
+    const used = await this.prisma.studentEnrollments.count({ where: { academicGroup: existing.name } });
+    if (used > 0) {
+      throw new BadRequestException(`Group is used by ${used} enrollment(s) — deactivate it instead of deleting`);
+    }
+    await this.prisma.$executeRawUnsafe(`DELETE FROM \`academic_groups\` WHERE \`id\` = ?`, id);
+    return { deleted: true as const };
+  }
+
+  private async getAcademicGroup(id: string) {
+    const rows = await this.prisma.$queryRawUnsafe<any[]>(
+      `SELECT id, name, group_code AS code, description, display_order AS displayOrder, is_active AS isActive, created_at AS createdAt, updated_at AS updatedAt
+       FROM \`academic_groups\` WHERE \`id\` = ? LIMIT 1`,
+      id,
+    );
+    if (!rows || !rows.length) throw new NotFoundException(`Group #${id} not found`);
+    const r = rows[0];
+    return {
+      id: String(r.id),
+      name: String(r.name),
+      code: String(r.code),
+      description: r.description ? String(r.description) : null,
+      displayOrder: Number(r.displayOrder ?? 1),
+      isActive: Boolean(Number(r.isActive)),
+      createdAt: r.createdAt,
+      updatedAt: r.updatedAt,
+    };
+  }
+
+  private async assertAcademicGroupCodeFree(code: string) {
+    const rows = await this.prisma.$queryRawUnsafe<any[]>(
+      `SELECT id FROM \`academic_groups\` WHERE \`group_code\` = ? LIMIT 1`,
+      code.trim().toUpperCase(),
+    );
+    if (rows && rows.length) throw new BadRequestException(`Group code "${code.trim().toUpperCase()}" already exists`);
   }
 
   /* ================= usage guard ================= */

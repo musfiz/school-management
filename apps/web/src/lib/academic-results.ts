@@ -1199,6 +1199,17 @@ export interface ClassOrDept {
   updatedAt?: string;
 }
 
+export interface SectionOrBatch {
+  id: string;
+  name: string;
+  code: string;
+  description: string | null;
+  displayOrder: number;
+  isActive: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export const CLASS_LEVELS = ["PLAY", "SCHOOL", "COLLEGE", "MADRASAH", "UNIVERSITY"] as const;
 
 export function listAcademicSessions(includeInactive = false) {
@@ -1262,6 +1273,85 @@ export function updateClassOrDept(id: string, input: Partial<Omit<ClassOrDept, "
 
 export function deleteClassOrDept(id: string) {
   return apiFetch<{ deleted: true }>(`${BASE}/academic-setup/classes/${id}`, { method: "DELETE" });
+}
+
+/* ================================================================== */
+/*  Sections / batches (dynamic master)                               */
+/* ================================================================== */
+
+export function listSectionOrBatches(includeInactive = false) {
+  return apiFetch<SectionOrBatch[]>(
+    `${BASE}/academic-setup/sections${includeInactive ? "?includeInactive=true" : ""}`,
+  );
+}
+
+export function createSectionOrBatch(input: {
+  name: string;
+  code: string;
+  description?: string | null;
+  displayOrder?: number;
+  isActive?: boolean;
+}) {
+  return apiFetch<SectionOrBatch>(`${BASE}/academic-setup/sections`, {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
+}
+
+export function updateSectionOrBatch(id: string, input: Partial<Omit<SectionOrBatch, "id">>) {
+  return apiFetch<SectionOrBatch>(`${BASE}/academic-setup/sections/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(input),
+  });
+}
+
+export function deleteSectionOrBatch(id: string) {
+  return apiFetch<{ deleted: true }>(`${BASE}/academic-setup/sections/${id}`, { method: "DELETE" });
+}
+
+/* ================================================================== */
+/*  Groups (dynamic master)                                           */
+/* ================================================================== */
+
+export interface AcademicGroup {
+  id: string;
+  name: string;
+  code: string;
+  description: string | null;
+  displayOrder: number;
+  isActive: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export function listAcademicGroups(includeInactive = false) {
+  return apiFetch<AcademicGroup[]>(
+    `${BASE}/academic-setup/groups${includeInactive ? "?includeInactive=true" : ""}`,
+  );
+}
+
+export function createAcademicGroup(input: {
+  name: string;
+  code: string;
+  description?: string | null;
+  displayOrder?: number;
+  isActive?: boolean;
+}) {
+  return apiFetch<AcademicGroup>(`${BASE}/academic-setup/groups`, {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
+}
+
+export function updateAcademicGroup(id: string, input: Partial<Omit<AcademicGroup, "id">>) {
+  return apiFetch<AcademicGroup>(`${BASE}/academic-setup/groups/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(input),
+  });
+}
+
+export function deleteAcademicGroup(id: string) {
+  return apiFetch<{ deleted: true }>(`${BASE}/academic-setup/groups/${id}`, { method: "DELETE" });
 }
 
 /* ================================================================== */
