@@ -33,12 +33,23 @@ export async function POST(req: Request) {
   const { email, password } = parsed.data;
 
   let res: Response;
+  const loginUrl = `${API_BASE}/auth/login`;
+  const fetchOpts: RequestInit = {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password }),
+  };
+
   try {
-    res = await fetch(`${API_BASE}/auth/login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    });
+    try {
+      res = await fetch(loginUrl, fetchOpts);
+    } catch (err) {
+      if (loginUrl.includes("localhost")) {
+        res = await fetch(loginUrl.replace("localhost", "127.0.0.1"), fetchOpts);
+      } else {
+        throw err;
+      }
+    }
   } catch {
     return NextResponse.json(
       { error: "Cannot reach the auth server. Please try again later." },

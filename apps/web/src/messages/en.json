@@ -28,7 +28,54 @@
     "teachers": "Teachers",
     "staffInformation": "Staff Information",
     "staff": "Staff",
-    "administrators": "Administrators"
+    "administrators": "Administrators",
+
+    "permissionRecognitionLetter": "Permission Recognition Letter",
+    "nationalization": "Nationalization",
+    "statisticsReport": "Statistics Report",
+    "govtApprovalLetter": "Govt. Approval Letter",
+
+    "classSchedule": "Class Schedule",
+    "staffs": "Staffs",
+    "academicRules": "Academic Rules",
+    "calendar": "Calendar",
+    "attendance": "Attendance",
+    "leaveInfo": "Leave Info",
+
+    "whyStudy": "Why Study Here",
+    "howToApply": "How to Apply",
+    "admissionTest": "Admission Test",
+    "policy": "Policy",
+    "registrationSystem": "Registration System",
+
+    "studentList": "Student List",
+    "tuitionFees": "Tuition Fees",
+    "mobileBanking": "Mobile Banking",
+    "dailyActivities": "Daily Activities",
+    "examSchedule": "Exam Schedule",
+    "uniform": "Uniform",
+    "examSystem": "Exam System",
+    "rules": "Rules",
+
+    "library": "Library",
+    "playground": "Playground",
+    "physicsLab": "Physics Lab",
+    "biologyLab": "Biology Lab",
+    "ictLab": "ICT Lab",
+    "chemistryLab": "Chemistry Lab",
+    "extraActivities": "Extra Activities",
+
+    "examResult": "Exam Result",
+    "academicResult": "Academic Result",
+    "evaluationResult": "Evaluation Result",
+    "boardExamResult": "Board Exam Result",
+
+    "notice": "Notice",
+    "news": "News",
+    "gallery": "Gallery",
+    "event": "Event",
+    "routine": "Routine",
+    "download": "Download"
   },
   "content": {
     "notFound": "Content not found",

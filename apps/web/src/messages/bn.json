@@ -28,7 +28,54 @@
     "teachers": "শিক্ষকবৃন্দ",
     "staffInformation": "স্টাফ তথ্য",
     "staff": "স্টাফ",
-    "administrators": "প্রশাসকবৃন্দ"
+    "administrators": "প্রশাসকবৃন্দ",
+
+    "permissionRecognitionLetter": "অনুমোদন স্বীকৃতির লেখা",
+    "nationalization": "জাতীয়করণ",
+    "statisticsReport": "পরিসংখ্যান প্রতিবেদন",
+    "govtApprovalLetter": "সরকারি অনুমোদনপত্র",
+
+    "classSchedule": "ক্লাস সূচি",
+    "staffs": "কর্মীবৃন্দ",
+    "academicRules": "শিক্ষাবিধি",
+    "calendar": "একাডেমিক ক্যালেন্ডার",
+    "attendance": "উপস্থিতি",
+    "leaveInfo": "ছুটির তথ্য",
+
+    "whyStudy": "কেন এখানে পড়বেন",
+    "howToApply": "কীভাবে আবেদন করবেন",
+    "admissionTest": "ভর্তি পরীক্ষা",
+    "policy": "নীতিমালা",
+    "registrationSystem": "নিবন্ধন ব্যবস্থা",
+
+    "studentList": "শিক্ষার্থী তালিকা",
+    "tuitionFees": "বেতন",
+    "mobileBanking": "মোবাইল ব্যাংকিং",
+    "dailyActivities": "দৈনন্দিন কার্যক্রম",
+    "examSchedule": "পরীক্ষার সূচি",
+    "uniform": "ইউনিফর্ম",
+    "examSystem": "পরীক্ষাব্যবস্থা",
+    "rules": "নিয়মাবলি",
+
+    "library": "গ্রন্থাগার",
+    "playground": "খেলার মাঠ",
+    "physicsLab": "পদার্থবিজ্ঞান ল্যাব",
+    "biologyLab": "জীববিজ্ঞান ল্যাব",
+    "ictLab": "আইসিটি ল্যাব",
+    "chemistryLab": "রসায়ন ল্যাব",
+    "extraActivities": "অতিরিক্ত কার্যক্রম",
+
+    "examResult": "পরীক্ষার ফলাফল",
+    "academicResult": "বার্ষিক ফলাফল",
+    "evaluationResult": "মূল্যায়ন ফলাফল",
+    "boardExamResult": "বোর্ড পরীক্ষার ফলাফল",
+
+    "notice": "নোটিশ",
+    "news": "খবর",
+    "gallery": "গ্যালারি",
+    "event": "অনুষ্ঠান",
+    "routine": "রুটিন",
+    "download": "ডাউনলোড"
   },
   "content": {
     "notFound": "বিষয়বস্তু পাওয়া যায়নি",

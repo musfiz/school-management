@@ -29,9 +29,28 @@ async function forward(req: Request, method: string, path: string[]) {
     if (buffer.byteLength) init.body = buffer;
   }
 
-  const res = await fetch(target, init);
-  const data = await res.json().catch(() => null);
-  return NextResponse.json(data, { status: res.status });
+  try {
+    let res: Response;
+    try {
+      res = await fetch(target, init);
+    } catch (fetchErr) {
+      if (target.includes("localhost")) {
+        const ipv4Target = target.replace("localhost", "127.0.0.1");
+        res = await fetch(ipv4Target, init);
+      } else {
+        throw fetchErr;
+      }
+    }
+    const data = await res.json().catch(() => null);
+    return NextResponse.json(data, { status: res.status });
+  } catch (err) {
+    const detail = err instanceof Error ? err.message : String(err);
+    console.error(`[academic-results proxy] fetch error for ${target}:`, detail);
+    return NextResponse.json(
+      { message: "Backend API is unavailable or starting up", detail },
+      { status: 503 },
+    );
+  }
 }
 
 type Ctx = { params: Promise<{ path: string[] }> };

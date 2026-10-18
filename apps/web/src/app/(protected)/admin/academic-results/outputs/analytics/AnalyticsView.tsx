@@ -21,7 +21,7 @@ import {
   SignatureBlocks,
   TableWrap,
   termOptions,
-  useScopeOptions,
+  useCascadingScope,
   useTerms,
 } from "../../_components/shared";
 

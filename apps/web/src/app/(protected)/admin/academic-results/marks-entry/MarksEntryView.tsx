@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Download, RefreshCw, Save, Sparkles } from "lucide-react";
+import Link from "next/link";
+import { AlertCircle, ArrowRight, Download, RefreshCw, Save, Sparkles } from "lucide-react";
 import { DashCard, DashPageHeader } from "@/components/dashboard/DashPage";
 import AdminPageLoader from "@/components/dashboard/AdminPageLoader";
 import { toast } from "@/lib/swal";
@@ -11,6 +12,8 @@ import {
   downloadCsv,
   fmt2,
   getMarksSheet,
+  listExamTermTypes,
+  type ExamTermType,
   type MarksSheet,
   type SheetRow,
 } from "@/lib/academic-results";
@@ -26,7 +29,7 @@ import {
   TableWrap,
   subjectOptions,
   termOptions,
-  useScopeOptions,
+  useCascadingScope,
   useSyllabus,
   useTerms,
 } from "../_components/shared";
@@ -49,8 +52,10 @@ export default function MarksEntryView() {
   const { sessionId, setSessionId, classId, setClassId, sectionId, setSectionId, sessions, classes, sections } =
     useCascadingScope({ includeSection: true });
   const [termId, setTermId] = useState("");
-  const [sectionId, setSectionId] = useState("");
   const [subjectId, setSubjectId] = useState("");
+  const [termTypeFilter, setTermTypeFilter] = useState("");
+  const [termTypes, setTermTypes] = useState<ExamTermType[]>([]);
+
   const { terms } = useTerms(sessionId, classId);
   const { subjects } = useSyllabus(sessionId, classId);
 
@@ -62,10 +67,35 @@ export default function MarksEntryView() {
 
   const refs = useRef<Record<string, HTMLInputElement | null>>({});
 
-  const openTerms = useMemo(
-    () => terms.filter((term) => MARKABLE_STATUSES.includes(term.status)),
-    [terms],
+  useEffect(() => {
+    void (async () => {
+      try {
+        setTermTypes(await listExamTermTypes());
+      } catch {
+        setTermTypes([]);
+      }
+    })();
+  }, []);
+
+  const termTypeOptions = useMemo(
+    () => termTypes.map((t) => ({ value: t.code, label: `${t.name} (${t.engineBehavior})` })),
+    [termTypes],
   );
+
+  const filteredTerms = useMemo(() => {
+    if (!termTypeFilter) return terms;
+    return terms.filter((term) => term.termType === termTypeFilter);
+  }, [terms, termTypeFilter]);
+
+  const termChoiceOptions = useMemo(() => {
+    return filteredTerms.map((term) => {
+      const isMarkable = MARKABLE_STATUSES.includes(term.status);
+      return {
+        value: term.id,
+        label: `${term.termName} · ${term.termType} · ${term.status}${isMarkable ? "" : " (read-only)"}`,
+      };
+    });
+  }, [filteredTerms]);
 
   const load = useCallback(async () => {
     if (!termId || !subjectId) {
@@ -307,9 +337,12 @@ export default function MarksEntryView() {
       <FilterCard title="Filter marks sheet">
         <ScopeSelect label="Academic Session" value={sessionId} onChange={setSessionId} options={sessions} placeholder="Select session" isClearable={false} />
         <ScopeSelect label="Class / Dept" value={classId} onChange={setClassId} options={classes} placeholder="Select class" isClearable={false} />
-        <ScopeSelect label="Exam Term" value={termId} onChange={setTermId} options={termOptions(openTerms)} placeholder="Open term" isClearable={false} />
+        {termTypeOptions.length > 0 && (
+          <ScopeSelect label="Term Type (filter)" value={termTypeFilter} onChange={setTermTypeFilter} options={termTypeOptions} placeholder="All term types" />
+        )}
+        <ScopeSelect label="Exam Term" value={termId} onChange={setTermId} options={termChoiceOptions} placeholder={filteredTerms.length ? "Select exam term" : "No terms found"} isClearable={false} />
         <ScopeSelect label="Section / Batch" value={sectionId} onChange={setSectionId} options={sections} placeholder="All sections" />
-        <ScopeSelect label="Subject" value={subjectId} onChange={setSubjectId} options={subjectOptions(subjects)} placeholder="Select subject" isClearable={false} />
+        <ScopeSelect label="Subject" value={subjectId} onChange={setSubjectId} options={subjectOptions(subjects)} placeholder={subjects.length ? "Select subject" : "No subjects found"} isClearable={false} />
         <ActionCell>
           <button type="button" className={BTN} onClick={() => void load()} disabled={!termId || !subjectId}>
             <RefreshCw className="h-3.5 w-3.5" />
@@ -335,6 +368,56 @@ export default function MarksEntryView() {
           </button>
         </ActionCell>
       </FilterCard>
+
+      {sessionId && classId && terms.length === 0 && (
+        <div className="flex items-start gap-2.5 rounded-xs border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
+          <div className="space-y-1">
+            <p className="font-semibold">No Exam Terms Found for this Class</p>
+            <p>Before entering marks, create an Exam Term (e.g. Half-Yearly, Final) for this academic session and class.</p>
+            <div className="flex flex-wrap items-center gap-2 pt-1">
+              <Link
+                href="/admin/academic-results/exams"
+                className="inline-flex items-center gap-1 font-semibold text-brand-700 underline hover:text-brand-800"
+              >
+                Create Exam Term <ArrowRight className="h-3 w-3" />
+              </Link>
+              <span className="text-amber-400">·</span>
+              <Link
+                href="/admin/academic-results/settings/term-types"
+                className="inline-flex items-center gap-1 font-semibold text-brand-700 underline hover:text-brand-800"
+              >
+                Manage Term Types <ArrowRight className="h-3 w-3" />
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {sessionId && classId && subjects.length === 0 && (
+        <div className="flex items-start gap-2.5 rounded-xs border border-sky-200 bg-sky-50 p-3 text-xs text-sky-900">
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-sky-600" />
+          <div className="space-y-1">
+            <p className="font-semibold">No Subjects in Syllabus for this Class</p>
+            <p>This class does not have subjects mapped to its syllabus yet. Add subjects in Syllabus Matrix.</p>
+            <div className="flex flex-wrap items-center gap-2 pt-1">
+              <Link
+                href="/admin/academic-results/settings/syllabus-matrix"
+                className="inline-flex items-center gap-1 font-semibold text-brand-700 underline hover:text-brand-800"
+              >
+                Configure Syllabus Matrix <ArrowRight className="h-3 w-3" />
+              </Link>
+              <span className="text-sky-400">·</span>
+              <Link
+                href="/admin/academic-results/settings/subjects"
+                className="inline-flex items-center gap-1 font-semibold text-brand-700 underline hover:text-brand-800"
+              >
+                Master Subjects Catalogue <ArrowRight className="h-3 w-3" />
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
         <KpiTile label="Students" value={String(rows.length)} />

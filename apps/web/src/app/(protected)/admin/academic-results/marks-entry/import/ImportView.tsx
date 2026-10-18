@@ -24,7 +24,7 @@ import {
   TableWrap,
   subjectOptions,
   termOptions,
-  useScopeOptions,
+  useCascadingScope,
   useSyllabus,
   useTerms,
 } from "../../_components/shared";
@@ -35,7 +35,6 @@ export default function ImportView() {
   const { sessionId, setSessionId, classId, setClassId, sectionId, setSectionId, sessions, classes, sections } =
     useCascadingScope({ includeSection: true });
   const [termId, setTermId] = useState("");
-  const [sectionId, setSectionId] = useState("");
   const [subjectId, setSubjectId] = useState("");
   const { terms } = useTerms(sessionId, classId);
   const { subjects } = useSyllabus(sessionId, classId);

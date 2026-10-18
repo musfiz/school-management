@@ -10,7 +10,6 @@ import {
   SOURCE_TYPES,
   SCALE_TYPES,
   TERM_STATUSES,
-  TERM_TYPES,
   assertComponentSetSumsToFullMarks,
   assertConvertedFormula,
   assertOneOf,
@@ -22,6 +21,7 @@ import {
   isTransitionAllowed,
   sumConvertedMax,
 } from './validators/component-sum.validator';
+import { ENGINE_BEHAVIORS, isEngineBehavior, resolveEngineBehavior } from '../common/engine-behavior.util';
 import type {
   ComponentItemDto,
   CreateExamTermDto,
@@ -225,7 +225,7 @@ export class ExamSetupService {
   }
 
   async createTerm(dto: CreateExamTermDto): Promise<ExamTerms> {
-    assertOneOf(dto.termType, TERM_TYPES, 'termType');
+    await this.assertTermTypeUsable(dto.termType);
     const ctAggregationMode = dto.ctAggregationMode ?? 'BEST_N_AVERAGE';
     assertOneOf(ctAggregationMode, CT_AGGREGATION_MODES, 'ctAggregationMode');
     const markRoundingMode = dto.markRoundingMode ?? 'HALF_UP_INTEGER';
@@ -618,6 +618,24 @@ export class ExamSetupService {
     if (term.status !== status) throw new BadRequestException(`${message} (current status: ${term.status})`);
   }
 
+  private async assertTermTypeUsable(code: string): Promise<string> {
+    if (!code) throw new BadRequestException('termType is required');
+    const upper = code.trim().toUpperCase();
+    if (isEngineBehavior(upper)) return upper;
+    const rows = await this.prisma.$queryRawUnsafe<any[]>(
+      'SELECT id, code, engine_behavior AS engineBehavior, is_active AS isActive FROM `exam_term_types` WHERE `code` = ? LIMIT 1',
+      upper,
+    );
+    const master = rows && rows.length ? rows[0] : null;
+    if (!master) {
+      throw new BadRequestException(`Unknown term type "${code}" — please add it under Term Types first`);
+    }
+    if (!Boolean(Number(master.isActive))) {
+      throw new BadRequestException(`Term type "${code}" is inactive`);
+    }
+    return String(master.engineBehavior);
+  }
+
   private async assertParentTerminal(
     parentId: string | null | undefined,
     academicSessionId: string,
@@ -628,7 +646,13 @@ export class ExamSetupService {
     if (selfId && parentId === selfId) throw new BadRequestException('A term cannot be its own parent');
     const parent = await this.prisma.examTerms.findUnique({ where: { id: parentId } });
     if (!parent) throw new NotFoundException(`Parent term #${parentId} not found`);
-    if (parent.termType !== 'TERMINAL') {
+    const parentMasterRows = await this.prisma.$queryRawUnsafe<any[]>(
+      'SELECT id, code, engine_behavior AS engineBehavior, is_active AS isActive FROM `exam_term_types` WHERE `code` = ? LIMIT 1',
+      parent.termType,
+    );
+    const parentMaster = parentMasterRows && parentMasterRows.length ? parentMasterRows[0] : null;
+    const behavior = resolveEngineBehavior(parent.termType, parentMaster);
+    if (behavior !== 'TERMINAL') {
       throw new BadRequestException('parentTerminalExamId must reference a TERMINAL term');
     }
     if (parent.academicSessionId !== academicSessionId || parent.classOrDeptId !== classOrDeptId) {

@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { SubjectEnrollmentService } from '../../admissions/subject-enrollment.service';
 import { findMergedGroupIssues } from '../../admissions/common/validators';
@@ -21,16 +21,70 @@ import type {
  *   - bulk-enroll a class/section's compulsory set + per-student 4th subject.
  */
 @Injectable()
-export class SyllabusConfigService {
+export class SyllabusConfigService implements OnModuleInit {
+  private tablesEnsured = false;
+  private readonly logger = new Logger(SyllabusConfigService.name);
+
   constructor(
     private readonly subjects: SubjectEnrollmentService,
     private readonly prisma: PrismaService,
   ) {}
 
+  async onModuleInit(): Promise<void> {
+    await this.ensureTables();
+  }
+
+  async ensureTables(): Promise<void> {
+    if (this.tablesEnsured) return;
+    try {
+      await this.prisma.$executeRawUnsafe(`
+        CREATE TABLE IF NOT EXISTS \`academic_subjects\` (
+          \`id\` CHAR(36) NOT NULL,
+          \`subject_code\` VARCHAR(30) NOT NULL,
+          \`subject_name\` VARCHAR(150) NOT NULL,
+          \`board_stream\` VARCHAR(30) NOT NULL DEFAULT 'GENERAL',
+          \`paper_number\` INT NULL,
+          PRIMARY KEY (\`id\`),
+          INDEX \`IDX_SUBJECTS_CODE\`(\`subject_code\`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_general_ci;
+      `);
+
+      await this.prisma.$executeRawUnsafe(`
+        INSERT INTO \`academic_subjects\` (\`id\`, \`subject_code\`, \`subject_name\`, \`board_stream\`, \`paper_number\`)
+        SELECT UUID(), code, name, stream, paper FROM (
+          SELECT '101' AS code, 'Bangla 1st Paper' AS name, 'GENERAL' AS stream, 1 AS paper UNION ALL
+          SELECT '102', 'Bangla 2nd Paper', 'GENERAL', 2 UNION ALL
+          SELECT '107', 'English 1st Paper', 'GENERAL', 1 UNION ALL
+          SELECT '108', 'English 2nd Paper', 'GENERAL', 2 UNION ALL
+          SELECT '109', 'Mathematics', 'GENERAL', NULL UNION ALL
+          SELECT '111', 'Islam & Moral Education', 'GENERAL', NULL UNION ALL
+          SELECT '127', 'General Science', 'GENERAL', NULL UNION ALL
+          SELECT '136', 'Physics', 'SCIENCE', 1 UNION ALL
+          SELECT '137', 'Chemistry', 'SCIENCE', 1 UNION ALL
+          SELECT '138', 'Biology', 'SCIENCE', 1 UNION ALL
+          SELECT '126', 'Higher Mathematics', 'SCIENCE', NULL UNION ALL
+          SELECT '150', 'Bangladesh & Global Studies', 'GENERAL', NULL UNION ALL
+          SELECT '154', 'Information & Communication Technology', 'GENERAL', NULL
+        ) seed
+        WHERE NOT EXISTS (SELECT 1 FROM \`academic_subjects\` s WHERE s.\`subject_code\` = seed.\`code\` AND (s.\`paper_number\` = seed.\`paper\` OR (s.\`paper_number\` IS NULL AND seed.\`paper\` IS NULL)));
+      `);
+
+      this.tablesEnsured = true;
+    } catch (error) {
+      this.logger.error('Failed to ensure academic_subjects table:', error);
+    }
+  }
+
   /* ================= master subjects (delegated) ================= */
 
-  listMasterSubjects(boardStream?: string) {
-    return this.subjects.listMasterSubjects(boardStream);
+  async listMasterSubjects(boardStream?: string) {
+    await this.ensureTables();
+    try {
+      return await this.subjects.listMasterSubjects(boardStream);
+    } catch (err) {
+      this.logger.error('listMasterSubjects query error:', err);
+      return [];
+    }
   }
 
   createMasterSubject(dto: {

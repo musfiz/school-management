@@ -24,7 +24,7 @@ import {
   RoleBadge,
   ScopeSelect,
   TableWrap,
-  useScopeOptions,
+  useCascadingScope,
   useSyllabus,
   useTerms,
   termOptions,
@@ -52,7 +52,6 @@ export default function TrackerView() {
   const { sessionId, setSessionId, classId, setClassId, sectionId, setSectionId, sessions, classes, sections } =
     useCascadingScope({ includeSection: true });
   const [termId, setTermId] = useState("");
-  const [sectionId, setSectionId] = useState("");
   const { terms } = useTerms(sessionId, classId);
   const { subjects } = useSyllabus(sessionId, classId);
 

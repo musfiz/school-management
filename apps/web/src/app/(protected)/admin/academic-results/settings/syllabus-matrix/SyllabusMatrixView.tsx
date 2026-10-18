@@ -35,7 +35,7 @@ import {
   RoleBadge,
   ScopeSelect,
   TableWrap,
-  useScopeOptions,
+  useCascadingScope,
   useSyllabus,
 } from "../../_components/shared";
 

@@ -54,9 +54,10 @@ export default function Header({
         .split("-")
         .map((w, i) => (i === 0 ? w : w.charAt(0).toUpperCase() + w.slice(1)))
         .join("");
-      const translated = tNav(key as Parameters<typeof tNav>[0]);
-      // next-intl returns the key with a "." prefix when missing — fall back to static label.
-      if (!translated.includes(".")) return translated;
+      const messageKey = key as Parameters<typeof tNav>[0];
+      // `tNav.has` probes the message catalog without firing next-intl's
+      // MISSING_MESSAGE error; untranslated slugs fall back to the static label.
+      if (tNav.has(messageKey)) return tNav(messageKey);
     }
     return item.labelBn && locale === "bn" ? item.labelBn : item.label;
   };

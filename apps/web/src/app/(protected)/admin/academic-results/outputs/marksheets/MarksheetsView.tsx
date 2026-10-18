@@ -30,7 +30,7 @@ import {
   TableWrap,
   PrintSchoolHeader,
   termOptions,
-  useScopeOptions,
+  useCascadingScope,
   useTerms,
 } from "../../_components/shared";
 
@@ -55,7 +55,6 @@ export default function MarksheetsView() {
   const { sessionId, setSessionId, classId, setClassId, sectionId, setSectionId, sessions, classes, sections } =
     useCascadingScope({ includeSection: true });
   const [termId, setTermId] = useState("");
-  const [sectionId, setSectionId] = useState("");
   const [studentId, setStudentId] = useState("");
   const { terms } = useTerms(sessionId, classId);
 

@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
 import { AdmissionsModule } from '../admissions/admissions.module';
+import { AcademicSetupController } from './academic-setup/academic-setup.controller';
+import { AcademicSetupService } from './academic-setup/academic-setup.service';
 import { SyllabusConfigController } from './syllabus-config/syllabus-config.controller';
 import { SyllabusConfigService } from './syllabus-config/syllabus-config.service';
 import { LookupsController } from './lookups/lookups.controller';
@@ -33,6 +35,7 @@ import { ReportsTranscriptsController } from './reports-transcripts/reports-tran
 @Module({
   imports: [AdmissionsModule],
   controllers: [
+    AcademicSetupController,
     SyllabusConfigController,
     LookupsController,
     ExamSetupController,
@@ -41,6 +44,7 @@ import { ReportsTranscriptsController } from './reports-transcripts/reports-tran
     ReportsTranscriptsController,
   ],
   providers: [
+    AcademicSetupService,
     SyllabusConfigService,
     LookupsService,
     ExamSetupService,

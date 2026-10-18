@@ -1,4 +1,5 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { randomUUID } from 'crypto';
 import Decimal from 'decimal.js';
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma } from '../generated/prisma/client';
@@ -82,6 +83,7 @@ export class SubjectEnrollmentService {
     if (clash) throw new BadRequestException(`Subject ${dto.subjectCode} paper ${dto.paperNumber ?? '—'} already exists`);
     return this.prisma.academicSubjects.create({
       data: {
+        id: randomUUID(),
         subjectCode: dto.subjectCode,
         subjectName: dto.subjectName,
         boardStream: dto.boardStream ?? 'GENERAL',

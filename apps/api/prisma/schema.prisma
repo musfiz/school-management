@@ -21,6 +21,52 @@ model AcademicSubjects {
   @@map("academic_subjects")
 }
 
+model AcademicSessions {
+  id          String   @id @default(dbgenerated("(uuid())")) @db.Char(36)
+  sessionName String   @map("session_name") @db.VarChar(50)
+  sessionCode String   @unique(map: "uq_academic_sessions_code") @map("session_code") @db.VarChar(20)
+  startDate   DateTime? @map("start_date") @db.Date
+  endDate     DateTime? @map("end_date") @db.Date
+  isActive    Boolean  @default(true) @map("is_active")
+  isCurrent   Boolean  @default(false) @map("is_current")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  @@index([isActive], map: "IDX_ACADEMIC_SESSIONS_ACTIVE")
+  @@map("academic_sessions")
+}
+
+model ClassOrDepts {
+  id           String   @id @default(dbgenerated("(uuid())")) @db.Char(36)
+  name         String   @db.VarChar(100)
+  code         String   @unique(map: "uq_class_or_depts_code") @db.VarChar(20)
+  level        String   @default("SCHOOL") @db.VarChar(20)
+  displayOrder Int      @default(1) @map("display_order")
+  isActive     Boolean  @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  @@index([isActive], map: "IDX_CLASS_OR_DEPTS_ACTIVE")
+  @@index([level], map: "IDX_CLASS_OR_DEPTS_LEVEL")
+  @@map("class_or_depts")
+}
+
+model ExamTermTypes {
+  id              String   @id @default(dbgenerated("(uuid())")) @db.Char(36)
+  name            String   @db.VarChar(100)
+  code            String   @unique(map: "uq_exam_term_types_code") @db.VarChar(30)
+  engineBehavior  String   @map("engine_behavior") @db.VarChar(30)
+  description     String?  @db.VarChar(255)
+  displayOrder    Int      @default(1) @map("display_order")
+  isActive        Boolean  @default(true) @map("is_active")
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt       DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  @@index([isActive], map: "IDX_EXAM_TERM_TYPES_ACTIVE")
+  @@index([engineBehavior], map: "IDX_EXAM_TERM_TYPES_BEHAVIOR")
+  @@map("exam_term_types")
+}
+
 model AccountingAuditLogs {
   id              String   @id @default(dbgenerated("(uuid())")) @db.Char(36)
   eventType       String   @map("event_type") @db.VarChar(50)

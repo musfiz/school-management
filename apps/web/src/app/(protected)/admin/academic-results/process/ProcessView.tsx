@@ -26,7 +26,7 @@ import {
   StatusBadge,
   TableWrap,
   termOptions,
-  useScopeOptions,
+  useCascadingScope,
   useTerms,
 } from "../_components/shared";
 

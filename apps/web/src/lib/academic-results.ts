@@ -1173,6 +1173,148 @@ export function getFailList(params: { examTermId: string; sectionOrBatchId?: str
 }
 
 /* ================================================================== */
+/*  Academic setup — session + class/dept master data               */
+/* ================================================================== */
+
+export interface AcademicSession {
+  id: string;
+  sessionName: string;
+  sessionCode: string;
+  startDate: string | null;
+  endDate: string | null;
+  isActive: boolean;
+  isCurrent: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface ClassOrDept {
+  id: string;
+  name: string;
+  code: string;
+  level: string;
+  displayOrder: number;
+  isActive: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export const CLASS_LEVELS = ["PLAY", "SCHOOL", "COLLEGE", "MADRASAH", "UNIVERSITY"] as const;
+
+export function listAcademicSessions(includeInactive = false) {
+  return apiFetch<AcademicSession[]>(
+    `${BASE}/academic-setup/sessions${includeInactive ? "?includeInactive=true" : ""}`,
+  );
+}
+
+export function createAcademicSession(input: {
+  sessionName: string;
+  sessionCode: string;
+  startDate?: string;
+  endDate?: string;
+  isActive?: boolean;
+  isCurrent?: boolean;
+}) {
+  return apiFetch<AcademicSession>(`${BASE}/academic-setup/sessions`, {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
+}
+
+export function updateAcademicSession(id: string, input: Partial<Omit<AcademicSession, "id">>) {
+  return apiFetch<AcademicSession>(`${BASE}/academic-setup/sessions/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(input),
+  });
+}
+
+export function deleteAcademicSession(id: string) {
+  return apiFetch<{ deleted: true }>(`${BASE}/academic-setup/sessions/${id}`, { method: "DELETE" });
+}
+
+export function listClassOrDepts(params?: { includeInactive?: boolean; level?: string }) {
+  const qs = new URLSearchParams();
+  if (params?.includeInactive) qs.set("includeInactive", "true");
+  if (params?.level) qs.set("level", params.level);
+  const suffix = qs.size ? `?${qs.toString()}` : "";
+  return apiFetch<ClassOrDept[]>(`${BASE}/academic-setup/classes${suffix}`);
+}
+
+export function createClassOrDept(input: {
+  name: string;
+  code: string;
+  level?: string;
+  displayOrder?: number;
+  isActive?: boolean;
+}) {
+  return apiFetch<ClassOrDept>(`${BASE}/academic-setup/classes`, {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
+}
+
+export function updateClassOrDept(id: string, input: Partial<Omit<ClassOrDept, "id">>) {
+  return apiFetch<ClassOrDept>(`${BASE}/academic-setup/classes/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(input),
+  });
+}
+
+export function deleteClassOrDept(id: string) {
+  return apiFetch<{ deleted: true }>(`${BASE}/academic-setup/classes/${id}`, { method: "DELETE" });
+}
+
+/* ================================================================== */
+/*  Exam term types (dynamic master)                                  */
+/* ================================================================== */
+
+export interface ExamTermType {
+  id: string;
+  name: string;
+  code: string;
+  engineBehavior: EngineBehavior | string;
+  description: string | null;
+  displayOrder: number;
+  isActive: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export const ENGINE_BEHAVIORS = ["SUB_EXAM_CT", "TERMINAL", "CUMULATIVE_ANNUAL"] as const;
+export type EngineBehavior = (typeof ENGINE_BEHAVIORS)[number];
+
+export function listExamTermTypes(includeInactive = false) {
+  return apiFetch<ExamTermType[]>(
+    `${BASE}/academic-setup/term-types${includeInactive ? "?includeInactive=true" : ""}`,
+  );
+}
+
+export function createExamTermType(input: {
+  name: string;
+  code: string;
+  engineBehavior: string;
+  description?: string | null;
+  displayOrder?: number;
+  isActive?: boolean;
+}) {
+  return apiFetch<ExamTermType>(`${BASE}/academic-setup/term-types`, {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
+}
+
+export function updateExamTermType(id: string, input: Partial<Omit<ExamTermType, "id">>) {
+  return apiFetch<ExamTermType>(`${BASE}/academic-setup/term-types/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(input),
+  });
+}
+
+export function deleteExamTermType(id: string) {
+  return apiFetch<{ deleted: true }>(`${BASE}/academic-setup/term-types/${id}`, { method: "DELETE" });
+}
+
+/* ================================================================== */
 /*  Scope helpers (AD-3 — options derived from existing enrollments)   */
 /* ================================================================== */
 

@@ -28,7 +28,7 @@ import {
   TableWrap,
   subjectOptions,
   termOptions,
-  useScopeOptions,
+  useCascadingScope,
   useSyllabus,
   useTerms,
 } from "../../_components/shared";

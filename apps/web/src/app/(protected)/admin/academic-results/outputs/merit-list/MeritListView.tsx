@@ -34,7 +34,7 @@ import {
   TabNav,
   TableWrap,
   termOptions,
-  useScopeOptions,
+  useCascadingScope,
   useTerms,
 } from "../../_components/shared";
 
@@ -45,12 +45,10 @@ const SCOPE_OPTIONS = [
 ];
 
 export default function MeritListView() {
-  const { sessions, classes, sections } = useScopeOptions();
-  const [sessionId, setSessionId] = useState("");
-  const [classId, setClassId] = useState("");
+  const { sessionId, setSessionId, classId, setClassId, sectionId, setSectionId, sessions, classes, sections } =
+    useCascadingScope({ includeSection: true });
   const [termId, setTermId] = useState("");
   const [scope, setScope] = useState("section");
-  const [sectionId, setSectionId] = useState("");
   const [shiftId, setShiftId] = useState("");
   const [limit, setLimit] = useState("200");
   const [tab, setTab] = useState("merit");

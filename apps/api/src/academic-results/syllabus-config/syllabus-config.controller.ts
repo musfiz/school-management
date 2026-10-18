@@ -35,7 +35,7 @@ import { UpsertSyllabusRowDto } from '../../admissions/admissions.dto';
 @ApiTags('Academic Results — Syllabus Config')
 @ApiBearerAuth()
 @UseGuards(RolesGuard)
-@Roles(UserRole.ADMIN, UserRole.MANAGEMENT, UserRole.EXAM_CONTROLLER)
+@Roles(UserRole.ADMIN, UserRole.MANAGEMENT, UserRole.EXAM_CONTROLLER, UserRole.TEACHER)
 @Controller('academic-results/syllabus')
 export class SyllabusConfigController {
   constructor(private readonly syllabus: SyllabusConfigService) {}
@@ -49,18 +49,21 @@ export class SyllabusConfigController {
   }
 
   @Post('master-subjects')
+  @Roles(UserRole.ADMIN, UserRole.MANAGEMENT, UserRole.EXAM_CONTROLLER)
   @ApiOperation({ summary: 'Create a master subject (shared with the admission wizard)' })
   createMasterSubject(@Body() dto: CreateMasterSubjectDto) {
     return this.syllabus.createMasterSubject(dto);
   }
 
   @Patch('master-subjects/:id')
+  @Roles(UserRole.ADMIN, UserRole.MANAGEMENT, UserRole.EXAM_CONTROLLER)
   @ApiOperation({ summary: 'Update a master subject' })
   updateMasterSubject(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateMasterSubjectDto) {
     return this.syllabus.updateMasterSubject(id, dto);
   }
 
   @Delete('master-subjects/:id')
+  @Roles(UserRole.ADMIN, UserRole.MANAGEMENT, UserRole.EXAM_CONTROLLER)
   @ApiOperation({ summary: 'Delete an unused master subject (blocked once referenced by a syllabus row)' })
   deleteMasterSubject(@Param('id', ParseUUIDPipe) id: string) {
     return this.syllabus.deleteMasterSubject(id);

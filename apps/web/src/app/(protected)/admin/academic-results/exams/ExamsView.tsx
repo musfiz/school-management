@@ -16,12 +16,14 @@ import {
   getTermWeights,
   isControllerOnlyTransition,
   listGradingScales,
+  listExamTermTypes,
   listTerms,
   nextStatuses,
   setTermStatus,
   setTermWeights,
   updateTerm,
   type ExamTerm,
+  type ExamTermType,
   type GradingScale,
 } from "@/lib/academic-results";
 import {
@@ -40,7 +42,7 @@ import {
   ScopeSelect,
   StatusBadge,
   TableWrap,
-  useScopeOptions,
+  useCascadingScope,
 } from "../_components/shared";
 
 interface TermForm {
@@ -82,6 +84,7 @@ export default function ExamsView() {
 
   const [terms, setTerms] = useState<ExamTerm[]>([]);
   const [scales, setScales] = useState<GradingScale[]>([]);
+  const [termTypes, setTermTypes] = useState<ExamTermType[]>([]);
   const [loading, setLoading] = useState(false);
   const [busy, setBusy] = useState(false);
   const [form, setForm] = useState<TermForm | null>(null);
@@ -111,12 +114,36 @@ export default function ExamsView() {
   useEffect(() => {
     void (async () => {
       try {
-        setScales(await listGradingScales());
+        const [scaleRows, typeRows] = await Promise.all([
+          listGradingScales(),
+          listExamTermTypes(),
+        ]);
+        setScales(scaleRows);
+        setTermTypes(typeRows);
       } catch {
         setScales([]);
+        setTermTypes([]);
       }
     })();
   }, []);
+
+  const termTypeOptions = useMemo(() => {
+    if (termTypes.length > 0) {
+      return termTypes.map((t) => ({
+        value: t.code,
+        label: `${t.name} (${t.engineBehavior})`,
+      }));
+    }
+    return options(TERM_TYPES);
+  }, [termTypes]);
+
+  const terminalTypeCodes = useMemo(() => {
+    const set = new Set<string>(["TERMINAL"]);
+    for (const t of termTypes) {
+      if (t.engineBehavior === "TERMINAL") set.add(t.code);
+    }
+    return set;
+  }, [termTypes]);
 
   const scaleName = useCallback(
     (id: string) => scales.find((scale) => scale.id === id)?.name ?? id.slice(0, 8),
@@ -124,10 +151,15 @@ export default function ExamsView() {
   );
   const scaleOptions = scales.map((scale) => ({ value: scale.id, label: `${scale.name} (${scale.scaleType})` }));
   const terminalOptions = terms
-    .filter((term) => term.termType === "TERMINAL")
+    .filter((term) => terminalTypeCodes.has(term.termType))
     .map((term) => ({ value: term.id, label: `${term.termName} · ${term.status}` }));
 
-  const openCreate = () => setForm({ ...emptyForm(), gradingScaleId: scales[0]?.id ?? "", termType: "TERMINAL" });
+  const defaultTermType = useMemo(() => {
+    const terminal = termTypes.find((t) => t.engineBehavior === "TERMINAL");
+    return terminal ? terminal.code : (termTypes[0]?.code ?? "TERMINAL");
+  }, [termTypes]);
+
+  const openCreate = () => setForm({ ...emptyForm(), gradingScaleId: scales[0]?.id ?? "", termType: defaultTermType });
   const openEdit = (term: ExamTerm) =>
     setForm({
       id: term.id,
@@ -288,7 +320,7 @@ export default function ExamsView() {
     [weights],
   );
   const annualChildren = weightsFor
-    ? terms.filter((term) => term.termType === "TERMINAL" && term.id !== weightsFor.id)
+    ? terms.filter((term) => terminalTypeCodes.has(term.termType) && term.id !== weightsFor.id)
     : [];
 
   return (
@@ -301,7 +333,7 @@ export default function ExamsView() {
       <FilterCard title="Filter exam terms">
         <ScopeSelect label="Academic Session" value={sessionId} onChange={setSessionId} options={sessions} placeholder="Select session" isClearable={false} />
         <ScopeSelect label="Class / Dept" value={classId} onChange={setClassId} options={classes} placeholder="Select class" isClearable={false} />
-        <ScopeSelect label="Term type" value={termType} onChange={setTermType} options={options(TERM_TYPES)} placeholder="All types" />
+        <ScopeSelect label="Term type" value={termType} onChange={setTermType} options={termTypeOptions} placeholder="All types" />
         <ScopeSelect label="Status" value={status} onChange={setStatus} options={options(TERM_STATUSES)} placeholder="All statuses" />
         <ActionCell>
           <button type="button" className={BTN} onClick={() => void load()} disabled={!sessionId || !classId}>
@@ -424,7 +456,7 @@ export default function ExamsView() {
                 label="Term type"
                 value={form.termType}
                 onChange={(value) => setForm({ ...form, termType: value })}
-                options={options(TERM_TYPES)}
+                options={termTypeOptions}
                 placeholder="Select type"
                 isClearable={false}
               />

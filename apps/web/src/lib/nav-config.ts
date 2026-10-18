@@ -265,6 +265,33 @@ export const navItems: NavItem[] = [
     children: [
       {
         kind: "leaf",
+        label: "Sessions & Classes",
+        href: "/admin/academic-results/settings/sessions-classes",
+        description: "Academic session + class/dept master data",
+        roles: EXAM_FULL,
+        legacyRoles: ["admin", "management"],
+        keywords: ["session", "class", "department", "master", "setup"],
+      },
+      {
+        kind: "leaf",
+        label: "Exam Term Types",
+        href: "/admin/academic-results/settings/term-types",
+        description: "Terminal, CT/Sub-exam, Cumulative Annual definitions",
+        roles: EXAM_FULL,
+        legacyRoles: ["admin", "management"],
+        keywords: ["term", "type", "terminal", "sub-exam", "behavior", "setup"],
+      },
+      {
+        kind: "leaf",
+        label: "Master Subjects",
+        href: "/admin/academic-results/settings/subjects",
+        description: "Subject codes, names, streams, and papers catalogue",
+        roles: EXAM_FULL,
+        legacyRoles: ["admin", "management"],
+        keywords: ["subject", "stream", "paper", "catalogue", "master"],
+      },
+      {
+        kind: "leaf",
         label: "Grading Scales",
         href: "/admin/academic-results/settings/grading-scales",
         description: "5.00 Board, 4.00 NU/IAU Honours, Primary 4-Tier",

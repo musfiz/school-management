@@ -21,16 +21,14 @@ import {
   SignatureBlocks,
   TableWrap,
   termOptions,
-  useScopeOptions,
+  useCascadingScope,
   useTerms,
 } from "../../_components/shared";
 
 export default function TabulationView() {
-  const { sessions, classes, sections } = useScopeOptions();
-  const [sessionId, setSessionId] = useState("");
-  const [classId, setClassId] = useState("");
+  const { sessionId, setSessionId, classId, setClassId, sectionId, setSectionId, sessions, classes, sections } =
+    useCascadingScope({ includeSection: true });
   const [termId, setTermId] = useState("");
-  const [sectionId, setSectionId] = useState("");
   const [includeComponents, setIncludeComponents] = useState(false);
   const { terms } = useTerms(sessionId, classId);
 
