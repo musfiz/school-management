@@ -39,6 +39,12 @@ export interface PrintMenuProps {
   size?: "md" | "lg";
   /** Stretch the trigger to its container width (e.g. `flex-1` in footers). */
   fullWidth?: boolean;
+  /**
+   * Browser-print page size forwarded to `printElement`/`printHtml`.
+   * Defaults to `A4`; use e.g. `"Legal landscape"` / `"A3 landscape"` for the
+   * master tabulation broadsheet.
+   */
+  pageSize?: string;
 }
 
 type Busy = null | "print" | "pdf-print" | "pdf-download";
@@ -52,6 +58,7 @@ export default function PrintMenu({
   className = "",
   size = "md",
   fullWidth = false,
+  pageSize,
 }: PrintMenuProps) {
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState<Busy>(null);
@@ -73,8 +80,8 @@ export default function PrintMenu({
 
   const doBrowserPrint = () =>
     run("print", () => {
-      if (printTargetId) printElement(printTargetId, title);
-      else if (htmlBody) printHtml({ title, bodyHtml: htmlBody });
+      if (printTargetId) printElement(printTargetId, title, { pageSize });
+      else if (htmlBody) printHtml({ title, bodyHtml: htmlBody, pageSize });
     });
 
   const doPdfPrint = () => run("pdf-print", () => (pdfUrl ? printPdfUrl(pdfUrl) : null));

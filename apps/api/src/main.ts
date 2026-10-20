@@ -1,9 +1,18 @@
+import dotenv from 'dotenv';
+import { existsSync, mkdirSync } from 'fs';
+import { join } from 'path';
+
+// Load .env from process.cwd() and fallback to apps/api/.env
+dotenv.config();
+const localEnv = join(__dirname, '../.env');
+if (existsSync(localEnv)) {
+  dotenv.config({ path: localEnv, override: false });
+}
+
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
-import { existsSync, mkdirSync } from 'fs';
-import { join } from 'path';
 import { AppModule } from './app.module';
 import { config } from './config';
 

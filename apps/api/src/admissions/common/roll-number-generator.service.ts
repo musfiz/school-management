@@ -21,9 +21,21 @@ export class RollNumberGeneratorService {
     sectionOrBatchId?: string | null,
   ): Promise<number> {
     const sectionKey = sectionOrBatchId ?? 'NOSEC';
-    return this.sequences.next(
-      tx,
-      `ROLL:${academicSessionId}:${classOrDeptId}:${sectionKey}`,
-    );
+    return this.sequences.next(tx, `ROLL:${academicSessionId}:${classOrDeptId}:${sectionKey}`);
+  }
+
+  /** Read-only preview of the next roll for a scope — no increment, no consume. */
+  async peekRoll(
+    tx: Prisma.TransactionClient,
+    academicSessionId: string,
+    classOrDeptId: string,
+    sectionOrBatchId?: string | null,
+  ): Promise<number> {
+    const sectionKey = sectionOrBatchId ?? 'NOSEC';
+    const row = (await tx.$queryRaw<{ scope_key: string; last_number: number }[]>(Prisma.sql`
+      SELECT scope_key, last_number FROM admission_sequences
+      WHERE scope_key = ${`ROLL:${academicSessionId}:${classOrDeptId}:${sectionKey}`} FOR UPDATE
+    `))[0];
+    return row ? row.last_number + 1 : 1;
   }
 }

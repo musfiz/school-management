@@ -265,6 +265,16 @@ export const navItems: NavItem[] = [
     children: [
       {
         kind: "leaf",
+        label: "Initial setup",
+        href: "/admin/academic-results/settings/initial-setup",
+        description: "Academic session, classes & departments, exam term types, master subjects, and sections/batches",
+        icon: CalendarDays,
+        roles: EXAM_FULL,
+        legacyRoles: ["admin", "management"],
+        keywords: ["session", "class", "department", "term", "subject", "master", "setup", "section", "batch"],
+      },
+      {
+        kind: "leaf",
         label: "Grading Scales",
         href: "/admin/academic-results/settings/grading-scales",
         description: "5.00 Board, 4.00 NU/IAU Honours, Primary 4-Tier",
@@ -289,6 +299,7 @@ export const navItems: NavItem[] = [
         roles: EXAM_FULL,
         legacyRoles: ["admin", "management"],
         keywords: ["exam", "term", "ct", "class test", "weight"],
+        exactMatch: true,
       },
       {
         kind: "leaf",
@@ -316,6 +327,7 @@ export const navItems: NavItem[] = [
         roles: ["SUPER_ADMIN", "EXAM_CONTROLLER", "TEACHER"],
         legacyRoles: ["admin", "management", "teacher"],
         keywords: ["marks", "entry", "spreadsheet", "grid", "input"],
+        exactMatch: true,
       },
       {
         kind: "leaf",

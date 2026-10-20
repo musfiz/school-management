@@ -101,7 +101,7 @@ function useAnchoredPosition(
 /*  Expanded mode — inline accordion tree (max 2 levels)               */
 /* ------------------------------------------------------------------ */
 
-function LeafLink({ leaf, pathname }: { leaf: NavLeaf; pathname: string }) {
+function LeafLink({ leaf, pathname, isChild }: { leaf: NavLeaf; pathname: string; isChild?: boolean }) {
   const active = isLeafActive(leaf, pathname);
   const LeafIcon = iconFor(leaf.icon);
   return (
@@ -110,7 +110,7 @@ function LeafLink({ leaf, pathname }: { leaf: NavLeaf; pathname: string }) {
         href={leaf.href}
         aria-current={active ? "page" : undefined}
         title={leaf.description ?? leaf.label}
-        className={`sidebar-leaf-link ${active ? "active" : ""}`}
+        className={`sidebar-leaf-link ${isChild ? "sidebar-child-link" : ""} ${active ? "active" : ""}`}
       >
         <span className="sidebar-icon-chip">
           <LeafIcon className="h-4 w-4 shrink-0" />
@@ -152,7 +152,7 @@ function GroupNode({
           <span className="flex-1 truncate text-left">{group.label}</span>
         </span>
         <RiArrowDownSLine
-          className={`h-3.5 w-3.5 shrink-0 text-ink-400 transition-transform duration-200 ${
+          className={`h-3.5 w-3.5 shrink-0 text-ink-700 transition-transform duration-200 ${
             isOpen ? "rotate-0" : "-rotate-90"
           }`}
         />
@@ -162,7 +162,7 @@ function GroupNode({
         {/* Strict 2-level rule: group children are direct page links only. */}
         <ul className="sidebar-children-list">
           {group.children.map((child) => (
-            <LeafLink key={navKey(child.label, key)} leaf={child} pathname={pathname} />
+            <LeafLink key={navKey(child.label, key)} leaf={child} pathname={pathname} isChild />
           ))}
         </ul>
       </div>

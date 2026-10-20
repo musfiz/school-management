@@ -19,6 +19,7 @@ import { NoticesModule } from './notices/notices.module';
 import { AccountingModule } from './accounting/accounting.module';
 import { AdmissionsModule } from './admissions/admissions.module';
 import { DocumentsModule } from './documents/documents.module';
+import { AcademicResultsModule } from './academic-results/academic-results.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -46,6 +47,7 @@ import { JwtAuthGuard } from './auth/jwt-auth.guard';
     AccountingModule,
     AdmissionsModule,
     DocumentsModule,
+    AcademicResultsModule,
   ],
   controllers: [AppController],
   providers: [

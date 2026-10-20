@@ -308,6 +308,14 @@ export class TransferSectionDto {
   @IsOptional() @IsUUID() sectionOrBatchId?: string | null;
   @IsOptional() @IsUUID() shiftId?: string | null;
   @IsOptional() @IsString() @MaxLength(40) academicGroup?: string | null;
+  @IsOptional() @IsString() @MaxLength(25) residenceType?: string | null;
+  @IsOptional() @IsString() @MaxLength(40) quotaTag?: string | null;
+}
+
+export class PeekRollDto {
+  @IsUUID() academicSessionId!: string;
+  @IsUUID() classOrDeptId!: string;
+  @IsOptional() @IsUUID() sectionOrBatchId?: string | null;
 }
 
 export class PromoteStudentsDto {

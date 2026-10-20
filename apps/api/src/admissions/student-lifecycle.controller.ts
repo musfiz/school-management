@@ -2,7 +2,7 @@ import { Body, Controller, Get, Param, ParseUUIDPipe, Post, Query, UseGuards } f
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { IsOptional, IsString } from 'class-validator';
 import { StudentLifecycleService } from './student-lifecycle.service';
-import { IssueTcDto, PromoteStudentsDto, TransferSectionDto } from './admissions.dto';
+import { IssueTcDto, PeekRollDto, PromoteStudentsDto, TransferSectionDto } from './admissions.dto';
 import { Roles } from '../common/decorators/roles.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { RolesGuard } from '../common/guards/roles.guard';

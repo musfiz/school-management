@@ -6,6 +6,7 @@ import { DashCard } from "@/components/dashboard/DashPage";
 import { CheckCircle2, Loader2 } from "lucide-react";
 import SearchSelect from "@/components/ui/SearchSelect";
 import { apiFetch } from "@/lib/api";
+import { listClassOrDepts } from "@/lib/academic-results";
 import AdminPageLoader from "@/components/dashboard/AdminPageLoader";
 import { toast } from "@/lib/swal";
 import { useId } from "react";
@@ -47,14 +48,14 @@ function IdFormatsView() {
   // Load available class codes from the backend
   useEffect(() => {
     setLoading(true);
-    apiFetch<{ classCodes: string[] }>(`/api/admissions/classes?year=${schoolYear}`).then(
+    listClassOrDepts().then(
       (res) => {
-        setClasses(res.classCodes ?? []);
-        setPreviewSeq(Math.max(0, res.classCodes?.length - 1) ?? 0);
+        setClasses(res.map((c) => c.code));
+        setPreviewSeq(Math.max(0, res.length - 1));
         handleGenerate();
       }
     ).finally(() => setLoading(false));
-  }, [schoolYear]);
+  }, []);
 
   const handleGenerate = useCallback(() => {
     const { prefix, yearBase, classCode, seqWidth } = config;

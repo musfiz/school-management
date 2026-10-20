@@ -1,4 +1,5 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { randomUUID } from 'crypto';
 import Decimal from 'decimal.js';
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma } from '../generated/prisma/client';
@@ -9,6 +10,11 @@ import type {
 } from '../generated/prisma/client';
 import type { SyllabusSubjectRole } from '../database/entities/class-syllabus-subject.entity';
 import type { AssignedSubjectRole } from '../database/entities/student-subject-enrollment.entity';
+import {
+  PASS_EVALUATION_MODES,
+  findMergedGroupIssues,
+  type MergedGroupRow,
+} from './common/validators';
 
 const SYLLABUS_ROLES: SyllabusSubjectRole[] = [
   'COMPULSORY',
@@ -77,12 +83,53 @@ export class SubjectEnrollmentService {
     if (clash) throw new BadRequestException(`Subject ${dto.subjectCode} paper ${dto.paperNumber ?? '—'} already exists`);
     return this.prisma.academicSubjects.create({
       data: {
+        id: randomUUID(),
         subjectCode: dto.subjectCode,
         subjectName: dto.subjectName,
         boardStream: dto.boardStream ?? 'GENERAL',
         paperNumber: dto.paperNumber ?? null,
       },
     });
+  }
+
+  async updateMasterSubject(
+    id: string,
+    dto: { subjectCode?: string; subjectName?: string; boardStream?: string; paperNumber?: number | null },
+  ): Promise<AcademicSubjects> {
+    const existing = await this.prisma.academicSubjects.findUnique({ where: { id } });
+    if (!existing) throw new NotFoundException(`Academic subject #${id} not found`);
+    const nextCode = dto.subjectCode ?? existing.subjectCode;
+    const nextPaper = dto.paperNumber === undefined ? existing.paperNumber : dto.paperNumber;
+    if (nextCode !== existing.subjectCode || nextPaper !== existing.paperNumber) {
+      const clash = await this.prisma.academicSubjects.findFirst({
+        where: { subjectCode: nextCode, paperNumber: nextPaper, id: { not: id } },
+      });
+      if (clash) {
+        throw new BadRequestException(`Subject ${nextCode} paper ${nextPaper ?? '—'} already exists`);
+      }
+    }
+    return this.prisma.academicSubjects.update({
+      where: { id },
+      data: {
+        subjectCode: dto.subjectCode ?? undefined,
+        subjectName: dto.subjectName ?? undefined,
+        boardStream: dto.boardStream ?? undefined,
+        paperNumber: dto.paperNumber === undefined ? undefined : dto.paperNumber,
+      },
+    });
+  }
+
+  async deleteMasterSubject(id: string): Promise<{ deleted: true }> {
+    const existing = await this.prisma.academicSubjects.findUnique({ where: { id } });
+    if (!existing) throw new NotFoundException(`Academic subject #${id} not found`);
+    const used = await this.prisma.classSyllabusSubjects.count({ where: { subjectId: id } });
+    if (used > 0) {
+      throw new BadRequestException(
+        `Subject ${existing.subjectCode} is used by ${used} syllabus row(s) — remove those first`,
+      );
+    }
+    await this.prisma.academicSubjects.delete({ where: { id } });
+    return { deleted: true as const };
   }
 
   /* ================= syllabus matrix ================= */
@@ -96,16 +143,25 @@ export class SubjectEnrollmentService {
     return rows.map(toSyllabusRow);
   }
 
-  async upsertSyllabusRow(dto: {
-    academicSessionId: string; classOrDeptId: string; subjectId: string;
-    combinedGroupCode?: string | null; combinedGroupName?: string | null;
-    defaultSubjectRole: string; electiveGroup?: string | null; creditHours?: string;
-    fullMarks?: string; passEvaluationMode?: string; displayOrder?: number;
-  }): Promise<ClassSyllabusSubjects> {
+  async upsertSyllabusRow(
+    dto: {
+      academicSessionId: string; classOrDeptId: string; subjectId: string;
+      combinedGroupCode?: string | null; combinedGroupName?: string | null;
+      defaultSubjectRole: string; electiveGroup?: string | null; creditHours?: string;
+      fullMarks?: string; passEvaluationMode?: string; displayOrder?: number;
+    },
+    /** Result Engine bulk/clone paths pass a transaction client (no nested txn). */
+    tx?: Prisma.TransactionClient,
+  ): Promise<ClassSyllabusSubjects> {
+    const db = tx ?? this.prisma;
     if (!(SYLLABUS_ROLES as string[]).includes(dto.defaultSubjectRole)) {
       throw new BadRequestException(`defaultSubjectRole must be one of ${SYLLABUS_ROLES.join(', ')}`);
     }
-    const subject = await this.prisma.academicSubjects.findUnique({ where: { id: dto.subjectId } });
+    const passEvaluationMode = dto.passEvaluationMode ?? 'SEPARATE_COMPONENTS';
+    if (!(PASS_EVALUATION_MODES as readonly string[]).includes(passEvaluationMode)) {
+      throw new BadRequestException(`passEvaluationMode must be one of ${PASS_EVALUATION_MODES.join(', ')}`);
+    }
+    const subject = await db.academicSubjects.findUnique({ where: { id: dto.subjectId } });
     if (!subject) throw new NotFoundException(`Academic subject #${dto.subjectId} not found`);
     if (dto.defaultSubjectRole === 'GROUP_ELECTIVE' && !dto.electiveGroup) {
       throw new BadRequestException('GROUP_ELECTIVE rows need electiveGroup (e.g. SCIENCE)');
@@ -117,20 +173,35 @@ export class SubjectEnrollmentService {
       electiveGroup: dto.electiveGroup ?? null,
       creditHours: this.dec(dto.creditHours ?? '0', 'creditHours'),
       fullMarks: this.dec(dto.fullMarks ?? '100', 'fullMarks'),
-      passEvaluationMode: dto.passEvaluationMode ?? 'SEPARATE_COMPONENTS',
+      passEvaluationMode,
       displayOrder: dto.displayOrder ?? 1,
     };
-    const existing = await this.prisma.classSyllabusSubjects.findFirst({
-      where: {
-        academicSessionId: dto.academicSessionId,
-        classOrDeptId: dto.classOrDeptId,
-        subjectId: dto.subjectId,
-      },
+    // Combined-paper rule (§PHASE 2 task 3): validate the whole class scope with
+    // this row applied on top of its peers, so a bad merge is rejected before
+    // anything is written.
+    const peers = await db.classSyllabusSubjects.findMany({
+      where: { academicSessionId: dto.academicSessionId, classOrDeptId: dto.classOrDeptId },
     });
+    const existing = peers.find((r) => r.subjectId === dto.subjectId) ?? null;
+    const prospective: MergedGroupRow[] = peers
+      .filter((r) => r.subjectId !== dto.subjectId)
+      .map((r) => ({
+        subjectId: r.subjectId,
+        combinedGroupCode: r.combinedGroupCode,
+        passEvaluationMode: r.passEvaluationMode,
+        defaultSubjectRole: r.defaultSubjectRole,
+      }));
+    prospective.push({
+      subjectId: dto.subjectId,
+      combinedGroupCode: values.combinedGroupCode,
+      passEvaluationMode: values.passEvaluationMode,
+      defaultSubjectRole: values.defaultSubjectRole,
+    });
+    this.assertMergedGroups(prospective, dto.classOrDeptId);
     if (existing) {
-      return this.prisma.classSyllabusSubjects.update({ where: { id: existing.id }, data: values });
+      return db.classSyllabusSubjects.update({ where: { id: existing.id }, data: values });
     }
-    return this.prisma.classSyllabusSubjects.create({
+    return db.classSyllabusSubjects.create({
       data: {
         academicSessionId: dto.academicSessionId,
         classOrDeptId: dto.classOrDeptId,
@@ -151,6 +222,63 @@ export class SubjectEnrollmentService {
     }
     await this.prisma.classSyllabusSubjects.delete({ where: { id } });
     return { deleted: true as const };
+  }
+
+  /* ================= combined-paper validation (Result Engine §PHASE 2) ================= */
+
+  /** Throws a descriptive 400 when any combined-paper group in the scope is inconsistent. */
+  assertMergedGroups(rows: MergedGroupRow[], classOrDeptId: string): void {
+    const issues = findMergedGroupIssues(rows);
+    if (issues.length) {
+      throw new BadRequestException(
+        `Combined-paper group conflict in class ${classOrDeptId}: ${issues.map((i) => i.message).join('; ')}`,
+      );
+    }
+  }
+
+  /** Read-only report for the syllabus-matrix UI (`valid` + per-group paper list). */
+  async validateSyllabusMergedGroups(academicSessionId: string, classOrDeptId: string) {
+    const rows = await this.prisma.classSyllabusSubjects.findMany({
+      where: { academicSessionId, classOrDeptId },
+      include: { academicSubjects: true },
+      orderBy: { displayOrder: 'asc' },
+    });
+    const issues = findMergedGroupIssues(
+      rows.map((r) => ({
+        subjectId: r.subjectId,
+        combinedGroupCode: r.combinedGroupCode,
+        passEvaluationMode: r.passEvaluationMode,
+        defaultSubjectRole: r.defaultSubjectRole,
+      })),
+    );
+    const groupsMap = new Map<
+      string,
+      {
+        groupCode: string;
+        combinedGroupName: string | null;
+        passEvaluationMode: string;
+        defaultSubjectRole: string;
+        papers: { subjectId: string; subjectCode: string; subjectName: string; paperNumber: number | null }[];
+      }
+    >();
+    for (const r of rows) {
+      if (!r.combinedGroupCode) continue;
+      const group = groupsMap.get(r.combinedGroupCode) ?? {
+        groupCode: r.combinedGroupCode,
+        combinedGroupName: r.combinedGroupName,
+        passEvaluationMode: r.passEvaluationMode,
+        defaultSubjectRole: r.defaultSubjectRole,
+        papers: [],
+      };
+      group.papers.push({
+        subjectId: r.subjectId,
+        subjectCode: r.academicSubjects?.subjectCode ?? '?',
+        subjectName: r.academicSubjects?.subjectName ?? '?',
+        paperNumber: r.academicSubjects?.paperNumber ?? null,
+      });
+      groupsMap.set(r.combinedGroupCode, group);
+    }
+    return { valid: issues.length === 0, issues, groups: [...groupsMap.values()], rows: rows.length };
   }
 
   /* ================= wizard preview ================= */
@@ -204,6 +332,12 @@ export class SubjectEnrollmentService {
     syllabusSubjectIds: string[],
     /** Workflow 4 passes the onboarding transaction client (no nested txn). */
     tx?: Prisma.TransactionClient,
+    /**
+     * Result Engine bulk-enroll passes `{ requireFourth: false }` to stage a
+     * class's compulsory set first and assign each student's 4th subject later
+     * (the wizard keeps the default `true`).
+     */
+    options?: { requireFourth?: boolean },
   ) {
     if (!syllabusSubjectIds.length) throw new BadRequestException('Select at least one subject');
     const db = tx ?? this.prisma;
@@ -229,7 +363,13 @@ export class SubjectEnrollmentService {
     });
     const fourthCandidates = classScope.filter((r) => r.defaultSubjectRole === 'FOURTH_OPTIONAL');
     const pickedFourth = rows.filter((r) => r.defaultSubjectRole === 'FOURTH_OPTIONAL');
-    if (fourthCandidates.length > 0 && pickedFourth.length !== 1) {
+    const requireFourth = options?.requireFourth ?? true;
+    if (pickedFourth.length > 1) {
+      throw new BadRequestException(
+        `This class allows exactly 1 optional (4th) subject — picked ${pickedFourth.length}`,
+      );
+    }
+    if (requireFourth && fourthCandidates.length > 0 && pickedFourth.length !== 1) {
       throw new BadRequestException(
         `This class requires exactly 1 optional (4th) subject — picked ${pickedFourth.length}`,
       );

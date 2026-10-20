@@ -38,6 +38,7 @@ export default function PromotionTcView() {
   const [loading, setLoading] = useState(true);
   const [students, setStudents] = useState<StudentDirectoryRow[]>([]);
   const [busy, setBusy] = useState<string | null>(null);
+  const [options, setOptions] = useState<{ sessions: { value: string; label: string; count: number }[]; classes: { value: string; label: string; count: number }[]; sections: { value: string; label: string; count: number }[] }>({ sessions: [], classes: [], sections: [] });
 
   // promotion
   const [picked, setPicked] = useState<Set<string>>(new Set());
@@ -58,7 +59,12 @@ export default function PromotionTcView() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      setStudents(await apiFetch<StudentDirectoryRow[]>("/api/admissions/students?status=ACTIVE&limit=500"));
+      const [studentsData, opts] = await Promise.all([
+        apiFetch<StudentDirectoryRow[]>("/api/admissions/students?status=ACTIVE&limit=500"),
+        apiFetch<{ sessions: { value: string; label: string; count: number }[]; classes: { value: string; label: string; count: number }[]; sections: { value: string; label: string; count: number }[] }>("/api/admissions/students/filter-options"),
+      ]);
+      setStudents(studentsData);
+      setOptions(opts);
     } catch (e) {
       toast(e instanceof Error ? e.message : "Failed to load students", "error");
     } finally {
@@ -179,15 +185,36 @@ export default function PromotionTcView() {
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 2xl:grid-cols-6 items-end">
           <div className="min-w-0">
             <label className="mb-1 block text-xs font-medium text-ink-700">Target session ID *</label>
-            <input className={`${INPUT} font-mono`} value={targetSession} onChange={(e) => setTargetSession(e.target.value)} placeholder="UUID…" />
+            <SearchSelect
+              options={options.sessions}
+              value={targetSession}
+              onChange={setTargetSession}
+              placeholder="Select session…"
+              isClearable
+              ariaLabel="Target session"
+            />
           </div>
           <div className="min-w-0">
             <label className="mb-1 block text-xs font-medium text-ink-700">Target class / dept ID *</label>
-            <input className={`${INPUT} font-mono`} value={targetClass} onChange={(e) => setTargetClass(e.target.value)} placeholder="UUID…" />
+            <SearchSelect
+              options={options.classes}
+              value={targetClass}
+              onChange={setTargetClass}
+              placeholder="Select class…"
+              isClearable
+              ariaLabel="Target class"
+            />
           </div>
           <div className="min-w-0">
             <label className="mb-1 block text-xs font-medium text-ink-700">Target section ID</label>
-            <input className={`${INPUT} font-mono`} value={targetSection} onChange={(e) => setTargetSection(e.target.value)} placeholder="UUID (optional)" />
+            <SearchSelect
+              options={options.sections}
+              value={targetSection}
+              onChange={setTargetSection}
+              placeholder="Select section…"
+              isClearable
+              ariaLabel="Target section"
+            />
           </div>
           <div className="min-w-0">
             <label className="mb-1 block text-xs font-medium text-ink-700">Academic group</label>

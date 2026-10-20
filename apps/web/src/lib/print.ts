@@ -18,7 +18,7 @@
  *     Windows / Linux / macOS with no Chromium install.
  */
 
-function buildPrintCss(): string {
+function buildPrintCss(pageSize = "A4"): string {
   return `
     * { box-sizing: border-box; }
     body { font-family: Arial, Helvetica, sans-serif; color: #0f172a; margin: 0; padding: 24px; font-size: 12px; }
@@ -33,11 +33,11 @@ function buildPrintCss(): string {
     .print-signatures > div { flex: 1; border-top: 1px solid #0f172a; padding-top: 4px; text-align: center; font-size: 11px; }
     .text-right { text-align: right; }
     .font-mono { font-family: ui-monospace, Menlo, monospace; }
-    @page { size: A4; margin: 12mm; }
+    @page { size: ${pageSize}; margin: 12mm; }
   `;
 }
 
-function openPrintIframe(title: string): { frame: HTMLIFrameElement; doc: Document } {
+function openPrintIframe(title: string, pageSize?: string): { frame: HTMLIFrameElement; doc: Document } {
   const frame = document.createElement("iframe");
   frame.style.position = "fixed";
   frame.style.right = "0";
@@ -55,17 +55,25 @@ function openPrintIframe(title: string): { frame: HTMLIFrameElement; doc: Docume
   doc.open();
   doc.write(
     `<!doctype html><html><head><title>${title.replace(/</g, "&lt;")}</title>` +
-      `<style>${buildPrintCss()}</style></head><body></body></html>`,
+      `<style>${buildPrintCss(pageSize)}</style></head><body></body></html>`,
   );
   doc.close();
   return { frame, doc };
 }
 
-/** Browser-print an on-page element by id (isolated in an iframe). */
-export function printElement(elementId: string, title = "Document"): void {
+/**
+ * Browser-print an on-page element by id (isolated in an iframe).
+ * Pass `options.pageSize` for non-A4 output, e.g. `"Legal landscape"` or
+ * `"A3 landscape"` for the master tabulation broadsheet.
+ */
+export function printElement(
+  elementId: string,
+  title = "Document",
+  options: { pageSize?: string } = {},
+): void {
   const el = document.getElementById(elementId);
   if (!el) throw new Error(`Printable area #${elementId} not found`);
-  const { frame, doc } = openPrintIframe(title);
+  const { frame, doc } = openPrintIframe(title, options.pageSize);
   doc.body.innerHTML = el.innerHTML;
   const win = frame.contentWindow;
   const cleanup = () => window.setTimeout(() => frame.remove(), 500);
@@ -80,8 +88,8 @@ export function printElement(elementId: string, title = "Document"): void {
 }
 
 /** Browser-print an arbitrary HTML string (receipts, cards, labels). */
-export function printHtml(opts: { title?: string; header?: string; bodyHtml: string }): void {
-  const { frame, doc } = openPrintIframe(opts.title ?? "Document");
+export function printHtml(opts: { title?: string; header?: string; bodyHtml: string; pageSize?: string }): void {
+  const { frame, doc } = openPrintIframe(opts.title ?? "Document", opts.pageSize);
   doc.body.innerHTML = `${opts.header ?? ""}${opts.bodyHtml}`;
   const win = frame.contentWindow;
   if (win) {
