@@ -17,10 +17,13 @@ import { StudentOnboardingService } from './student-onboarding.service';
 import { StudentOnboardingController } from './student-onboarding.controller';
 import { StudentLifecycleService } from './student-lifecycle.service';
 import { StudentLifecycleController } from './student-lifecycle.controller';
+import { EnrollmentsController } from './enrollments.controller';
 import { AdmissionDashboardService } from './admission-dashboard.service';
 import { AdmissionDashboardController } from './admission-dashboard.controller';
 import { StudentDocumentsService } from './student-documents.service';
 import { StudentDocumentsController } from './student-documents.controller';
+import { PreviousEducationService } from './previous-education.service';
+import { PreviousEducationController } from './previous-education.controller';
 
 @Module({
   imports: [AccountingModule],
@@ -31,9 +34,11 @@ import { StudentDocumentsController } from './student-documents.controller';
     StudentOnboardingController,
     AdmissionApplicationController,
     StudentLifecycleController,
+    EnrollmentsController,
     AdmissionDashboardController,
     StudentDocumentsController,
     RequiredDocumentRuleController,
+    PreviousEducationController,
   ],
   providers: [
     FamilyRegistryService,
@@ -48,6 +53,7 @@ import { StudentDocumentsController } from './student-documents.controller';
     AdmissionDashboardService,
     StudentDocumentsService,
     RequiredDocumentRuleService,
+    PreviousEducationService,
   ],
   exports: [
     FamilyRegistryService,

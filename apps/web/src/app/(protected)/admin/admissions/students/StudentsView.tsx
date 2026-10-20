@@ -233,27 +233,36 @@ export default function StudentsView() {
           </div>
           <div className="min-w-0">
             <label className="mb-1 block text-xs font-medium text-ink-700">Session</label>
-            {options.sessions.length > 0 ? (
-              <SearchSelect options={options.sessions} value={sessionId} onChange={setSessionId} placeholder="All sessions…" isClearable ariaLabel="Session filter" />
-            ) : (
-              <input className={`${INPUT} font-mono`} value={sessionId} onChange={(e) => setSessionId(e.target.value)} placeholder="Session UUID…" />
-            )}
+            <SearchSelect
+              options={options.sessions}
+              value={sessionId}
+              onChange={setSessionId}
+              placeholder="All sessions…"
+              isClearable
+              ariaLabel="Session filter"
+            />
           </div>
           <div className="min-w-0">
             <label className="mb-1 block text-xs font-medium text-ink-700">Class / Dept</label>
-            {options.classes.length > 0 ? (
-              <SearchSelect options={options.classes} value={classId} onChange={setClassId} placeholder="All classes…" isClearable ariaLabel="Class filter" />
-            ) : (
-              <input className={`${INPUT} font-mono`} value={classId} onChange={(e) => setClassId(e.target.value)} placeholder="Class UUID…" />
-            )}
+            <SearchSelect
+              options={options.classes}
+              value={classId}
+              onChange={setClassId}
+              placeholder="All classes…"
+              isClearable
+              ariaLabel="Class filter"
+            />
           </div>
           <div className="min-w-0">
             <label className="mb-1 block text-xs font-medium text-ink-700">Section</label>
-            {options.sections.length > 0 ? (
-              <SearchSelect options={options.sections} value={sectionId} onChange={setSectionId} placeholder="All sections…" isClearable ariaLabel="Section filter" />
-            ) : (
-              <input className={`${INPUT} font-mono`} value={sectionId} onChange={(e) => setSectionId(e.target.value)} placeholder="Section UUID…" />
-            )}
+            <SearchSelect
+              options={options.sections}
+              value={sectionId}
+              onChange={setSectionId}
+              placeholder="All sections…"
+              isClearable
+              ariaLabel="Section filter"
+            />
           </div>
           <div className="min-w-0">
             <label className="mb-1 block text-xs font-medium text-ink-700">Group</label>

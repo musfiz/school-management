@@ -1,3 +1,5 @@
+import { apiFetch } from "./api";
+
 /** Workflow 1 types — mirror of FamilyRegistryService return shape. */
 
 export interface FamilyProfile {
@@ -395,6 +397,17 @@ export interface StudentFilterOptions {
   sections: FilterOption[];
 }
 
+export interface TransferSectionResult {
+  studentId: string;
+  studentUniqueId: string;
+  enrollmentId: string;
+  academicSessionId: string;
+  sectionOrBatchId: string | null;
+  classRollNo: number;
+  residenceType: string | null;
+  quotaTag: string | null;
+}
+
 /* ================= Admission dashboard (Plan §2) ================= */
 
 export interface AdmissionDashboardKpis {
@@ -503,4 +516,99 @@ export interface DocumentSummary {
   types: string[];
   rows: DocumentSummaryRow[];
   totals: { students: number; uploaded: number; verified: number; pending: number; originalsHeld: number };
+}
+
+/** One previous-education row on the student record (Plan §3.3). */
+export interface PreviousEducationRow {
+  id: string;
+  studentId: string;
+  examTitle: string;
+  instituteName: string;
+  educationBoard?: string | null;
+  academicGroup?: string | null;
+  rollNo?: string | null;
+  regNo?: string | null;
+  passingYear?: number | null;
+  gpaObtained?: string | null;
+  gpaScale?: string;
+  tcNumber?: string | null;
+  tcDate?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface CreatePreviousEducationDto {
+  studentId: string;
+  examTitle: string;
+  instituteName: string;
+  educationBoard?: string | null;
+  academicGroup?: string | null;
+  rollNo?: string | null;
+  regNo?: string | null;
+  passingYear?: number | null;
+  gpaObtained?: string | null;
+  tcNumber?: string | null;
+  tcDate?: string | null;
+}
+
+export type UpdatePreviousEducationDto = Partial<Omit<CreatePreviousEducationDto, "studentId">>;
+
+/** Previous-education client wrappers over /api/admissions/previous-educations. */
+export function listPreviousEducations(studentId?: string) {
+  const qs = studentId ? `?studentId=${encodeURIComponent(studentId)}` : "";
+  return apiFetch<PreviousEducationRow[]>(`/api/admissions/previous-educations${qs}`);
+}
+
+export function createPreviousEducation(dto: CreatePreviousEducationDto) {
+  return apiFetch<PreviousEducationRow>("/api/admissions/previous-educations", {
+    method: "POST",
+    body: JSON.stringify(dto),
+  });
+}
+
+export function updatePreviousEducation(id: string, dto: UpdatePreviousEducationDto) {
+  return apiFetch<PreviousEducationRow>(`/api/admissions/previous-educations/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(dto),
+  });
+}
+
+export function deletePreviousEducation(id: string) {
+  return apiFetch<{ id: string; deleted: boolean }>(`/api/admissions/previous-educations/${id}`, {
+    method: "DELETE",
+  });
+}
+
+/* ================= Phase 3.4 — Enrollments & Sections ================= */
+
+export interface RollPreview {
+  classRollNo: number;
+}
+
+export function transferSection(
+  studentId: string,
+  dto: {
+    academicSessionId?: string;
+    sectionOrBatchId?: string | null;
+    shiftId?: string | null;
+    academicGroup?: string | null;
+    residenceType?: string | null;
+    quotaTag?: string | null;
+  },
+) {
+  return apiFetch<TransferSectionResult>(`/api/admissions/students/${studentId}/transfer-section`, {
+    method: "POST",
+    body: JSON.stringify(dto),
+  });
+}
+
+export function peekRoll(dto: {
+  academicSessionId: string;
+  classOrDeptId: string;
+  sectionOrBatchId?: string | null;
+}) {
+  return apiFetch<RollPreview>(`/api/admissions/enrollments/peek-roll`, {
+    method: "POST",
+    body: JSON.stringify(dto),
+  });
 }

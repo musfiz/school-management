@@ -355,9 +355,27 @@ export class StudentLifecycleService {
     );
   }
 
+  async peekRoll(dto: {
+    academicSessionId: string;
+    classOrDeptId: string;
+    sectionOrBatchId?: string | null;
+  }) {
+    return this.prisma.$transaction(async (tx) => {
+      const roll = await this.rolls.peekRoll(tx, dto.academicSessionId, dto.classOrDeptId, dto.sectionOrBatchId ?? null);
+      return { classRollNo: roll };
+    });
+  }
+
   async transferSection(
     studentId: string,
-    dto: { academicSessionId?: string; sectionOrBatchId?: string | null; shiftId?: string | null; academicGroup?: string | null },
+    dto: {
+      academicSessionId?: string;
+      sectionOrBatchId?: string | null;
+      shiftId?: string | null;
+      academicGroup?: string | null;
+      residenceType?: string | null;
+      quotaTag?: string | null;
+    },
   ) {
     return this.prisma.$transaction(
       async (tx) => {
@@ -379,6 +397,8 @@ export class StudentLifecycleService {
         };
         if (dto.shiftId !== undefined) data.shiftId = dto.shiftId;
         if (dto.academicGroup !== undefined) data.academicGroup = (dto.academicGroup ?? 'GENERAL').trim().toUpperCase();
+        if (dto.residenceType !== undefined) data.residenceType = dto.residenceType;
+        if (dto.quotaTag !== undefined) data.quotaTag = dto.quotaTag;
         try {
           await tx.studentEnrollments.update({ where: { id: en.id }, data });
         } catch (e) {
@@ -393,6 +413,8 @@ export class StudentLifecycleService {
           academicSessionId: targetSession,
           sectionOrBatchId: targetSection ?? null,
           classRollNo: roll,
+          residenceType: data.residenceType ?? en.residenceType,
+          quotaTag: data.quotaTag ?? en.quotaTag,
         };
       },
       { isolationLevel: 'RepeatableRead' },
