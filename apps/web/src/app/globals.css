@@ -243,10 +243,10 @@ html.lang-en {
   width: 100%;
   min-height: 32px;
   padding: 3px 8px;
-    font-size: 14px;
+    font-size: 13px;
   line-height: 20px;
   font-weight: 600;
-  color: var(--color-ink-600);
+  color: var(--color-ink-800);
   background: transparent;
   border: none;
   border-radius: 6px;
@@ -380,7 +380,9 @@ html.lang-en {
 }
 
 /* Leaf link — compact height matches group headers (32px) */
-.sidebar-leaf-link {
+/* Dropdown (child) links keep the previous lighter styling — only root
+   level items were made bolder and darker. */
+.sidebar-child-link {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -390,6 +392,39 @@ html.lang-en {
   line-height: 20px;
   font-weight: 500;
   color: var(--color-ink-500);
+  text-decoration: none;
+  border-radius: 6px;
+  transition: background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.sidebar-child-link:hover {
+  background-color: var(--color-ink-100);
+  color: var(--color-navy-800);
+  box-shadow: inset 3px 0 0 var(--color-ink-300);
+}
+
+.sidebar-child-link.active {
+  background-color: var(--color-brand-200);
+  color: var(--color-navy-900);
+  font-weight: 600;
+  box-shadow: inset 3px 0 0 var(--color-navy-700), var(--shadow-soft);
+}
+
+.sidebar-child-link.active:hover {
+  background-color: var(--color-brand-300);
+  color: var(--color-navy-900);
+}
+
+.sidebar-leaf-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 32px;
+  padding: 3px 8px;
+  font-size: 13px;
+  line-height: 20px;
+  font-weight: 600;
+  color: var(--color-ink-700);
   text-decoration: none;
   border-radius: 6px;
   transition: background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
@@ -486,7 +521,7 @@ html.lang-en {
   border-radius: 8px;
   border: none;
   background: transparent;
-  color: var(--color-ink-500);
+  color: var(--color-ink-700);
   cursor: pointer;
   transition: background-color 0.15s ease, color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
 }
