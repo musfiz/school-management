@@ -5,7 +5,7 @@ import { notices as fallbackNotices } from "@/lib/content/collections";
 import type { NoticeItem } from "@/lib/notices";
 import { resolveImageUrl } from "@/lib/media";
 import { sanitizeHtml } from "@/lib/sanitize-html";
-import { FileText, Pin } from "lucide-react";
+import { FiFileText, FiMapPin } from "react-icons/fi";
 
 export const metadata: Metadata = {
   title: "Notice Board",
@@ -66,7 +66,7 @@ export default async function NoticePage() {
                       </span>
                       {n.isPinned && (
                         <span className="inline-flex items-center gap-1 rounded-xs bg-amber-50 px-2 py-0.5 text-xs font-bold text-amber-700 ring-1 ring-amber-300">
-                          <Pin className="h-3 w-3 fill-amber-500 text-amber-600" />
+                          <FiMapPin className="h-3 w-3 fill-amber-500 text-amber-600" />
                           Pinned
                         </span>
                       )}
@@ -108,7 +108,7 @@ export default async function NoticePage() {
                           rel="noopener noreferrer"
                           className="inline-flex items-center gap-2 rounded-xs bg-red-50 px-3.5 py-2 text-xs font-semibold text-red-700 transition-colors hover:bg-red-100"
                         >
-                          <FileText className="h-4 w-4" />
+                          <FiFileText className="h-4 w-4" />
                           Download Official Notice (PDF)
                         </a>
                       )}

@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Printer, Download, FileDown, ChevronDown, Loader2 } from "lucide-react";
+import { FiPrinter as Printer, FiDownload, FiChevronDown } from "react-icons/fi";
+import { RiFileDownloadLine as RiFileDown, RiLoader2Line } from "react-icons/ri";
 import { printElement, printHtml, downloadPdfUrl, printPdfUrl } from "@/lib/print";
 import { toast } from "@/lib/swal";
 
@@ -104,7 +105,7 @@ export default function PrintMenu({
         disabled={busy !== null}
         className={`flex cursor-pointer items-center gap-1 rounded-xs ${triggerCls} disabled:opacity-60 ${triggerWidth} ${className}`}
       >
-        {busy === "print" ? <Loader2 className={`${triggerIcon} animate-spin`} /> : <Printer className={triggerIcon} />}
+        {busy === "print" ? <RiLoader2Line className={`${triggerIcon} animate-spin`} /> : <Printer className={triggerIcon} />}
         <span>Print</span>
       </button>
     );
@@ -122,7 +123,7 @@ export default function PrintMenu({
       >
         <Printer className={triggerIcon} />
         <span>Print / PDF</span>
-        <ChevronDown className={triggerIcon} />
+        <FiChevronDown className={triggerIcon} />
       </button>
       {open && (
         <div
@@ -138,7 +139,7 @@ export default function PrintMenu({
               disabled={busy !== null}
               className="flex w-full cursor-pointer items-center gap-2 px-3 py-1.5 text-left text-xs text-ink-700 hover:bg-ink-50 disabled:opacity-60"
             >
-              {busy === "print" ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Printer className="h-3.5 w-3.5" />}
+              {busy === "print" ? <RiLoader2Line className="h-3.5 w-3.5 animate-spin" /> : <Printer className="h-3.5 w-3.5" />}
               <span>Print (browser)</span>
             </button>
           )}
@@ -152,7 +153,7 @@ export default function PrintMenu({
                 disabled={busy !== null}
                 className="flex w-full cursor-pointer items-center gap-2 px-3 py-1.5 text-left text-xs text-ink-700 hover:bg-ink-50 disabled:opacity-60"
               >
-                {busy === "pdf-print" ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Printer className="h-3.5 w-3.5" />}
+                {busy === "pdf-print" ? <RiLoader2Line className="h-3.5 w-3.5 animate-spin" /> : <Printer className="h-3.5 w-3.5" />}
                 <span>Print PDF (A4)</span>
               </button>
               <button
@@ -163,14 +164,14 @@ export default function PrintMenu({
                 disabled={busy !== null}
                 className="flex w-full cursor-pointer items-center gap-2 px-3 py-1.5 text-left text-xs text-ink-700 hover:bg-ink-50 disabled:opacity-60"
               >
-                {busy === "pdf-download" ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <FileDown className="h-3.5 w-3.5" />}
+                {busy === "pdf-download" ? <RiLoader2Line className="h-3.5 w-3.5 animate-spin" /> : <RiFileDown className="h-3.5 w-3.5" />}
                 <span>Download PDF</span>
               </button>
             </>
           )}
           {!canBrowserPrint && !canPdf && (
             <div className="flex items-center gap-2 px-3 py-1.5 text-xs text-ink-400">
-              <Download className="h-3.5 w-3.5" />
+              <FiDownload className="h-3.5 w-3.5" />
               <span>No print source</span>
             </div>
           )}

@@ -2,7 +2,9 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowUpCircle, FileText, Loader2, ShieldAlert, ShieldCheck } from "lucide-react";
+import { FiArrowUpCircle, FiFileText, FiLoader } from "react-icons/fi";
+import { RiShieldCheckLine } from "react-icons/ri";
+import { LuShieldAlert } from "react-icons/lu";
 import { DashCard, DashPageHeader } from "@/components/dashboard/DashPage";
 import AdminPageLoader from "@/components/dashboard/AdminPageLoader";
 import SearchSelect from "@/components/ui/SearchSelect";
@@ -227,9 +229,9 @@ export default function PromotionTcView() {
           <div className="flex flex-wrap items-center gap-1.5 sm:col-span-2 2xl:col-span-1">
             <button type="button" className={BTN} disabled={busy !== null} onClick={promote}>
               {busy === "promote" ? (
-                <span className="inline-flex items-center gap-1.5"><Loader2 className="h-3.5 w-3.5 animate-spin" /> Processing…</span>
+                <span className="inline-flex items-center gap-1.5"><FiLoader className="h-3.5 w-3.5 animate-spin" /> Processing…</span>
               ) : (
-                <span className="inline-flex items-center gap-1.5"><ArrowUpCircle className="h-3.5 w-3.5" /> Promote selected</span>
+                <span className="inline-flex items-center gap-1.5"><FiArrowUpCircle className="h-3.5 w-3.5" /> Promote selected</span>
               )}
             </button>
           </div>
@@ -321,12 +323,12 @@ export default function PromotionTcView() {
             </div>
             {clearance.canIssueTc ? (
               <p className="inline-flex items-center gap-1.5 rounded-xs border border-emerald-200 bg-emerald-50 px-2.5 py-1.5 font-semibold text-emerald-800">
-                <ShieldCheck className="h-3.5 w-3.5" /> Dues clear — ready to issue.
+                <RiShieldCheckLine className="h-3.5 w-3.5" /> Dues clear — ready to issue.
               </p>
             ) : (
               <div className="rounded-xs border border-rose-200 bg-rose-50 px-2.5 py-1.5 text-rose-800">
                 <p className="inline-flex items-center gap-1.5 font-semibold">
-                  <ShieldAlert className="h-3.5 w-3.5" /> Blocked:
+                  <LuShieldAlert className="h-3.5 w-3.5" /> Blocked:
                 </p>
                 <ul className="mt-1 list-inside list-disc">
                   {clearance.blockers.map((b) => <li key={b}>{b}</li>)}
@@ -356,9 +358,9 @@ export default function PromotionTcView() {
               onClick={issueTc}
             >
               {busy === "tc" ? (
-                <span className="inline-flex items-center gap-1.5"><Loader2 className="h-3.5 w-3.5 animate-spin" /> Issuing…</span>
+                <span className="inline-flex items-center gap-1.5"><FiLoader className="h-3.5 w-3.5 animate-spin" /> Issuing…</span>
               ) : (
-                <span className="inline-flex items-center gap-1.5"><FileText className="h-3.5 w-3.5" /> {clearance.canIssueTc ? "Issue Transfer Certificate" : "Issue TC (waive dues)"}</span>
+                <span className="inline-flex items-center gap-1.5"><FiFileText className="h-3.5 w-3.5" /> {clearance.canIssueTc ? "Issue Transfer Certificate" : "Issue TC (waive dues)"}</span>
               )}
             </button>
           </div>

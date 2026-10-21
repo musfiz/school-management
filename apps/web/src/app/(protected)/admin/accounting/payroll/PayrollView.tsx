@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Landmark, Trash2 } from "lucide-react";
+import { FiTrash } from "react-icons/fi";
+import { BiSolidLandmark } from "react-icons/bi";
 import { DashCard, DashPageHeader } from "@/components/dashboard/DashPage";
 import AdminPageLoader from "@/components/dashboard/AdminPageLoader";
 import { apiFetch } from "@/lib/api";
@@ -606,7 +607,7 @@ export default function PayrollView() {
                                           className="cursor-pointer rounded-xs border border-ink-200 px-1.5 py-0.5 text-ink-500 hover:bg-ink-50 disabled:opacity-50"
                                           title="Remove payslip"
                                         >
-                                          <Trash2 className="h-3 w-3" />
+                                          <FiTrash className="h-3 w-3" />
                                         </button>
                                       </td>
                                     )}
@@ -982,7 +983,7 @@ export default function PayrollView() {
                                   className="cursor-pointer rounded-xs border border-ink-200 px-2 py-1 text-xs text-ink-600 hover:bg-ink-50 disabled:opacity-50"
                                   title="Void draft"
                                 >
-                                  <Trash2 className="h-3.5 w-3.5" />
+                                  <FiTrash className="h-3.5 w-3.5" />
                                 </button>
                               </>
                             )}
@@ -1009,7 +1010,7 @@ export default function PayrollView() {
       )}
 
       <div className="mt-4 flex items-start gap-2 text-xs text-ink-500">
-        <Landmark className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+        <BiSolidLandmark className="mt-0.5 h-3.5 w-3.5 shrink-0" />
         <p>
           Run approval posts Dr 51101 (institutional gross) + Dr 51104 (employer PF) / Cr 22101 (PF
           liability) + Cr 21301 (AIT) + Cr 11403 (loans) + Cr 21102 (net payable). MPO government

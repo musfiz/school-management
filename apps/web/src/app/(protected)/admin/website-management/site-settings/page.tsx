@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Loader2, Save } from "lucide-react";
+import { FiLoader, FiSave } from "react-icons/fi";
 import { DashCard } from "@/components/dashboard/DashPage";
 import ImageUploader from "@/components/dashboard/ImageUploader";
 import AdminPageLoader from "@/components/dashboard/AdminPageLoader";
@@ -216,7 +216,7 @@ export default function SiteSettingsPage() {
             disabled={saving}
             className="flex items-center gap-1.5 rounded-xs bg-brand-600 px-3 py-2 text-sm font-semibold text-white disabled:opacity-60 hover:bg-brand-700"
           >
-            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+            {saving ? <FiLoader className="h-4 w-4 animate-spin" /> : <FiSave className="h-4 w-4" />}
             Save
           </button>
         </div>

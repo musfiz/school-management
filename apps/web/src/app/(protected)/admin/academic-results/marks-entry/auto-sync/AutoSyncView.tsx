@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { RefreshCw, Save, Sparkles, Zap } from "lucide-react";
+import { FiRefreshCcw as RefreshCw, FiSave as Save, FiZap as Zap } from "react-icons/fi";
+import { RiSparklingLine as Sparkles } from "react-icons/ri";
 import { DashCard, DashPageHeader } from "@/components/dashboard/DashPage";
 import AdminPageLoader from "@/components/dashboard/AdminPageLoader";
 import { toast } from "@/lib/swal";

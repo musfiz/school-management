@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { ArrowRightLeft, FileText, Loader2, RefreshCw, Search, Users } from "lucide-react";
+import { FiFileText, FiLoader, FiRefreshCcw, FiSearch, FiUsers } from "react-icons/fi";
+import { FaArrowRightArrowLeft } from "react-icons/fa6";
 import { DashCard, DashPageHeader } from "@/components/dashboard/DashPage";
 import AdminPageLoader from "@/components/dashboard/AdminPageLoader";
 import SearchSelect from "@/components/ui/SearchSelect";
@@ -301,13 +302,13 @@ export default function EnrollmentsView() {
           <div className="flex flex-wrap items-center gap-1.5 sm:col-span-2 2xl:col-span-2">
             <button type="button" className={BTN} disabled={loading} onClick={load}>
               {loading ? (
-                <span className="inline-flex items-center gap-1.5"><Loader2 className="h-3.5 w-3.5 animate-spin" /> Loading…</span>
+                <span className="inline-flex items-center gap-1.5"><FiLoader className="h-3.5 w-3.5 animate-spin" /> Loading…</span>
               ) : (
-                <span className="inline-flex items-center gap-1.5"><Search className="h-3.5 w-3.5" /> Run</span>
+                <span className="inline-flex items-center gap-1.5"><FiSearch className="h-3.5 w-3.5" /> Run</span>
               )}
             </button>
             <button type="button" className={BTN_GHOST} disabled={loading} onClick={load}>
-              <span className="inline-flex items-center gap-1"><RefreshCw className="h-3.5 w-3.5" /> Refresh</span>
+              <span className="inline-flex items-center gap-1"><FiRefreshCcw className="h-3.5 w-3.5" /> Refresh</span>
             </button>
           </div>
         </div>
@@ -381,7 +382,7 @@ export default function EnrollmentsView() {
                           disabled={!r.enrollment || busy !== null}
                           onClick={() => setTransferOf(r)}
                         >
-                          <span className="inline-flex items-center gap-1"><ArrowRightLeft className="h-3 w-3" /> Transfer</span>
+                          <span className="inline-flex items-center gap-1"><FaArrowRightArrowLeft className="h-3 w-3" /> Transfer</span>
                         </button>
                       </div>
                     </td>
@@ -485,7 +486,7 @@ export default function EnrollmentsView() {
             {previewEnabled && (
               <div className="mt-3 rounded-xs border border-brand-200 bg-brand-50 px-2.5 py-2">
                 <p className="text-xs font-medium text-brand-800">
-                  <Loader2 className="h-3.5 w-3.5 inline mr-1.5 animate-spin" /> Next roll in target scope:
+                  <FiLoader className="h-3.5 w-3.5 inline mr-1.5 animate-spin" /> Next roll in target scope:
                   <span className="font-mono font-bold">{previewRoll ?? "—"}</span>
                 </p>
               </div>
@@ -500,7 +501,7 @@ export default function EnrollmentsView() {
                 onClick={submitTransfer}
               >
                 {busy === "transfer" ? (
-                  <span className="inline-flex items-center gap-1.5"><Loader2 className="h-3.5 w-3.5 animate-spin" /> Transferring…</span>
+                  <span className="inline-flex items-center gap-1.5"><FiLoader className="h-3.5 w-3.5 animate-spin" /> Transferring…</span>
                 ) : (
                   "Confirm transfer"
                 )}

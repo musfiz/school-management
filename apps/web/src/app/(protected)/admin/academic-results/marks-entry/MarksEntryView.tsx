@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { AlertCircle, ArrowRight, Download, RefreshCw, Save, Sparkles } from "lucide-react";
+import { FiAlertCircle as AlertCircle, FiArrowRight as ArrowRight, FiDownload as Download, FiRefreshCcw as RefreshCw, FiSave as Save } from "react-icons/fi";
+import { RiSparklingLine as Sparkles } from "react-icons/ri";
 import { DashCard, DashPageHeader } from "@/components/dashboard/DashPage";
 import AdminPageLoader from "@/components/dashboard/AdminPageLoader";
 import { toast } from "@/lib/swal";

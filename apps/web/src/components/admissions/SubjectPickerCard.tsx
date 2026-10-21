@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { BookOpenCheck, Loader2, Lock } from "lucide-react";
+import { FiBookOpen, FiLock, FiLoader } from "react-icons/fi";
 import { DashCard } from "@/components/dashboard/DashPage";
 import SearchSelect from "@/components/ui/SearchSelect";
 import { apiFetch } from "@/lib/api";
@@ -121,11 +121,11 @@ export default function SubjectPickerCard({ onSelect }: Props) {
           <button type="button" className={BTN} disabled={busy} onClick={load}>
             {busy ? (
               <span className="inline-flex items-center gap-1.5">
-                <Loader2 className="h-3.5 w-3.5 animate-spin" /> Loading…
+                <FiLoader className="h-3.5 w-3.5 animate-spin" /> Loading…
               </span>
             ) : (
               <span className="inline-flex items-center gap-1.5">
-                <BookOpenCheck className="h-3.5 w-3.5" /> Load subjects
+                <FiBookOpen className="h-3.5 w-3.5" /> Load subjects
               </span>
             )}
           </button>
@@ -205,7 +205,7 @@ function SubjectTable({ title, rows, locked, creditMode }: { title: string; rows
   return (
     <div>
       <p className="mb-1 inline-flex items-center gap-1 text-xs font-semibold text-ink-700">
-        {locked && <Lock className="h-3 w-3" />} {title}
+        {locked && <FiLock className="h-3 w-3" />} {title}
       </p>
       <div className="overflow-x-auto rounded-xs border border-ink-100">
         <table className="w-full text-left text-xs">

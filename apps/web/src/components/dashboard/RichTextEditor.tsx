@@ -5,20 +5,17 @@ import StarterKit from "@tiptap/starter-kit";
 import Underline from "@tiptap/extension-underline";
 import Link from "@tiptap/extension-link";
 import {
-  Bold,
-  Italic,
-  Underline as UnderlineIcon,
-  Heading1,
-  Heading2,
-  Heading3,
-  List,
-  ListOrdered,
-  Quote,
-  Undo,
-  Redo,
-  Link as LinkIcon,
-  Unlink,
-} from "lucide-react";
+  FiBold,
+  FiItalic,
+  FiUnderline,
+  FiType,
+  FiList,
+  FiRotateCcw,
+  FiRotateCw,
+  FiLink,
+} from "react-icons/fi";
+import { GoQuote as FiQuote } from "react-icons/go";
+import { BiUnlink } from "react-icons/bi";
 import { useEffect } from "react";
 import { promptDialog } from "@/lib/swal";
 
@@ -108,7 +105,7 @@ export default function RichTextEditor({
           className={`rounded-xs p-1.5 transition-colors hover:bg-ink-200 ${ editor.isActive("bold") ? "bg-ink-200 text-ink-900" : "" }`}
           title="Bold"
         >
-          <Bold className="h-4 w-4" />
+          <FiBold className="h-4 w-4" />
         </button>
         <button
           type="button"
@@ -117,7 +114,7 @@ export default function RichTextEditor({
           className={`rounded-xs p-1.5 transition-colors hover:bg-ink-200 ${ editor.isActive("italic") ? "bg-ink-200 text-ink-900" : "" }`}
           title="Italic"
         >
-          <Italic className="h-4 w-4" />
+          <FiItalic className="h-4 w-4" />
         </button>
         <button
           type="button"
@@ -125,7 +122,7 @@ export default function RichTextEditor({
           className={`rounded-xs p-1.5 transition-colors hover:bg-ink-200 ${ editor.isActive("underline") ? "bg-ink-200 text-ink-900" : "" }`}
           title="Underline"
         >
-          <UnderlineIcon className="h-4 w-4" />
+          <FiUnderline className="h-4 w-4" />
         </button>
 
         <div className="h-4 w-[1px] bg-ink-300 mx-1" />
@@ -136,7 +133,7 @@ export default function RichTextEditor({
           className={`rounded-xs p-1.5 transition-colors hover:bg-ink-200 ${ editor.isActive("heading", { level: 1 }) ? "bg-ink-200 text-ink-900" : "" }`}
           title="Heading 1"
         >
-          <Heading1 className="h-4 w-4" />
+          <FiType className="h-4 w-4" />
         </button>
         <button
           type="button"
@@ -144,7 +141,7 @@ export default function RichTextEditor({
           className={`rounded-xs p-1.5 transition-colors hover:bg-ink-200 ${ editor.isActive("heading", { level: 2 }) ? "bg-ink-200 text-ink-900" : "" }`}
           title="Heading 2"
         >
-          <Heading2 className="h-4 w-4" />
+          <FiType className="h-4 w-4" />
         </button>
         <button
           type="button"
@@ -152,7 +149,7 @@ export default function RichTextEditor({
           className={`rounded-xs p-1.5 transition-colors hover:bg-ink-200 ${ editor.isActive("heading", { level: 3 }) ? "bg-ink-200 text-ink-900" : "" }`}
           title="Heading 3"
         >
-          <Heading3 className="h-4 w-4" />
+          <FiType className="h-4 w-4" />
         </button>
 
         <div className="h-4 w-[1px] bg-ink-300 mx-1" />
@@ -163,7 +160,7 @@ export default function RichTextEditor({
           className={`rounded-xs p-1.5 transition-colors hover:bg-ink-200 ${ editor.isActive("bulletList") ? "bg-ink-200 text-ink-900" : "" }`}
           title="Bullet List"
         >
-          <List className="h-4 w-4" />
+          <FiList className="h-4 w-4" />
         </button>
         <button
           type="button"
@@ -171,7 +168,7 @@ export default function RichTextEditor({
           className={`rounded-xs p-1.5 transition-colors hover:bg-ink-200 ${ editor.isActive("orderedList") ? "bg-ink-200 text-ink-900" : "" }`}
           title="Ordered List"
         >
-          <ListOrdered className="h-4 w-4" />
+          <FiList className="h-4 w-4" />
         </button>
         <button
           type="button"
@@ -179,7 +176,7 @@ export default function RichTextEditor({
           className={`rounded-xs p-1.5 transition-colors hover:bg-ink-200 ${ editor.isActive("blockquote") ? "bg-ink-200 text-ink-900" : "" }`}
           title="Blockquote"
         >
-          <Quote className="h-4 w-4" />
+          <FiQuote className="h-4 w-4" />
         </button>
 
         <div className="h-4 w-[1px] bg-ink-300 mx-1" />
@@ -190,7 +187,7 @@ export default function RichTextEditor({
           className={`rounded-xs p-1.5 transition-colors hover:bg-ink-200 ${ editor.isActive("link") ? "bg-ink-200 text-ink-900" : "" }`}
           title="Add Link"
         >
-          <LinkIcon className="h-4 w-4" />
+          <FiLink className="h-4 w-4" />
         </button>
         {editor.isActive("link") && (
           <button
@@ -199,7 +196,7 @@ export default function RichTextEditor({
             className="rounded-xs p-1.5 transition-colors hover:bg-ink-200 text-red-600"
             title="Remove Link"
           >
-            <Unlink className="h-4 w-4" />
+            <BiUnlink className="h-4 w-4" />
           </button>
         )}
 
@@ -211,7 +208,7 @@ export default function RichTextEditor({
             className="rounded-xs p-1.5 transition-colors hover:bg-ink-200 disabled:opacity-30"
             title="Undo"
           >
-            <Undo className="h-4 w-4" />
+            <FiRotateCcw className="h-4 w-4" />
           </button>
           <button
             type="button"
@@ -220,7 +217,7 @@ export default function RichTextEditor({
             className="rounded-xs p-1.5 transition-colors hover:bg-ink-200 disabled:opacity-30"
             title="Redo"
           >
-            <Redo className="h-4 w-4" />
+            <FiRotateCw className="h-4 w-4" />
           </button>
         </div>
       </div>

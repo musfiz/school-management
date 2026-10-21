@@ -1,7 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { BookOpen, Bookmark, CalendarDays, Layout, Layers, Pencil, Plus, RefreshCw, Shield, Trash2 } from "lucide-react";
+import { FiBookOpen as BookOpen, FiBookmark as Bookmark, FiLayers as Layers, FiEdit as Pencil, FiPlus as Plus, FiRefreshCcw as RefreshCw, FiShield as Shield, FiTrash as Trash } from "react-icons/fi";
+import { GoCalendar as CalendarDays } from "react-icons/go";
+import { RiLayoutLine as Layout } from "react-icons/ri";
 import { DashCard, DashPageHeader } from "@/components/dashboard/DashPage";
 import AdminPageLoader from "@/components/dashboard/AdminPageLoader";
 import SearchSelect from "@/components/ui/SearchSelect";
@@ -984,7 +986,7 @@ export default function SessionsClassesView({ initialTab = "sessions" }: { initi
                             className={`${BTN_ROW} text-rose-700`}
                             onClick={() => void removeSession(row)}
                           >
-                            <Trash2 className="h-3 w-3" />
+                            <Trash className="h-3 w-3" />
                           </button>
                         </div>
                       </td>
@@ -1050,7 +1052,7 @@ export default function SessionsClassesView({ initialTab = "sessions" }: { initi
                             className={`${BTN_ROW} text-rose-700`}
                             onClick={() => void removeClass(row)}
                           >
-                            <Trash2 className="h-3 w-3" />
+                            <Trash className="h-3 w-3" />
                           </button>
                         </div>
                       </td>
@@ -1131,7 +1133,7 @@ export default function SessionsClassesView({ initialTab = "sessions" }: { initi
                                 : "Delete term type"
                             }
                           >
-                            <Trash2 className="h-3 w-3" />
+                            <Trash className="h-3 w-3" />
                           </button>
                         </div>
                       </td>
@@ -1193,7 +1195,7 @@ export default function SessionsClassesView({ initialTab = "sessions" }: { initi
                             className={`${BTN_ROW} text-rose-700`}
                             onClick={() => void removeSection(row)}
                           >
-                            <Trash2 className="h-3 w-3" />
+                            <Trash className="h-3 w-3" />
                           </button>
                         </div>
                       </td>
@@ -1255,7 +1257,7 @@ export default function SessionsClassesView({ initialTab = "sessions" }: { initi
                             className={`${BTN_ROW} text-rose-700`}
                             onClick={() => void removeGroup(row)}
                           >
-                            <Trash2 className="h-3 w-3" />
+                            <Trash className="h-3 w-3" />
                           </button>
                         </div>
                       </td>
@@ -1313,7 +1315,7 @@ export default function SessionsClassesView({ initialTab = "sessions" }: { initi
                             className={`${BTN_ROW} text-rose-700`}
                             onClick={() => void removeSubject(row)}
                           >
-                            <Trash2 className="h-3 w-3" />
+                            <Trash className="h-3 w-3" />
                           </button>
                         </div>
                       </td>

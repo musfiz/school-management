@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Download, Upload, UploadCloud } from "lucide-react";
+import { FiDownload as Download, FiUpload as Upload, FiUploadCloud as UploadCloud } from "react-icons/fi";
 import { DashCard, DashPageHeader } from "@/components/dashboard/DashPage";
 import { toast } from "@/lib/swal";
 import {

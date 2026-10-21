@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Camera, Loader2, Plus, Trash2, Upload } from "lucide-react";
+import { FiCamera, FiLoader, FiPlus, FiTrash, FiUpload } from "react-icons/fi";
 import { DashCard } from "@/components/dashboard/DashPage";
 import SearchSelect from "@/components/ui/SearchSelect";
 import DatePickerField, { todayISO } from "@/components/ui/DatePicker";
@@ -260,7 +260,7 @@ export default function Step2FormCard({ institution, onInstitutionChange, value,
         </div>
         <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5">
           <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-xs border border-ink-200 bg-white px-2 py-1 text-xs font-semibold text-ink-700 hover:bg-ink-50">
-            <Upload className="h-3.5 w-3.5" /> Upload photo
+            <FiUpload className="h-3.5 w-3.5" /> Upload photo
             <input
               type="file"
               accept="image/jpeg,image/png,image/webp"
@@ -275,7 +275,7 @@ export default function Step2FormCard({ institution, onInstitutionChange, value,
           </label>
           {!camOn ? (
             <button type="button" className="inline-flex items-center gap-1.5 rounded-xs border border-ink-200 bg-white px-2 py-1 text-xs font-semibold text-ink-700 hover:bg-ink-50" onClick={startCam}>
-              <Camera className="h-3.5 w-3.5" /> Webcam
+              <FiCamera className="h-3.5 w-3.5" /> Webcam
             </button>
           ) : (
             <>
@@ -288,7 +288,7 @@ export default function Step2FormCard({ institution, onInstitutionChange, value,
               </button>
             </>
           )}
-          {uploading && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+          {uploading && <FiLoader className="h-3.5 w-3.5 animate-spin" />}
         </div>
       </div>
 
@@ -303,7 +303,7 @@ export default function Step2FormCard({ institution, onInstitutionChange, value,
               className="inline-flex items-center gap-1 rounded-xs border border-ink-200 bg-white px-2 py-1 text-xs font-semibold text-ink-700 hover:bg-ink-50"
               onClick={() => append({ examTitle: "", instituteName: "", educationBoard: "", academicGroup: "", rollNo: "", regNo: "", passingYear: "", gpaObtained: "", tcNumber: "" })}
             >
-              <Plus className="h-3 w-3" /> Add row
+              <FiPlus className="h-3 w-3" /> Add row
             </button>
           </div>
           {fields.length === 0 ? (
@@ -328,7 +328,7 @@ export default function Step2FormCard({ institution, onInstitutionChange, value,
                   <div className="col-span-2 flex gap-1.5 sm:col-span-4 2xl:col-span-9">
                     <input className={`${CELL} flex-1`} placeholder="TC number (transfer-in)…" {...eduForm.register(`rows.${i}.tcNumber` as const)} />
                     <button type="button" className="rounded-xs border border-ink-200 bg-white px-2 py-1 text-xs text-rose-600 hover:bg-rose-50" onClick={() => remove(i)} title="Remove row">
-                      <Trash2 className="h-3.5 w-3.5" />
+                      <FiTrash className="h-3.5 w-3.5" />
                     </button>
                   </div>
                 </div>

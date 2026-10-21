@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Plus, Trash2, ChevronDown, ChevronRight, Search, Undo2, CheckCheck, Stamp } from "lucide-react";
+import { FiPlus, FiTrash, FiChevronDown, FiChevronRight, FiSearch, FiRefreshCcw, FiCheckCircle } from "react-icons/fi";
+import { FaStamp } from "react-icons/fa";
 import { DashCard, DashPageHeader } from "@/components/dashboard/DashPage";
 import AdminPageLoader from "@/components/dashboard/AdminPageLoader";
 import { apiFetch } from "@/lib/api";
@@ -291,7 +292,7 @@ export default function VouchersView() {
           onClick={() => setShowForm((s) => !s)}
           className="flex items-center gap-1.5 rounded-xs border border-brand-600 bg-brand-600 px-3 py-2 text-sm font-semibold text-white hover:bg-brand-700"
         >
-          <Plus className="h-4 w-4" /> New voucher
+          <FiPlus className="h-4 w-4" /> New voucher
         </button>
       </div>
 
@@ -350,7 +351,7 @@ export default function VouchersView() {
                   <input value={l.debitAmount} onChange={(e) => setLine(l.key, { debitAmount: e.target.value })} placeholder="Dr" inputMode="decimal" className={`${INPUT_BASE} text-right`} />
                   <input value={l.creditAmount} onChange={(e) => setLine(l.key, { creditAmount: e.target.value })} placeholder="Cr" inputMode="decimal" className={`${INPUT_BASE} text-right`} />
                   <button type="button" disabled={lines.length <= 2} onClick={() => setLines((prev) => prev.filter((x) => x.key !== l.key))} className="rounded-xs px-2 text-rose-600 hover:bg-rose-50 disabled:opacity-40" title="Remove line">
-                    <Trash2 className="h-4 w-4" />
+                    <FiTrash className="h-4 w-4" />
                   </button>
                   <div className="md:col-start-2">
                     <SearchSelect
@@ -382,7 +383,7 @@ export default function VouchersView() {
 
           <div className="mt-2 flex flex-wrap items-center gap-2">
             <button type="button" onClick={() => setLines((prev) => [...prev, newLine()])} className="flex items-center gap-1 rounded-xs border border-ink-200 px-2.5 py-1.5 text-xs font-semibold text-ink-700 hover:bg-ink-100">
-              <Plus className="h-3.5 w-3.5" /> Add line
+              <FiPlus className="h-3.5 w-3.5" /> Add line
             </button>
             <div className="ml-auto flex items-center gap-3 rounded-xs bg-ink-900 px-3 py-1.5 font-mono text-xs text-white">
               <span>Dr {fmtMoney(totals.dr)}</span>
@@ -421,7 +422,7 @@ export default function VouchersView() {
       <DashCard title={`Vouchers (${vouchers.length})`}>
         <div className="mb-3 flex flex-wrap gap-2">
           <div className="relative min-w-52 flex-1">
-            <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-400" />
+            <FiSearch className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-400" />
             <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search voucher no / narration…" className={`${INPUT_BASE} pl-8`} />
           </div>
           <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="rounded-xs cursor-pointer border border-ink-200 bg-white px-2 py-1 text-sm">
@@ -446,7 +447,7 @@ export default function VouchersView() {
               <div key={v.id} className="rounded-xs border border-ink-200">
                 <div className="flex flex-wrap items-center gap-2 px-3 py-2">
                   <button type="button" onClick={() => toggleExpand(v.id)} className="text-ink-500 hover:text-ink-800">
-                    {open ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                    {open ? <FiChevronDown className="h-4 w-4" /> : <FiChevronRight className="h-4 w-4" />}
                   </button>
                   <span className="font-mono text-sm font-bold text-ink-900">{v.voucherNo}</span>
                   <span className="text-xs text-ink-500">{VOUCHER_TYPE_LABELS[v.voucherType] ?? v.voucherType} · {String(v.transactionDate).slice(0, 10)}</span>
@@ -456,21 +457,21 @@ export default function VouchersView() {
                     {v.status === "DRAFT" && (
                       <>
                         <button type="button" disabled={!!acting} onClick={() => act(v.id, "verify", v.voucherNo)} className="flex items-center gap-1 rounded-xs border border-sky-600 bg-sky-600 px-2 py-1 text-xs font-semibold text-white hover:bg-sky-700 disabled:opacity-50">
-                          <CheckCheck className="h-3.5 w-3.5" /> {busy ? "…" : "Verify"}
+                          <FiCheckCircle className="h-3.5 w-3.5" /> {busy ? "…" : "Verify"}
                         </button>
                         <button type="button" disabled={!!acting} onClick={() => act(v.id, "delete", v.voucherNo)} className="flex items-center gap-1 rounded-xs border border-rose-200 px-2 py-1 text-xs font-semibold text-rose-600 hover:bg-rose-50 disabled:opacity-50">
-                          <Trash2 className="h-3.5 w-3.5" /> Delete
+                          <FiTrash className="h-3.5 w-3.5" /> Delete
                         </button>
                       </>
                     )}
                     {v.status === "VERIFIED" && (
                       <button type="button" disabled={!!acting} onClick={() => act(v.id, "approve", v.voucherNo)} className="flex items-center gap-1 rounded-xs border border-emerald-600 bg-emerald-600 px-2 py-1 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-50">
-                        <Stamp className="h-3.5 w-3.5" /> {busy ? "…" : "Approve"}
+                        <FaStamp className="h-3.5 w-3.5" /> {busy ? "…" : "Approve"}
                       </button>
                     )}
                     {v.status === "APPROVED" && v.voucherType !== "REVERSAL" && (
                       <button type="button" disabled={!!acting} onClick={() => act(v.id, "reverse", v.voucherNo)} className="flex items-center gap-1 rounded-xs border border-amber-600 bg-amber-600 px-2 py-1 text-xs font-semibold text-white hover:bg-amber-700 disabled:opacity-50">
-                        <Undo2 className="h-3.5 w-3.5" /> {busy ? "…" : "Reverse"}
+                        <FiRefreshCcw className="h-3.5 w-3.5" /> {busy ? "…" : "Reverse"}
                       </button>
                     )}
                   </span>

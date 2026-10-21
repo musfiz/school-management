@@ -1,6 +1,6 @@
 "use client";
 
-import { Printer } from "lucide-react";
+import { FiPrinter } from "react-icons/fi";
 import { DashCard } from "@/components/dashboard/DashPage";
 import { printElement } from "@/lib/print";
 import { resolveImageUrl } from "@/lib/media";
@@ -51,13 +51,13 @@ export default function AdmissionPrintViews({ result, identity, family, placemen
     <DashCard title="Print — admission form, receipt & ID card">
       <div className="mb-3 flex flex-wrap gap-1.5">
         <button type="button" className={BTN_GHOST} onClick={() => printElement("printable-admission-form", `Admission-Form-${result.studentUniqueId}`)}>
-          <span className="inline-flex items-center gap-1"><Printer className="h-3.5 w-3.5" /> Admission form (A4)</span>
+          <span className="inline-flex items-center gap-1"><FiPrinter className="h-3.5 w-3.5" /> Admission form (A4)</span>
         </button>
         <button type="button" className={BTN_GHOST} onClick={() => printElement("printable-admission-receipt", `Receipt-${result.moneyReceiptNo ?? result.invoiceNo}`)}>
-          <span className="inline-flex items-center gap-1"><Printer className="h-3.5 w-3.5" /> Money receipt</span>
+          <span className="inline-flex items-center gap-1"><FiPrinter className="h-3.5 w-3.5" /> Money receipt</span>
         </button>
         <button type="button" className={BTN_GHOST} onClick={() => printElement("printable-student-id", `ID-Card-${result.studentUniqueId}`)}>
-          <span className="inline-flex items-center gap-1"><Printer className="h-3.5 w-3.5" /> ID card</span>
+          <span className="inline-flex items-center gap-1"><FiPrinter className="h-3.5 w-3.5" /> ID card</span>
         </button>
       </div>
 

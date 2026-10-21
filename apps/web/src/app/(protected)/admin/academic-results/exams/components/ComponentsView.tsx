@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Copy, Plus, RefreshCw, Save, Trash2 } from "lucide-react";
+import { FiCopy as Copy, FiPlus as Plus, FiRefreshCcw as RefreshCw, FiSave as Save, FiTrash as Trash } from "react-icons/fi";
 import { DashCard, DashPageHeader } from "@/components/dashboard/DashPage";
 import AdminPageLoader from "@/components/dashboard/AdminPageLoader";
 import SearchSelect from "@/components/ui/SearchSelect";
@@ -411,7 +411,7 @@ export default function ComponentsView() {
                                   if (match) void removeRow(match);
                                 }}
                               >
-                                <Trash2 className="h-3 w-3" />
+                                <Trash className="h-3 w-3" />
                               </button>
                             )}
                             <button type="button" className={BTN_ROW} onClick={() => setRows(rows.filter((_, i) => i !== index))}>

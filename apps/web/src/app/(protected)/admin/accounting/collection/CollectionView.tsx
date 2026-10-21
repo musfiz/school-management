@@ -1,7 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Banknote, Printer, Search, Undo2, ArrowRightLeft, Receipt } from "lucide-react";
+import { FiArrowRight, FiPrinter, FiSearch, FiRefreshCcw } from "react-icons/fi";
+import { BiReceipt } from "react-icons/bi";
+import { FaWallet, FaArrowRightArrowLeft } from "react-icons/fa6";
 import { DashCard, DashPageHeader } from "@/components/dashboard/DashPage";
 import AdminPageLoader from "@/components/dashboard/AdminPageLoader";
 import PrintMenu from "@/components/dashboard/PrintMenu";
@@ -336,7 +338,7 @@ export default function CollectionView() {
                 onClick={loadDues}
                 className="flex items-center gap-1 rounded-xs border border-brand-600 bg-brand-600 px-3 py-1 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-50"
               >
-                <Search className="h-4 w-4" /> {loadingDues ? "Loading…" : "Load dues"}
+                <FiSearch className="h-4 w-4" /> {loadingDues ? "Loading…" : "Load dues"}
               </button>
             </div>
             <p className="mt-1 text-xs text-ink-500">
@@ -496,7 +498,7 @@ export default function CollectionView() {
                 onClick={collect}
                 className="flex items-center justify-center gap-1.5 rounded-xs border border-brand-600 bg-brand-600 px-3 py-2 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-50"
               >
-                <Banknote className="h-4 w-4" />
+                <FaWallet className="h-4 w-4" />
                 {acting === "collect" ? "Posting…" : `Collect ${cart.length} invoice${cart.length === 1 ? "" : "s"} → print MR`}
               </button>
               <p className="text-xs text-ink-500">
@@ -547,16 +549,16 @@ export default function CollectionView() {
                 </span>
                 <span className="flex gap-1.5">
                   <button type="button" onClick={() => setPrintReceipt(r)} title="Print money receipt" className="flex items-center gap-1 rounded-xs border border-ink-200 px-2 py-1 text-xs font-semibold text-ink-700 hover:bg-ink-100">
-                    <Printer className="h-3.5 w-3.5" /> Print
+                    <FiPrinter className="h-3.5 w-3.5" /> Print
                   </button>
                   {r.reconciliationStatus === "PENDING" && (
                     <button type="button" disabled={!!acting} onClick={() => settleReceipt(r.id, r.moneyReceiptNo)} className="flex items-center gap-1 rounded-xs border border-sky-600 bg-sky-600 px-2 py-1 text-xs font-semibold text-white hover:bg-sky-700 disabled:opacity-50">
-                      <ArrowRightLeft className="h-3.5 w-3.5" /> Settle
+                      <FaArrowRightArrowLeft className="h-3.5 w-3.5" /> Settle
                     </button>
                   )}
                   {!["REVERSED", "SETTLED"].includes(r.reconciliationStatus) && (
                     <button type="button" disabled={!!acting} onClick={() => reverseReceipt(r.id, r.moneyReceiptNo)} className="flex items-center gap-1 rounded-xs border border-rose-200 px-2 py-1 text-xs font-semibold text-rose-600 hover:bg-rose-50 disabled:opacity-50">
-                      <Undo2 className="h-3.5 w-3.5" /> Reverse
+                      <FiRefreshCcw className="h-3.5 w-3.5" /> Reverse
                     </button>
                   )}
                 </span>
@@ -590,7 +592,7 @@ export default function CollectionView() {
                   onClick={() => settleReceipt(r.id, r.moneyReceiptNo)}
                   className="ml-auto flex items-center gap-1 rounded-xs border border-sky-600 bg-sky-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-sky-700 disabled:opacity-50"
                 >
-                  <ArrowRightLeft className="h-3.5 w-3.5" />
+                  <FiArrowRight className="h-3.5 w-3.5" />
                   {acting === `settle:${r.id}` ? "Settling…" : "Settle → 11201"}
                 </button>
               </div>
@@ -620,7 +622,7 @@ function ReceiptModal({ receipt, onClose }: { receipt: PaymentCollection; onClos
         <div id="receipt-print-area">
         <div className="border-b-2 border-dashed border-ink-200 pb-3 text-center">
           <p className="flex items-center justify-center gap-1.5 text-lg font-bold">
-            <Receipt className="h-5 w-5" /> MONEY RECEIPT
+            <BiReceipt className="h-5 w-5" /> MONEY RECEIPT
           </p>
           <p className="font-mono text-xl font-bold text-brand-700">{receipt.moneyReceiptNo}</p>
           <p className="text-xs text-ink-500">

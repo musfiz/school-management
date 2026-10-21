@@ -1,19 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import {
-  ShieldCheck,
-  ShieldAlert,
-  FileText,
-  Undo2,
-  Activity,
-  LayoutDashboard,
-  Download,
-  Printer,
-  Search,
-  ChevronDown,
-  ChevronRight,
-} from "lucide-react";
+import { FiFileText, FiSearch, FiChevronDown, FiChevronRight, FiActivity, FiDownload, FiPrinter, FiRefreshCcw } from "react-icons/fi";
+import { RiShieldCheckLine, RiDashboardLine } from "react-icons/ri";
+import { LuShieldAlert } from "react-icons/lu";
 import { DashCard, DashPageHeader } from "@/components/dashboard/DashPage";
 import AdminPageLoader from "@/components/dashboard/AdminPageLoader";
 import DatePickerField from "@/components/ui/DatePicker";
@@ -38,10 +28,10 @@ const INPUT =
   "w-full rounded-xs cursor-pointer border border-ink-200 bg-white px-2.5 py-1 text-sm outline-none transition-colors focus:border-brand-400";
 
 const TABS = [
-  { id: "overview", label: "Overview & Compliance", icon: LayoutDashboard },
-  { id: "vouchers", label: "Voucher Lifecycle", icon: FileText },
-  { id: "reversals", label: "Reversal Registry", icon: Undo2 },
-  { id: "activity", label: "Activity Stream", icon: Activity },
+  { id: "overview", label: "Overview & Compliance", icon: RiDashboardLine },
+  { id: "vouchers", label: "Voucher Lifecycle", icon: FiFileText },
+  { id: "reversals", label: "Reversal Registry", icon: FiRefreshCcw },
+  { id: "activity", label: "Activity Stream", icon: FiActivity },
 ] as const;
 
 type TabId = (typeof TABS)[number]["id"];
@@ -327,9 +317,9 @@ export default function AuditTrailView() {
                   }`}
                 >
                   {summary.separationOfDutiesViolations > 0 || nonCompliant.length > 0 ? (
-                    <ShieldAlert className="h-4 w-4" />
+                    <LuShieldAlert className="h-4 w-4" />
                   ) : (
-                    <ShieldCheck className="h-4 w-4" />
+                    <RiShieldCheckLine className="h-4 w-4" />
                   )}
                   <span>
                     {summary.separationOfDutiesViolations} system violations
@@ -426,7 +416,7 @@ export default function AuditTrailView() {
                 <div>
                   <label className="mb-1 block text-xs font-medium text-ink-700">Search</label>
                   <div className="relative">
-                    <Search className="pointer-events-none absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-ink-400" />
+                    <FiSearch className="pointer-events-none absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-ink-400" />
                     <input
                       value={vSearch}
                       onChange={(e) => setVSearch(e.target.value)}
@@ -462,7 +452,7 @@ export default function AuditTrailView() {
                     onClick={exportVouchersCsv}
                     className="flex cursor-pointer items-center gap-1 rounded-xs border border-ink-200 bg-white px-2.5 py-1.5 text-xs font-medium text-ink-700 hover:bg-ink-50"
                   >
-                    <Download className="h-3 w-3" />
+                    <FiDownload className="h-3 w-3" />
                     <span>CSV</span>
                   </button>
                   <button
@@ -476,7 +466,7 @@ export default function AuditTrailView() {
                     }}
                     className="flex cursor-pointer items-center gap-1 rounded-xs border border-ink-200 bg-white px-2.5 py-1.5 text-xs font-medium text-ink-700 hover:bg-ink-50"
                   >
-                    <Printer className="h-3 w-3" />
+                    <FiPrinter className="h-3 w-3" />
                     <span>Print</span>
                   </button>
                   <button
@@ -545,7 +535,7 @@ export default function AuditTrailView() {
                                     className="cursor-pointer rounded-xs p-0.5 text-ink-500 hover:bg-ink-100"
                                     aria-label={open ? "Collapse" : "Expand"}
                                   >
-                                    {open ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
+                                    {open ? <FiChevronDown className="h-3.5 w-3.5" /> : <FiChevronRight className="h-3.5 w-3.5" />}
                                   </button>
                                 </td>
                                 <td className="px-2.5 py-1">
@@ -592,11 +582,11 @@ export default function AuditTrailView() {
                                 <td className="px-2.5 py-1">
                                   {v.isSeparationCompliant ? (
                                     <span className="flex items-center gap-1 text-[10px] font-semibold text-emerald-700">
-                                      <ShieldCheck className="h-3 w-3" /> OK
+                                      <RiShieldCheckLine className="h-3 w-3" /> OK
                                     </span>
                                   ) : (
                                     <span className="flex items-center gap-1 text-[10px] font-semibold text-rose-700">
-                                      <ShieldAlert className="h-3 w-3" /> VIOLATION
+                                      <LuShieldAlert className="h-3 w-3" /> VIOLATION
                                     </span>
                                   )}
                                 </td>
@@ -657,7 +647,7 @@ export default function AuditTrailView() {
                 }}
                 className="flex cursor-pointer items-center gap-1 rounded-xs border border-ink-200 bg-white px-2.5 py-1.5 text-xs font-medium text-ink-700 hover:bg-ink-50"
               >
-                <Printer className="h-3 w-3" />
+                <FiPrinter className="h-3 w-3" />
                 <span>Print</span>
               </button>
             }
@@ -774,7 +764,7 @@ export default function AuditTrailView() {
                     onClick={exportLogsCsv}
                     className="flex cursor-pointer items-center gap-1 rounded-xs border border-ink-200 bg-white px-2.5 py-1.5 text-xs font-medium text-ink-700 hover:bg-ink-50"
                   >
-                    <Download className="h-3 w-3" />
+                    <FiDownload className="h-3 w-3" />
                     <span>CSV</span>
                   </button>
                 </div>

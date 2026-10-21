@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import Image from "next/image";
-import { ImagePlus, Loader2, Upload, X } from "lucide-react";
+import { FiImage, FiLoader, FiUpload, FiX } from "react-icons/fi";
 import { toast } from "@/lib/swal";
 import { resolveImageUrl, isExternalImage } from "@/lib/media";
 
@@ -115,7 +115,7 @@ export default function ImageUploader({
           />
         ) : (
           <div className="flex flex-col items-center gap-1.5 px-4 text-center text-ink-400">
-            <ImagePlus className="h-6 w-6" />
+            <FiImage className="h-6 w-6" />
             <span className="text-xs">{emptyLabel}</span>
             <span className="text-[11px]">Click, drag & drop, or paste (Ctrl+V)</span>
           </div>
@@ -123,7 +123,7 @@ export default function ImageUploader({
 
         {uploading && (
           <div className="absolute inset-0 flex items-center justify-center bg-white/70">
-            <Loader2 className="h-6 w-6 animate-spin text-brand-600" />
+            <FiLoader className="h-6 w-6 animate-spin text-brand-600" />
           </div>
         )}
 
@@ -137,7 +137,7 @@ export default function ImageUploader({
             aria-label="Remove image"
             className="absolute right-2 top-2 rounded-full bg-white/90 p-1 text-ink-600 hover:bg-white hover:text-red-600"
           >
-            <X className="h-3.5 w-3.5" />
+            <FiX className="h-3.5 w-3.5" />
           </button>
         )}
       </div>
@@ -148,7 +148,7 @@ export default function ImageUploader({
         disabled={uploading}
         className="flex items-center gap-1.5 rounded-xs border border-ink-200 px-3 py-2 text-sm font-semibold text-ink-700 disabled:opacity-60 hover:bg-ink-50"
       >
-        {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+        {uploading ? <FiLoader className="h-4 w-4 animate-spin" /> : <FiUpload className="h-4 w-4" />}
         {value ? "Replace image" : "Upload image"}
       </button>
       <input

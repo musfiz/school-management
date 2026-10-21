@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Loader2, Plus, Save } from "lucide-react";
+import { FiArrowRight, FiLoader, FiPlus, FiSave } from "react-icons/fi";
 import { DashCard, DashPageHeader } from "@/components/dashboard/DashPage";
 import AdminPageLoader from "@/components/dashboard/AdminPageLoader";
 import SearchSelect from "@/components/ui/SearchSelect";
@@ -214,10 +214,10 @@ export default function ApplicationsView() {
           </div>
           <div className="flex flex-wrap items-center gap-1.5 sm:col-span-2 2xl:col-span-3">
             <button type="button" className={BTN} onClick={() => setShowIntake((v) => !v)}>
-              <span className="inline-flex items-center gap-1.5"><Plus className="h-3.5 w-3.5" /> New application</span>
+              <span className="inline-flex items-center gap-1.5"><FiPlus className="h-3.5 w-3.5" /> New application</span>
             </button>
             <button type="button" className={BTN_GHOST} disabled={acting !== null} onClick={saveMarks}>
-              <span className="inline-flex items-center gap-1.5"><Save className="h-3.5 w-3.5" /> Save marks + rank</span>
+              <span className="inline-flex items-center gap-1.5"><FiSave className="h-3.5 w-3.5" /> Save marks + rank</span>
             </button>
           </div>
         </div>
@@ -258,7 +258,7 @@ export default function ApplicationsView() {
               <button type="button" className={BTN} disabled={acting !== null} onClick={submitIntake}>
                 {acting === "intake" ? (
                   <span className="inline-flex items-center gap-1.5">
-                    <Loader2 className="h-3.5 w-3.5 animate-spin" /> Submitting…
+                    <FiLoader className="h-3.5 w-3.5 animate-spin" /> Submitting…
                   </span>
                 ) : (
                   <span className="inline-flex items-center gap-1.5">Submit (APP number issued)</span>
@@ -332,7 +332,7 @@ export default function ApplicationsView() {
                             onClick={() => router.push(`/admin/admissions/direct-admission?query=${encodeURIComponent(a.guardianPhone)}&draft=${a.id}`)}
                             title="Pre-fill the wizard from this applicant"
                           >
-                            <span className="inline-flex items-center gap-1">Convert <ArrowRight className="h-3 w-3" /></span>
+                            <span className="inline-flex items-center gap-1">Convert <FiArrowRight className="h-3 w-3" /></span>
                           </button>
                         )}
                       </div>

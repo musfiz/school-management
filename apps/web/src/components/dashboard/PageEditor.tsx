@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Copy, ExternalLink, Loader2, Save } from "lucide-react";
+import { FiCopy as Copy, FiExternalLink as ExternalLink, FiLoader as Loader2, FiSave as Save } from "react-icons/fi";
 import { DashCard } from "@/components/dashboard/DashPage";
 import ImageUploader from "@/components/dashboard/ImageUploader";
 import AdminPageLoader from "@/components/dashboard/AdminPageLoader";

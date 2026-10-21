@@ -145,23 +145,20 @@
    support Latin as well). Locale class is set on <html> in the root layout.
    The dashboard always overrides back to Geist below, regardless of locale. */
 html.lang-en {
-  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-display), ui-sans-serif, system-ui, sans-serif;
 }
 
-/* Dashboard (protected) area uses Geist instead of the marketing site font.
-   Overriding the tokens (not just font-family) means font-display/font-sans
-   utilities used by dashboard components pick up Geist automatically. */
+/* Dashboard (protected) area uses the same font stack as the marketing site
+   (Anek Bangla via --font-sans / --font-display defined in @theme above). */
 .dashboard-font {
-  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
   font-family: var(--font-sans);
 }
 
 /* SweetAlert2 renders into document.body (outside the dashboard DOM subtree),
    so it can't inherit --font-sans from .dashboard-font; it's dashboard-only. */
 .swal2-popup {
-  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
 }
 @utility bg-grid {
   background-image:

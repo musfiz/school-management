@@ -2,7 +2,7 @@
 
 import { useId, useState, type KeyboardEvent } from "react";
 import ReactDatePicker from "react-datepicker";
-import { CalendarDays } from "lucide-react";
+import { GoCalendar as CalendarDays } from "react-icons/go";
 import "react-datepicker/dist/react-datepicker.css";
 
 export interface DatePickerFieldProps {

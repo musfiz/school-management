@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Plus, Pencil, Trash2, Save, X, Loader2, Building2 } from "lucide-react";
+import { FiPlus, FiEdit, FiTrash, FiSave, FiX, FiLoader } from "react-icons/fi";
+import { BiBuilding } from "react-icons/bi";
 import type { ColumnDef } from "@tanstack/react-table";
 import DataTable from "@/components/dashboard/DataTable";
 import { DashCard, DashPageHeader } from "@/components/dashboard/DashPage";
@@ -121,7 +122,7 @@ export default function ModulesPage() {
         accessorKey: "name",
         cell: ({ row }) => (
           <span className="flex items-center gap-2 font-semibold text-navy-900">
-            <Building2 className="h-4 w-4 text-brand-500" />
+            <BiBuilding className="h-4 w-4 text-brand-500" />
             {row.original.name}
           </span>
         ),
@@ -137,7 +138,7 @@ export default function ModulesPage() {
               className="rounded-xs p-1.5 text-brand-600 hover:bg-brand-50"
               aria-label="Edit module"
             >
-              <Pencil className="h-4 w-4" />
+              <FiEdit className="h-4 w-4" />
             </button>
             <button
               type="button"
@@ -145,7 +146,7 @@ export default function ModulesPage() {
               className="rounded-xs p-1.5 text-red-600 hover:bg-red-50"
               aria-label="Remove module"
             >
-              <Trash2 className="h-4 w-4" />
+              <FiTrash className="h-4 w-4" />
             </button>
           </div>
         ),
@@ -166,7 +167,7 @@ export default function ModulesPage() {
             onClick={openAddForm}
             className="flex items-center gap-1.5 rounded-xs bg-brand-600 px-3 py-2 text-sm font-semibold text-white hover:bg-brand-700"
           >
-            <Plus className="h-4 w-4" />
+            <FiPlus className="h-4 w-4" />
             Add Module
           </button>
         </div>
@@ -184,7 +185,7 @@ export default function ModulesPage() {
               className="rounded-xs p-1 text-ink-400 hover:bg-ink-50 hover:text-ink-700"
               aria-label="Close form"
             >
-              <X className="h-4 w-4" />
+              <FiX className="h-4 w-4" />
             </button>
           </div>
 
@@ -212,9 +213,9 @@ export default function ModulesPage() {
               className="flex items-center gap-1.5 rounded-xs bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-60"
             >
               {saving ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <FiLoader className="h-4 w-4 animate-spin" />
               ) : (
-                <Save className="h-4 w-4" />
+                <FiSave className="h-4 w-4" />
               )}
               Save
             </button>

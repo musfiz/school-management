@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
-import { Eye, Loader2, RefreshCw, Search, ShieldCheck, ShieldOff, Users } from "lucide-react";
+import { FiEye, FiLoader, FiRefreshCcw, FiSearch, FiShieldOff, FiUsers } from "react-icons/fi";
+import { RiShieldCheckLine } from "react-icons/ri";
 import { DashCard, DashPageHeader } from "@/components/dashboard/DashPage";
 import AdminPageLoader from "@/components/dashboard/AdminPageLoader";
 import SearchSelect from "@/components/ui/SearchSelect";
@@ -173,17 +174,17 @@ export default function FamiliesView() {
             <button type="button" className={BTN} disabled={loading} onClick={load}>
               {loading ? (
                 <span className="inline-flex items-center gap-1.5">
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" /> Loading…
+                  <FiLoader className="h-3.5 w-3.5 animate-spin" /> Loading…
                 </span>
               ) : (
                 <span className="inline-flex items-center gap-1.5">
-                  <Search className="h-3.5 w-3.5" /> Run
+                  <FiSearch className="h-3.5 w-3.5" /> Run
                 </span>
               )}
             </button>
             <button type="button" className={BTN_GHOST} disabled={loading} onClick={load}>
               <span className="inline-flex items-center gap-1">
-                <RefreshCw className="h-3.5 w-3.5" /> Refresh
+                <FiRefreshCcw className="h-3.5 w-3.5" /> Refresh
               </span>
             </button>
           </div>
@@ -249,7 +250,7 @@ export default function FamiliesView() {
                     <td className="px-2.5 py-1">
                       <button type="button" className={BTN_GHOST} onClick={() => openDetail(r.id)}>
                         <span className="inline-flex items-center gap-1">
-                          <Eye className="h-3 w-3" /> View
+                          <FiEye className="h-3 w-3" /> View
                         </span>
                       </button>
                     </td>
@@ -334,7 +335,7 @@ export default function FamiliesView() {
                   <Section title={`Children / siblings (${detail.children.length})`}>
                     {detail.children.length === 0 ? (
                       <p className="inline-flex items-center gap-1.5 text-ink-500">
-                        <Users className="h-3.5 w-3.5" /> No students linked yet.
+                        <FiUsers className="h-3.5 w-3.5" /> No students linked yet.
                       </p>
                     ) : (
                       <div className="overflow-x-auto rounded-xs border border-ink-100">
@@ -400,11 +401,11 @@ export default function FamiliesView() {
                     className="inline-flex items-center gap-1.5 rounded-xs border border-ink-200 bg-white px-3 py-2 text-sm font-semibold text-ink-700 hover:bg-ink-50 disabled:opacity-50"
                   >
                     {verifying ? (
-                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      <FiLoader className="h-3.5 w-3.5 animate-spin" />
                     ) : detail.isZakatEligibleFamily ? (
-                      <ShieldOff className="h-3.5 w-3.5" />
+                      <FiShieldOff className="h-3.5 w-3.5" />
                     ) : (
-                      <ShieldCheck className="h-3.5 w-3.5" />
+                      <RiShieldCheckLine className="h-3.5 w-3.5" />
                     )}
                     {detail.isZakatEligibleFamily ? "Remove verification" : "Verify zakat eligibility"}
                   </button>

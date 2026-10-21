@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Loader2, Search, Users } from "lucide-react";
+import { FiLoader, FiSearch, FiUsers } from "react-icons/fi";
 import { DashCard } from "@/components/dashboard/DashPage";
 import { apiFetch } from "@/lib/api";
 import { toast } from "@/lib/swal";
@@ -83,11 +83,11 @@ export default function FamilyLookupCard({ initialQuery, onResult }: Props) {
           <button type="button" className={BTN} disabled={busy} onClick={() => run()}>
             {busy ? (
               <span className="inline-flex items-center gap-1.5">
-                <Loader2 className="h-3.5 w-3.5 animate-spin" /> Looking up…
+                <FiLoader className="h-3.5 w-3.5 animate-spin" /> Looking up…
               </span>
             ) : (
               <span className="inline-flex items-center gap-1.5">
-                <Search className="h-3.5 w-3.5" /> Lookup family
+                <FiSearch className="h-3.5 w-3.5" /> Lookup family
               </span>
             )}
           </button>
@@ -183,7 +183,7 @@ export default function FamilyLookupCard({ initialQuery, onResult }: Props) {
             </div>
           ) : (
             <p className="inline-flex items-center gap-1.5 text-xs text-ink-500">
-              <Users className="h-3.5 w-3.5" /> No active siblings — waiver
+              <FiUsers className="h-3.5 w-3.5" /> No active siblings — waiver
               suggestion stays off for this family.
             </p>
           )}

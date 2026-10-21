@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
-import { ChevronDown, Mail, Menu, Phone, X } from "lucide-react";
+import { FiChevronDown as ChevronDown, FiMail as Mail, FiMenu as Menu, FiPhone as Phone, FiX as X } from "react-icons/fi";
 import type { NavItem } from "@/lib/navigation";
 import type { PublicSiteSettings } from "@/lib/site-settings";
 import { resolveImageUrl, isExternalImage } from "@/lib/media";

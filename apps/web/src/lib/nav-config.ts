@@ -14,38 +14,34 @@
      to `filterNavForUserRole`.
 ---------------------------------------------------------------------------- */
 
-import type { LucideIcon } from "lucide-react";
+import type { IconType } from "react-icons";
 import {
-  Award,
-  Bell,
-  BookOpen,
-  BookOpenCheck,
-  Building2,
-  CalendarDays,
-  ClipboardList,
-  Cpu,
-  FileSpreadsheet,
-  FolderKanban,
-  Globe,
-  GraduationCap,
-  History,
-  IdCard,
-  Images,
-  Info,
-  Landmark,
-  LayoutDashboard,
-  Megaphone,
-  PieChart,
-  Receipt,
-  Settings,
-  SlidersHorizontal,
-  Sparkles,
-  UserCog,
-  UserPlus,
-  Users,
-  ShieldCheck,
-  Zap,
-} from "lucide-react";
+  RiBellLine as Bell,
+  RiClipboardLine as ClipboardList,
+  RiFolderLine as FolderKanban,
+  RiGlobeLine as Globe,
+  RiGraduationCapLine as GraduationCap,
+  RiHistoryLine as History,
+  RiImageLine as Images,
+  RiDashboardLine as LayoutDashboard,
+  RiShieldCheckLine as ShieldCheck,
+  RiSparklingLine as Sparkles,
+  RiUserSettingsLine as UserCog,
+} from "react-icons/ri";
+import {
+  FiAward as Award,
+  FiBookOpen as BookOpen,
+  FiCpu as Cpu,
+  FiInfo as Info,
+  FiPieChart as PieChart,
+  FiSettings as Settings,
+  FiSliders as SlidersHorizontal,
+  FiUserPlus as UserPlus,
+  FiUsers as Users,
+  FiZap as Zap,
+} from "react-icons/fi";
+import { BiBuilding as Building2, BiIdCard as IdCard, BiReceipt as Receipt, BiSolidLandmark as Landmark, BiSpreadsheet as FileSpreadsheet } from "react-icons/bi";
+import { GoCalendar as CalendarDays, GoMegaphone as Megaphone } from "react-icons/go";
 import type { Role } from "./dashboard-nav";
 
 /* ------------------------------------------------------------------ */
@@ -90,7 +86,7 @@ export interface NavLeaf {
   label: string;
   href: string;
   description?: string;
-  icon?: LucideIcon;
+  icon?: IconType;
   /** Canonical RBAC gate. */
   roles: UserRole[];
   /** Mock-gate bridge (current Session role). Remove with the mock gate. */
@@ -107,7 +103,7 @@ export interface NavLeaf {
 export interface NavGroup {
   kind: "group";
   label: string;
-  icon?: LucideIcon;
+  icon?: IconType;
   /** Group-level RBAC gate AND at least one visible child are both required. */
   roles: UserRole[];
   legacyRoles: Role[];
@@ -218,7 +214,7 @@ export const navItems: NavItem[] = [
     label: "Vouchers & General Ledger",
     href: "/admin/accounting/vouchers",
     description: "Receive, Payment, Journal, Contra + approvals",
-    icon: BookOpenCheck,
+    icon: BookOpen,
     roles: ["SUPER_ADMIN", "PRINCIPAL", "ACCOUNTANT", "CASHIER"],
     legacyRoles: FINANCE_LEGACY,
     keywords: ["voucher", "receive", "payment", "journal", "contra", "approval", "ledger"],

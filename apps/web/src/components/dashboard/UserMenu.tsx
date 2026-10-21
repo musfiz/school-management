@@ -10,12 +10,12 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  ChevronDown,
-  ExternalLink,
-  LogOut,
-  Settings,
-  User,
-} from "lucide-react";
+  FiChevronDown as ChevronDown,
+  FiExternalLink,
+  FiLogOut,
+  FiSettings,
+  FiUser as User,
+} from "react-icons/fi";
 import { roleLabels, type Role } from "@/lib/dashboard-nav";
 
 /** Two-letter initials: first letter of first + last name. Single-word names
@@ -154,7 +154,7 @@ export default function UserMenu({
                 onClick={() => setOpen(false)}
                 className="flex items-center gap-3 px-4 py-2 text-sm text-ink-700 hover:bg-ink-100 hover:text-navy-800"
               >
-                <Settings className="h-4 w-4" />
+                <FiSettings className="h-4 w-4" />
                 Settings
               </Link>
             </li>
@@ -165,7 +165,7 @@ export default function UserMenu({
                 onClick={() => setOpen(false)}
                 className="flex items-center gap-3 px-4 py-2 text-sm text-ink-700 hover:bg-ink-100 hover:text-navy-800"
               >
-                <ExternalLink className="h-4 w-4" />
+                <FiExternalLink className="h-4 w-4" />
                 View site
               </Link>
             </li>
@@ -179,7 +179,7 @@ export default function UserMenu({
               disabled={isPending}
               className="flex w-full items-center gap-3 rounded-xs px-3 py-2 text-left text-sm font-semibold text-red-600 hover:bg-red-50 disabled:opacity-60"
             >
-              <LogOut className="h-4 w-4" />
+              <FiLogOut className="h-4 w-4" />
               {isPending ? "Signing out…" : "Sign out"}
             </button>
           </div>

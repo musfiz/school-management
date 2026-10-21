@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import { Loader2, UserPlus } from "lucide-react";
+import { FiLoader, FiUserPlus } from "react-icons/fi";
 import SearchSelect from "@/components/ui/SearchSelect";
 import DatePickerField, { todayISO } from "@/components/ui/DatePicker";
 import { apiFetch } from "@/lib/api";
@@ -262,9 +262,9 @@ export default function AddStudentModal({ open, onClose, onCreated, options }: P
               <button type="button" className={MODAL_BTN_GHOST} disabled={busy} onClick={close}>Cancel</button>
               <button type="button" className={MODAL_BTN} disabled={busy} onClick={submit}>
                 {busy ? (
-                  <span className="inline-flex items-center gap-1.5"><Loader2 className="h-3.5 w-3.5 animate-spin" /> Admitting…</span>
+                  <span className="inline-flex items-center gap-1.5"><FiLoader className="h-3.5 w-3.5 animate-spin" /> Admitting…</span>
                 ) : (
-                  <span className="inline-flex items-center gap-1.5"><UserPlus className="h-3.5 w-3.5" /> Admit student</span>
+                  <span className="inline-flex items-center gap-1.5"><FiUserPlus className="h-3.5 w-3.5" /> Admit student</span>
                 )}
               </button>
             </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { Search } from "lucide-react";
+import { FiSearch as Search } from "react-icons/fi";
 import { roleLabels, type Role } from "@/lib/dashboard-nav";
 import { openCommandPalette } from "./CommandPalette";
 import UserMenu from "./UserMenu";
