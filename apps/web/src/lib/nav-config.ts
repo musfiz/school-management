@@ -627,19 +627,6 @@ export const navItems: NavItem[] = [
   },
   {
     kind: "group",
-    label: "Information",
-    icon: Info,
-    roles: ALL,
-    legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"],
-    children: [
-      { kind: "leaf", label: "Permission & Recognition", href: "/admin/information/permission-recognition-letter", roles: ALL, legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"] },
-      { kind: "leaf", label: "Nationalization", href: "/admin/information/nationalization", roles: ALL, legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"] },
-      { kind: "leaf", label: "Statistics Report", href: "/admin/information/statistics-report", roles: ALL, legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"] },
-      { kind: "leaf", label: "Govt. Approval Letter", href: "/admin/information/govt-approval-letter", roles: ALL, legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"] },
-    ],
-  },
-  {
-    kind: "group",
     label: "Facilities",
     icon: Sparkles,
     roles: ALL,

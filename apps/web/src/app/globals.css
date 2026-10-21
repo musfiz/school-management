@@ -141,24 +141,30 @@
   }
 }
 
-/* Public site: English uses Geist, Bangla keeps Anek Bangla (it doesn't
-   support Latin as well). Locale class is set on <html> in the root layout.
-   The dashboard always overrides back to Geist below, regardless of locale. */
+/* Public site: keeps Anek Bangla for both locales (English + Bangla). The
+   dashboard always overrides to Roboto via .dashboard-font below. Locale
+   class is set on <html> in the root layout. */
 html.lang-en {
-  --font-sans: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--font-display), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Anek Bangla", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Anek Bangla", ui-sans-serif, system-ui, sans-serif;
 }
 
-/* Dashboard (protected) area uses the same font stack as the marketing site
-   (Anek Bangla via --font-sans / --font-display defined in @theme above). */
+/* Dashboard (protected) area uses Roboto (self-hosted via next/font in the
+   root layout, exposed as --font-roboto on <html>). "Anek Bangla" is kept as
+   the fallback so any Bangla text renders correctly (Roboto has no Bengali
+   glyphs). Redefining --font-display in the same scope makes dashboard
+   headings (h1–h4 pick it up from @layer base) use Roboto too. */
 .dashboard-font {
+  --font-sans: var(--font-roboto), "Anek Bangla", ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-roboto), "Anek Bangla", ui-sans-serif, system-ui, sans-serif;
   font-family: var(--font-sans);
 }
 
 /* SweetAlert2 renders into document.body (outside the dashboard DOM subtree),
-   so it can't inherit --font-sans from .dashboard-font; it's dashboard-only. */
+   so it can't inherit --font-sans from .dashboard-font; it's dashboard-only.
+   --font-roboto is declared on <html>, so it is available here. */
 .swal2-popup {
-  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-roboto), var(--font-sans), ui-sans-serif, system-ui, sans-serif;
 }
 @utility bg-grid {
   background-image:
