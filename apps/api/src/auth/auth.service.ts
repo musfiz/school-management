@@ -45,6 +45,7 @@ export class AuthService {
       sub: String(user.id),
       email: user.email,
       role: user.role,
+      isSuperAdmin: user.isSuperAdmin,
       name: user.name,
       permissions,
     };
@@ -57,6 +58,7 @@ export class AuthService {
         name: user.name,
         email: user.email,
         role: user.role,
+        isSuperAdmin: user.isSuperAdmin,
         permissions,
       },
     };
@@ -89,6 +91,7 @@ export class AuthService {
       sub: String(user.id),
       email: user.email,
       role: user.role,
+      isSuperAdmin: user.isSuperAdmin,
       name: user.name,
       permissions,
     };
@@ -101,6 +104,7 @@ export class AuthService {
         name: user.name,
         email: user.email,
         role: user.role,
+        isSuperAdmin: user.isSuperAdmin,
         permissions,
       },
     };

@@ -1300,12 +1300,14 @@ model Users {
   email                                               String                   @unique(map: "UQ_97672ac88f789774dd47f7c8be3") @db.VarChar(100)
   password                                            String                   @db.VarChar(255)
   role                                                UsersRole                @default(student)
+  isSuperAdmin                                        Boolean                  @default(false)
   phone                                               String?                  @db.VarChar(20)
   isActive                                            Boolean                  @default(true) @map("is_active")
   isVerified                                          Boolean                  @default(false) @map("is_verified")
   lastLoginAt                                         DateTime?                @map("last_login_at") @db.Timestamp(0)
   createdAt                                           DateTime                 @default(now()) @map("created_at") @db.Timestamp(0)
   updatedAt                                           DateTime                 @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+  menuUserPermissions                                 MenuUserPermission[]     @relation("menu_user_permissions_user_idTousers")
   accountingAuditLogs                                 AccountingAuditLogs[]
   adjunctHonorariumBills                              AdjunctHonorariumBills[]
   journalEntriesJournalEntriesApprovedByUserIdTousers JournalEntries[]         @relation("journal_entries_approved_by_user_idTousers")
@@ -1323,6 +1325,59 @@ model Users {
   @@index([email], map: "IDX_USERS_EMAIL")
   @@index([role], map: "IDX_USERS_ROLE")
   @@map("users")
+}
+
+model Menu {
+  id                    String          @id @default(dbgenerated("(uuid())")) @db.Char(36)
+  title                 String          @db.VarChar(150)
+  slug                  String          @unique(map: "UQ_menu_slug") @map("slug") @db.VarChar(100)
+  path                  String?         @map("path") @db.VarChar(255)
+  icon                  String?         @db.VarChar(100)
+  parentId              String?         @map("parent_id") @db.Char(36)
+  sortOrder             Int             @default(0) @map("sort_order")
+  isActive              Boolean         @default(true) @map("is_active")
+  createdAt             DateTime        @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt             DateTime        @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+  parent                Menu?           @relation("MenuHierarchy", fields: [parentId], references: [id], onUpdate: Restrict)
+  children              Menu[]          @relation("MenuHierarchy")
+  roleDefaults          RoleDefaultPermission[]
+  userPermissions       MenuUserPermission[]
+
+  @@index([parentId], map: "FK_menu_parent")
+  @@index([slug], map: "IDX_MENU_SLUG")
+  @@map("menus")
+}
+
+model RoleDefaultPermission {
+  id        Int      @id @default(autoincrement())
+  role      UsersRole
+  menuId    String   @map("menu_id") @db.Char(36)
+  canView   Boolean  @default(false)
+  canCreate Boolean  @default(false)
+  canEdit   Boolean  @default(false)
+  canDelete Boolean  @default(false)
+
+  menu Menu @relation(fields: [menuId], references: [id], onDelete: Cascade, map: "FK_role_default_menu")
+
+  @@unique([role, menuId], map: "uq_role_default_permission")
+  @@map("role_default_permissions")
+}
+
+model MenuUserPermission {
+  id        Int      @id @default(autoincrement())
+  userId    String   @map("user_id") @db.Char(36)
+  menuId    String   @map("menu_id") @db.Char(36)
+  canView   Boolean  @default(false)
+  canCreate Boolean  @default(false)
+  canEdit   Boolean  @default(false)
+  canDelete Boolean  @default(false)
+
+  user Users @relation("menu_user_permissions_user_idTousers", fields: [userId], references: [id], onDelete: Cascade, map: "FK_menu_user_perm_user")
+  menu Menu @relation(fields: [menuId], references: [id], onDelete: Cascade, map: "FK_menu_user_perm_menu")
+
+  @@unique([userId, menuId], map: "uq_menu_user_permission")
+  @@index([userId], map: "FK_menu_user_perm_user")
+  @@map("menu_user_permissions")
 }
 
 model VendorBills {
@@ -1424,6 +1479,7 @@ model WaiverPresetRules {
 }
 
 enum UsersRole {
+  superadmin
   admin
   management
   accountant

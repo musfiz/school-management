@@ -21,10 +21,12 @@ import { AdmissionsModule } from './admissions/admissions.module';
 import { DocumentsModule } from './documents/documents.module';
 import { AcademicResultsModule } from './academic-results/academic-results.module';
 import { StorageModule } from './modules/storage/storage.module';
+import { PermissionAssignmentModule } from './permission-assignment/permission-assignment.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { JwtAuthGuard } from './auth/jwt-auth.guard';
+import { MenuPermissionsGuard } from './common/guards/menu-permissions.guard';
 
 @Module({
   imports: [
@@ -51,6 +53,7 @@ import { JwtAuthGuard } from './auth/jwt-auth.guard';
     AcademicResultsModule,
     // Global strategy module for image storage (local ⇄ S3/R2 via env).
     StorageModule,
+    PermissionAssignmentModule,
   ],
   controllers: [AppController],
   providers: [
@@ -58,6 +61,9 @@ import { JwtAuthGuard } from './auth/jwt-auth.guard';
     // Global guard: every route requires a valid JWT unless it opts out
     // with @Public() (see AuthController). AuthModule exports JwtAuthGuard.
     { provide: APP_GUARD, useClass: JwtAuthGuard },
+    // Menu-level permission guard enforces @RequirePermission(menuSlug, action).
+    // Superadmins bypass it entirely.
+    { provide: APP_GUARD, useClass: MenuPermissionsGuard },
   ],
 })
 export class AppModule {}

@@ -30,6 +30,7 @@ export interface Session {
   name: string;
   email: string;
   role: Role;
+  isSuperAdmin: boolean;
 }
 
 /** Decode a base64url string (no external deps). */
@@ -45,6 +46,7 @@ interface JwtClaims {
   email: string;
   role: string;
   name?: string;
+  isSuperAdmin?: boolean;
   iat?: number;
   exp?: number;
 }
@@ -114,6 +116,7 @@ async function decodeToken(): Promise<Session | null> {
     id: claims.sub,
     email: claims.email,
     role: claims.role as Role,
+    isSuperAdmin: claims.isSuperAdmin === true,
     name: claims.name ?? claims.email.split("@")[0] ?? "User",
   };
 }

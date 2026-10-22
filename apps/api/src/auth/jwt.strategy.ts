@@ -9,6 +9,7 @@ export interface JwtPayload {
   sub: string;
   email: string;
   role: string;
+  isSuperAdmin: boolean;
   permissions: string[];
   name?: string;
 }
@@ -51,6 +52,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       id: user.id,
       email: user.email,
       role: user.role,
+      isSuperAdmin: user.isSuperAdmin,
       name: user.name,
       permissions,
     };

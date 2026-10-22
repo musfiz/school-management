@@ -39,6 +39,42 @@ export interface UserSummary {
   role: string;
 }
 
+export type MenuAction = "canView" | "canCreate" | "canEdit" | "canDelete";
+
+export const MENU_ACTIONS: MenuAction[] = ["canView", "canCreate", "canEdit", "canDelete"];
+
+/** Human label for each menu action, shown as a column header. */
+export const MENU_ACTION_LABELS: Record<MenuAction, string> = {
+  canView: "View",
+  canCreate: "Create",
+  canEdit: "Edit",
+  canDelete: "Delete",
+};
+
+/** One menu merged with a user's current action flags (from GET /api/permissions/user/:id).
+ *  Backend returns one row per menu with the four action flags as booleans.
+ *  `slug` is the same field as `menuSlug` — kept in sync with the backend's
+ *  `MyMenuEntry.slug` / `MenuPermissionWire.menuSlug`. */
+export interface MenuPermissionEntry {
+  slug: string;
+  menuSlug: string;
+  title: string;
+  path?: string | null;
+  role?: string;
+  isSuperAdmin?: boolean;
+  canView: boolean;
+  canCreate: boolean;
+  canEdit: boolean;
+  canDelete: boolean;
+}
+
+/** A single (menu, action) flag to send to PUT /api/permissions/user/:id. */
+export interface MenuPermissionFlag {
+  menuSlug: string;
+  action: MenuAction;
+  granted: boolean;
+}
+
 /** Fixed action verbs — one checkbox column each in the matrix. */
 export const ACTION_VERBS = ["view", "add", "update", "delete", "pdf", "xlsx"] as const;
 export type ActionVerb = (typeof ACTION_VERBS)[number];
@@ -129,6 +165,45 @@ export function createPermission(input: {
 
 export function listUsers(): Promise<UserSummary[]> {
   return apiFetch<UserSummary[]>("/api/users");
+}
+
+/** Menu-based API (GET /api/menus/my-menus) — hierarchical tree with action flags.
+ *  The backend returns MyMenuEntry objects (slug, title, path, parentId,
+ *  sortOrder, isActive, canView, canCreate, canEdit, canDelete, children).
+ *  We map them to MenuPermissionEntry (dropping the tree shape). */
+export function getMyMenus(): Promise<MenuPermissionEntry[]> {
+  return apiFetch<MenuPermissionEntry[]>("/api/menus/my-menus");
+}
+
+/** Menu-based matrix (GET /api/permissions/user/:userId). Returns every menu
+ *  merged with the target user's canView/canCreate/canEdit/canDelete flags.
+ *  The backend returns a bare array of MenuPermissionEntry objects. */
+export function getUserMenuPermissions(userId: string): Promise<MenuPermissionEntry[]> {
+  return apiFetch<MenuPermissionEntry[]>(`/api/permissions/user/${userId}`);
+}
+
+/** Bulk upsert of a user's menu-level permissions (PUT /api/permissions/user/:userId).
+ *  One entry per (menuSlug, action) to set. */
+export function setUserMenuPermissions(
+  userId: string,
+  permissions: { menuSlug: string; action: MenuAction; granted: boolean }[],
+): Promise<void> {
+  return apiFetch<void>(`/api/permissions/user/${userId}`, {
+    method: "PUT",
+    body: JSON.stringify({ permissions }),
+  });
+}
+
+/** Reset a user's menu permissions to their role-default template
+ *  (POST /api/permissions/user/:userId/reset). Omit menuSlug to reset all. */
+export function resetUserMenuPermissions(
+  userId: string,
+  menuSlug?: string,
+): Promise<void> {
+  return apiFetch<void>(`/api/permissions/user/${userId}/reset`, {
+    method: "POST",
+    body: JSON.stringify({ menuSlug }),
+  });
 }
 
 export function getUserPermissions(userId: string): Promise<string[]> {

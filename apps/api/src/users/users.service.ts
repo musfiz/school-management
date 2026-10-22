@@ -3,13 +3,17 @@ import { PrismaService } from '../prisma/prisma.service';
 import { toWire, toWireList, Wire } from '../prisma/wire';
 import type { Users } from '../generated/prisma/client';
 import { CreateUserDto, UpdateUserDto } from './user.dto';
+import { PermissionAssignmentService } from '../permission-assignment/permission-assignment.service';
 
 /** The snake_case row the users API returns (see `prisma/wire.ts`). */
 export type UserRecord = Wire<Users>;
 
 @Injectable()
 export class UsersService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly permissionAssignment: PermissionAssignmentService,
+  ) {}
 
   async create(createUserDto: CreateUserDto): Promise<UserRecord> {
     const existingUser = await this.findByEmail(createUserDto.email);
@@ -19,7 +23,16 @@ export class UsersService {
 
     // The password is hashed by the central Prisma extension
     // (src/prisma/password-hashing.extension.ts), not here.
-    const user = await this.prisma.users.create({ data: { ...createUserDto } });
+    const user = await this.prisma.$transaction(async (tx) => {
+      const created = await tx.users.create({ data: { ...createUserDto } });
+      // Auto-assign role-default menu permissions to the new user (joins tx).
+      await this.permissionAssignment.assignRoleDefaultsToUser(
+        created.id,
+        created.role,
+        tx,
+      );
+      return created;
+    });
     return toWire(user);
   }
 

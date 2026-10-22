@@ -16,6 +16,8 @@ import { Public } from '../common/decorators/public.decorator';
 import { Roles } from '../common/decorators/roles.decorator';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { UserRole } from '../database/entities/user-role.enum';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
 
 @ApiTags('Menus')
 @ApiExtraModels(MenuItemInputDto, MenuChildInputDto)
@@ -30,6 +32,16 @@ export class MenusController {
   })
   findPublic(@Param('location') location: MenuLocation) {
     return this.menusService.findPublicTree(location);
+  }
+
+  @Get('my-menus')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: "Hierarchical menu tree for the current user with action flags",
+  })
+  myMenus(@CurrentUser('id') userId: string, @CurrentUser('isSuperAdmin') isSuperAdmin: boolean) {
+    return this.menusService.getMyMenus(userId, !!isSuperAdmin);
   }
 
   @Get(':location/all')

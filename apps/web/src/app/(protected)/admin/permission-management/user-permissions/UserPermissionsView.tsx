@@ -1,19 +1,24 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { FiSave, FiLoader, FiSearch, FiX, FiShield, FiChevronDown, FiUsers, FiGrid, FiCheck } from "react-icons/fi";
-import type { UserSummary } from "@/lib/permissions";
 import {
-  listPermissions,
+  FiSave,
+  FiLoader,
+  FiSearch,
+  FiX,
+  FiChevronDown,
+  FiUsers,
+  FiGrid,
+  FiCheck,
+} from "react-icons/fi";
+import {
   listUsers,
-  getUserPermissions,
-  setUserPermissions,
-  flattenTree,
-  moduleLabels,
-  permissionName,
-  ACTION_VERBS,
-  type ActionVerb,
-  type MatrixPage,
+  getMyMenus,
+  getUserMenuPermissions,
+  setUserMenuPermissions,
+  resetUserMenuPermissions,
+  type MenuPermissionEntry,
+  type MenuAction,
 } from "@/lib/permissions";
 import { DashCard, DashPageHeader } from "@/components/dashboard/DashPage";
 import AdminPageLoader from "@/components/dashboard/AdminPageLoader";
@@ -23,7 +28,22 @@ import { toast } from "@/lib/swal";
 // Types
 // ---------------------------------------------------------------------------
 
-/** Set of "verb-slug" strings that are currently checked in the matrix. */
+interface UserSummary {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+}
+
+/** Display labels for menu actions. */
+const MENU_ACTION_LABELS: Record<MenuAction, string> = {
+  canView: "View",
+  canCreate: "Create",
+  canEdit: "Edit",
+  canDelete: "Delete",
+};
+
+/** Set of (menuSlug, action) strings that are currently checked in the matrix. */
 type Selection = Set<string>;
 
 // ---------------------------------------------------------------------------
@@ -45,7 +65,6 @@ function UserMultiSelect({
   const [query, setQuery] = useState("");
   const ref = useRef<HTMLDivElement>(null);
 
-  // Close on outside click
   useEffect(() => {
     function handle(e: MouseEvent) {
       if (ref.current && !ref.current.contains(e.target as Node)) {
@@ -137,7 +156,7 @@ function UserMultiSelect({
           <ul className="max-h-60 overflow-y-auto">
             {filtered.length === 0 ? (
               <li className="px-3 py-6 text-center text-sm text-ink-400">
-                No users match “{query}”.
+                No users match "{query}".
               </li>
             ) : (
               filtered.map((u) => {
@@ -184,13 +203,27 @@ function UserMultiSelect({
 function ModuleSelect({
   value,
   onChange,
+  allMenus,
 }: {
   value: string;
   onChange: (v: string) => void;
+  allMenus: MenuPermissionEntry[];
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
-  const labels = useMemo(() => moduleLabels(), []);
+
+  // Extract unique module labels from menu slugs
+  const labels = useMemo(() => {
+    const set = new Set<string>();
+    for (const m of allMenus) {
+      // Extract module from slug (e.g., "accounts_vouchers" -> "accounts")
+      const parts = m.slug.split("_");
+      if (parts.length >= 2) {
+        set.add(parts[0]);
+      }
+    }
+    return ["all", ...Array.from(set)];
+  }, [allMenus]);
 
   useEffect(() => {
     function handle(e: MouseEvent) {
@@ -202,6 +235,8 @@ function ModuleSelect({
     return () => document.removeEventListener("mousedown", handle);
   }, [open]);
 
+  const displayLabel = value === "all" ? "All Modules" : value;
+
   return (
     <div ref={ref} className="relative w-full">
       <button
@@ -211,7 +246,7 @@ function ModuleSelect({
       >
         <FiGrid className="h-4 w-4 shrink-0 text-ink-400" />
         <span className={value === "all" ? "text-ink-400" : "text-ink-900"}>
-          {value === "all" ? "All Modules" : value}
+          {displayLabel}
         </span>
         <FiChevronDown className="ml-auto h-4 w-4 shrink-0 text-ink-400" />
       </button>
@@ -219,18 +254,6 @@ function ModuleSelect({
       {open && (
         <div className="absolute left-0 right-0 top-full z-30 mt-1 overflow-hidden rounded-xs border border-ink-200 bg-white shadow-lg">
           <ul className="max-h-60 overflow-y-auto">
-            <li>
-              <button
-                type="button"
-                onClick={() => {
-                  onChange("all");
-                  setOpen(false);
-                }}
-                className={`flex w-full items-center gap-2 px-3 py-2 text-left text-sm ${ value === "all" ? "bg-brand-50 font-semibold" : "hover:bg-ink-50" }`}
-              >
-                All Modules
-              </button>
-            </li>
             {labels.map((label) => (
               <li key={label}>
                 <button
@@ -241,7 +264,7 @@ function ModuleSelect({
                   }}
                   className={`flex w-full items-center gap-2 px-3 py-2 text-left text-sm ${ value === label ? "bg-brand-50 font-semibold" : "hover:bg-ink-50" }`}
                 >
-                  {label}
+                  {label === "all" ? "All Modules" : label}
                 </button>
               </li>
             ))}
@@ -258,82 +281,78 @@ function ModuleSelect({
 
 export default function UserPermissionsView() {
   const [users, setUsers] = useState<UserSummary[]>([]);
-  const [catalog, setCatalog] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
 
   const [selectedUsers, setSelectedUsers] = useState<UserSummary[]>([]);
   const [moduleFilter, setModuleFilter] = useState("all");
 
-  /** Currently checked permission names in the matrix. */
+  /** Currently checked permission flags: "menuSlug:ACTION" strings. */
   const [checked, setChecked] = useState<Selection>(new Set());
-  /** Permission names each selected user already had (for diffing on save). */
-  const [original, setOriginal] = useState<Map<string, Set<string>>>(new Map());
+
+  /** Permission flags each selected user already had (for diffing on save). */
+  const [original, setOriginal] = useState<Map<string, Selection>>(new Map());
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const allPages = useMemo(() => flattenTree(), []);
+  /** All menus merged with their action flags (from GET /api/menus/my-menus). */
+  const allMenus = useMemo<MenuPermissionEntry[]>(() => [], []);
 
-  // Filtered pages based on module selection
-  const visiblePages = useMemo(() => {
-    if (moduleFilter === "all") return allPages;
-    return allPages.filter((p) => p.module === moduleFilter);
-  }, [allPages, moduleFilter]);
-
-  // Pages grouped by module for section rendering
-  const grouped = useMemo((): [string, MatrixPage[]][] => {
-    const map = new Map<string, MatrixPage[]>();
-    for (const p of visiblePages) {
-      const list = map.get(p.module) ?? [];
-      list.push(p);
-      map.set(p.module, list);
-    }
-    return Array.from(map.entries());
-  }, [visiblePages]);
-
-  // Load catalog + users on mount
+  // Load users on mount
   useEffect(() => {
     (async () => {
       setLoading(true);
       try {
-        const [perms, usrs] = await Promise.all([
-          listPermissions(),
-          listUsers(),
-        ]);
-        setCatalog(perms.map((p) => p.name));
+        const usrs = await listUsers();
         setUsers(usrs);
       } catch {
-        setError("Could not load data.");
-        toast("Could not load data.", "error");
+        setError("Could not load users.");
+        toast("Could not load users.", "error");
       } finally {
         setLoading(false);
       }
     })();
   }, []);
 
-  // When selected users change, load their current permissions into `checked`
+  /** After users are selected, load their current (menu, action) flags. */
   useEffect(() => {
     if (selectedUsers.length === 0) {
       setChecked(new Set());
       setOriginal(new Map());
       return;
     }
+
     (async () => {
       try {
-        const entries = await Promise.all(
-          selectedUsers.map(async (u) => {
-            const perms = await getUserPermissions(u.id);
-            return [u.id, perms] as [string, string[]];
-          }),
-        );
-        const origMap = new Map<string, Set<string>>();
-        const union = new Set<string>();
-        for (const [id, perms] of entries) {
-          origMap.set(id, new Set(perms));
-          perms.forEach((p) => union.add(p));
+        const flagMap = new Map<string, Selection>();
+        const newChecked = new Set<string>();
+
+        for (const user of selectedUsers) {
+          const matrix = await getUserMenuPermissions(user.id);
+          const userFlags = new Set<string>();
+
+          for (const entry of matrix) {
+            if (entry.canView) {
+              userFlags.add(`${entry.menuSlug}:canView`);
+              newChecked.add(`${entry.menuSlug}:canView`);
+            }
+            if (entry.canCreate) {
+              userFlags.add(`${entry.menuSlug}:canCreate`);
+              newChecked.add(`${entry.menuSlug}:canCreate`);
+            }
+            if (entry.canEdit) {
+              userFlags.add(`${entry.menuSlug}:canEdit`);
+              newChecked.add(`${entry.menuSlug}:canEdit`);
+            }
+            if (entry.canDelete) {
+              userFlags.add(`${entry.menuSlug}:canDelete`);
+              newChecked.add(`${entry.menuSlug}:canDelete`);
+            }
+          }
+          flagMap.set(user.id, userFlags);
         }
-        setOriginal(origMap);
-        setChecked(union);
+        setOriginal(flagMap);
+        setChecked(newChecked);
       } catch {
         toast("Could not load user permissions.", "error");
       }
@@ -342,48 +361,47 @@ export default function UserPermissionsView() {
 
   // ---- selection helpers ----
 
-  function isChecked(verb: ActionVerb, slug: string): boolean {
-    return checked.has(permissionName(verb, slug));
+  function isChecked(menuSlug: string, action: MenuAction): boolean {
+    return checked.has(`${menuSlug}:${action}`);
   }
 
-  function toggleOne(verb: ActionVerb, slug: string) {
+  function toggleOne(menuSlug: string, action: MenuAction) {
     setChecked((prev) => {
       const next = new Set(prev);
-      const name = permissionName(verb, slug);
-      if (next.has(name)) next.delete(name);
-      else next.add(name);
+      const key = `${menuSlug}:${action}`;
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
       return next;
     });
   }
 
   function toggleAllVisible() {
-    const allVisible = new Set<string>();
-    for (const p of visiblePages) {
-      for (const verb of ACTION_VERBS) {
-        allVisible.add(permissionName(verb, p.slug));
+    const allFlags = new Set<string>();
+    for (const m of allMenus) {
+      for (const action of ["canView", "canCreate", "canEdit", "canDelete"] as MenuAction[]) {
+        allFlags.add(`${m.menuSlug}:${action}`);
       }
     }
-    const allChecked = Array.from(allVisible).every((name) => checked.has(name));
+    const allChecked = Array.from(allFlags).every((f) => checked.has(f));
     setChecked((prev) => {
       const next = new Set(prev);
       if (allChecked) {
-        // Uncheck all visible
-        allVisible.forEach((name) => next.delete(name));
+        allFlags.forEach((f) => next.delete(f));
       } else {
-        // Check all visible
-        allVisible.forEach((name) => next.add(name));
+        allFlags.forEach((f) => next.add(f));
       }
       return next;
     });
   }
 
   function allVisibleChecked(): boolean {
-    for (const p of visiblePages) {
-      for (const verb of ACTION_VERBS) {
-        if (!checked.has(permissionName(verb, p.slug))) return false;
+    for (const m of allMenus) {
+      if (moduleFilter !== "all" && !m.slug.startsWith(moduleFilter)) continue;
+      for (const action of ["canView", "canCreate", "canEdit", "canDelete"] as MenuAction[]) {
+        if (!checked.has(`${m.menuSlug}:${action}`)) return false;
       }
     }
-    return visiblePages.length > 0;
+    return allMenus.length > 0;
   }
 
   // ---- user selection ----
@@ -405,21 +423,37 @@ export default function UserPermissionsView() {
     setSaving(true);
     setError(null);
 
-    // Only persist permission names that exist in the catalog.
-    const validNames = Array.from(checked).filter((name) => catalog.includes(name));
+    // Build the permission list from checked flags
+    const flags: { menuSlug: string; action: MenuAction; granted: boolean }[] = [];
+    // eslint-disable-next-line @typescript-eslint/prefer-for-of
+    for (const key of Array.from(checked)) {
+      const [menuSlug, action] = key.split(":");
+      flags.push({ menuSlug, action: action as MenuAction, granted: true });
+    }
 
     try {
       for (const user of selectedUsers) {
-        await setUserPermissions(user.id, validNames);
+        await setUserMenuPermissions(user.id, flags);
       }
       toast(
         `Permissions saved for ${selectedUsers.length} user(s).`,
         "success",
       );
-      // Refresh originals
-      const newOrig = new Map<string, Set<string>>();
-      for (const u of selectedUsers) newOrig.set(u.id, new Set(validNames));
-      setOriginal(newOrig);
+      // Reload user permissions after save
+      const flagMap = new Map<string, Selection>();
+      for (const user of selectedUsers) {
+        const matrix = await getUserMenuPermissions(user.id);
+        const userFlags = new Set<string>();
+        for (const entry of matrix) {
+          if (entry.canView) userFlags.add(`${entry.menuSlug}:canView`);
+          if (entry.canCreate) userFlags.add(`${entry.menuSlug}:canCreate`);
+          if (entry.canEdit) userFlags.add(`${entry.menuSlug}:canEdit`);
+          if (entry.canDelete) userFlags.add(`${entry.menuSlug}:canDelete`);
+        }
+        flagMap.set(user.id, userFlags);
+      }
+      setOriginal(flagMap);
+      setChecked(new Set(flags.map((f) => `${f.menuSlug}:${f.action}`)));
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Could not save permissions.";
@@ -431,6 +465,41 @@ export default function UserPermissionsView() {
   }
 
   // ---- render ----
+
+  // Filter menus by module
+  const visibleMenus = useMemo(() => {
+    if (moduleFilter === "all") return allMenus;
+    return allMenus.filter((m) => m.slug.startsWith(moduleFilter));
+  }, [allMenus, moduleFilter]);
+
+  // Group menus by module (extracted from slug)
+  const grouped = useMemo(() => {
+    const map = new Map<string, MenuPermissionEntry[]>();
+    for (const m of visibleMenus) {
+      const module = moduleFilter === "all"
+        ? m.slug.split("_")[0] || "general"
+        : moduleFilter;
+      const list = map.get(module) ?? [];
+      list.push(m);
+      map.set(module, list);
+    }
+    return Array.from(map.entries());
+  }, [visibleMenus, moduleFilter]);
+
+  // Need to load menus from API
+  const [menuData, setMenuData] = useState<MenuPermissionEntry[]>([]);
+
+  useEffect(() => {
+    // Load menus on mount
+    (async () => {
+      try {
+        const menus = await getMyMenus();
+        setMenuData(menus);
+      } catch {
+        // Silently handle
+      }
+    })();
+  }, []);
 
   return (
     <div className="p-4">
@@ -464,7 +533,11 @@ export default function UserPermissionsView() {
                 <label className="mb-1.5 block text-sm font-semibold text-ink-700">
                   Module
                 </label>
-                <ModuleSelect value={moduleFilter} onChange={setModuleFilter} />
+                <ModuleSelect
+                  value={moduleFilter}
+                  onChange={setModuleFilter}
+                  allMenus={menuData}
+                />
               </div>
             </div>
           </DashCard>
@@ -484,9 +557,7 @@ export default function UserPermissionsView() {
               {/* Action bar */}
               <div className="flex items-center justify-between">
                 <p className="text-sm text-ink-500">
-                  {visiblePages.length} page(s) across{" "}
-                  {grouped.length} module(s) · {checked.size} permission(s)
-                  selected
+                  {menuData.length} pages across {grouped.length} module(s) · {checked.size} permission(s) selected
                 </p>
                 <button
                   type="button"
@@ -504,86 +575,64 @@ export default function UserPermissionsView() {
               </div>
 
               {grouped.map(([module, pages]) => (
-                <DashCard key={module} title={module}>
+                <DashCard key={module} title={module.toUpperCase()}>
                   <div className="scroll-slim overflow-x-auto rounded-xs border border-ink-200">
                     <table className="w-full min-w-175 border-collapse text-sm">
                       <thead>
                         <tr className="bg-ink-50">
-                          <th className="border-b border-ink-200 px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wide text-ink-500">
+                          <th
+                            className="border-b border-ink-200 px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wide text-ink-500"
+                          >
                             Page
                           </th>
-                          {ACTION_VERBS.map((verb) => (
+                          {(["canView", "canCreate", "canEdit", "canDelete"] as MenuAction[]).map((action) => (
                             <th
-                              key={verb}
+                              key={action}
                               className="border-b border-ink-200 px-3 py-2.5 text-center text-xs font-semibold uppercase tracking-wide text-ink-500"
                             >
-                              {verb}
+                              {MENU_ACTION_LABELS[action]}
                             </th>
                           ))}
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-ink-100">
-                        {pages.map((page) => {
-                          // A page row is enabled only when the catalog has at
-                          // least one "add" or "update" verb for that page.
-                          const rowEnabled =
-                            catalog.includes(
-                              permissionName("add", page.slug),
-                            ) ||
-                            catalog.includes(
-                              permissionName("update", page.slug),
-                            );
-                          return (
-                            <tr
-                              key={`${module}-${page.slug}`}
-                              className="transition-colors hover:bg-brand-50/30"
-                            >
-                              <td className="px-4 py-2.5">
-                                <span className="font-medium text-navy-900">
-                                  {page.label}
-                                </span>
-                                <span className="ml-2 font-mono text-xs text-ink-400">
-                                  {page.slug}
-                                </span>
+                        {pages.map((page) => (
+                          <tr
+                            key={page.menuSlug}
+                            className="transition-colors hover:bg-brand-50/30"
+                          >
+                            <td className="px-4 py-2.5">
+                              <span className="font-medium text-navy-900">
+                                {page.title}
+                              </span>
+                              <span className="ml-2 font-mono text-xs text-ink-400">
+                                {page.menuSlug}
+                              </span>
+                            </td>
+                            {(["canView", "canCreate", "canEdit", "canDelete"] as MenuAction[]).map((action) => (
+                              <td
+                                key={action}
+                                className="px-3 py-2.5 text-center"
+                              >
+                                <label className="inline-flex cursor-pointer items-center">
+                                  <input
+                                    type="checkbox"
+                                    checked={isChecked(page.menuSlug, action)}
+                                    onChange={() =>
+                                      toggleOne(page.menuSlug, action)
+                                    }
+                                    className="h-4 w-4 rounded-xs border-ink-300 text-brand-600"
+                                  />
+                                </label>
                               </td>
-                              {ACTION_VERBS.map((verb) => {
-                                const name = permissionName(verb, page.slug);
-                                const exists = catalog.includes(name);
-                                const isSel = isChecked(verb, page.slug);
-                                const disabled = !rowEnabled || !exists;
-                                return (
-                                  <td
-                                    key={verb}
-                                    className="px-3 py-2.5 text-center"
-                                  >
-                                    <label className="inline-flex cursor-pointer items-center">
-                                      <input
-                                        type="checkbox"
-                                        checked={isSel}
-                                        disabled={disabled}
-                                        onChange={() =>
-                                          toggleOne(verb, page.slug)
-                                        }
-                                        className={`h-4 w-4 rounded-xs border-ink-300 text-brand-600 ${ disabled ? "cursor-not-allowed opacity-40" : "" }`}
-                                      />
-                                    </label>
-                                  </td>
-                                );
-                              })}
-                            </tr>
-                          );
-                        })}
+                            ))}
+                          </tr>
+                        ))}
                       </tbody>
                     </table>
                   </div>
                 </DashCard>
               ))}
-
-              {grouped.length === 0 && (
-                <p className="py-8 text-center text-sm text-ink-400">
-                  No pages found for this module.
-                </p>
-              )}
             </div>
           )}
         </>

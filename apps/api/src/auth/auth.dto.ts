@@ -41,6 +41,9 @@ export class AuthUserDto {
   @ApiProperty()
   role!: string;
 
+  @ApiPropertyOptional({ description: 'Superadmin bypass flag' })
+  isSuperAdmin?: boolean;
+
   @ApiPropertyOptional({ description: 'Directly assigned permissions' })
   permissions?: string[];
 }
