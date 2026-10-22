@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Search } from "lucide-react";
+import { FiSearch } from "react-icons/fi";
 import { commandIndexForRole, searchNav } from "@/lib/nav-config";
 import type { Role } from "@/lib/dashboard-nav";
 
@@ -84,7 +84,7 @@ export default function CommandPalette({ role }: { role: Role }) {
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center gap-2 border-b border-ink-100 px-3">
-          <Search className="h-4 w-4 shrink-0 text-ink-400" />
+          <FiSearch className="h-4 w-4 shrink-0 text-ink-400" />
           <input
             autoFocus
             value={query}

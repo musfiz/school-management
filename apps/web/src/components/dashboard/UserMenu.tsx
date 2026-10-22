@@ -1,21 +1,15 @@
 "use client";
 
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-  useTransition,
-} from "react";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  ChevronDown,
-  ExternalLink,
-  LogOut,
-  Settings,
-  User,
-} from "lucide-react";
+  FiChevronDown as ChevronDown,
+  FiExternalLink,
+  FiLogOut,
+  FiSettings,
+  FiUser as User,
+} from "react-icons/fi";
 import { roleLabels, type Role } from "@/lib/dashboard-nav";
 
 /** Two-letter initials: first letter of first + last name. Single-word names
@@ -103,24 +97,20 @@ export default function UserMenu({
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="menu"
         aria-expanded={open}
-        className="flex items-center gap-2.5 rounded-xs border border-ink-200 bg-white px-2 py-1.5 text-sm font-medium text-ink-700 transition-colors hover:bg-ink-100"
+        className="flex cursor-pointer items-center gap-2.5 rounded-xs px-2 py-1.5 text-sm font-medium text-ink-700 transition-colors hover:bg-ink-100"
       >
         <span
           aria-hidden
-          className="flex h-8 w-8 items-center justify-center rounded-xs bg-navy-800 text-xs font-bold text-white"
+          className="flex h-8 w-8 items-center justify-center rounded-full bg-navy-800 text-xs font-bold text-white"
         >
           {initialsOf(name)}
         </span>
         <span className="hidden text-left leading-tight sm:block">
-          <span className="block text-sm font-semibold text-navy-800">
-            {name}
-          </span>
-          <span className="block text-[11px] text-ink-500">
-            {roleLabels[role]}
-          </span>
+          <span className="block text-sm font-semibold text-navy-800">{name}</span>
+          <span className="block text-[11px] text-ink-500">{roleLabels[role]}</span>
         </span>
         <ChevronDown
-          className={`h-4 w-4 text-ink-500 transition-transform ${ open ? "rotate-180" : "" }`}
+          className={`h-4 w-4 text-ink-500 transition-transform ${open ? "rotate-180" : ""}`}
         />
       </button>
 
@@ -154,7 +144,7 @@ export default function UserMenu({
                 onClick={() => setOpen(false)}
                 className="flex items-center gap-3 px-4 py-2 text-sm text-ink-700 hover:bg-ink-100 hover:text-navy-800"
               >
-                <Settings className="h-4 w-4" />
+                <FiSettings className="h-4 w-4" />
                 Settings
               </Link>
             </li>
@@ -165,7 +155,7 @@ export default function UserMenu({
                 onClick={() => setOpen(false)}
                 className="flex items-center gap-3 px-4 py-2 text-sm text-ink-700 hover:bg-ink-100 hover:text-navy-800"
               >
-                <ExternalLink className="h-4 w-4" />
+                <FiExternalLink className="h-4 w-4" />
                 View site
               </Link>
             </li>
@@ -179,16 +169,13 @@ export default function UserMenu({
               disabled={isPending}
               className="flex w-full items-center gap-3 rounded-xs px-3 py-2 text-left text-sm font-semibold text-red-600 hover:bg-red-50 disabled:opacity-60"
             >
-              <LogOut className="h-4 w-4" />
+              <FiLogOut className="h-4 w-4" />
               {isPending ? "Signing out…" : "Sign out"}
             </button>
           </div>
 
           {error && (
-            <p
-              role="alert"
-              className="border-t border-ink-200 px-4 py-2 text-xs text-red-600"
-            >
+            <p role="alert" className="border-t border-ink-200 px-4 py-2 text-xs text-red-600">
               {error}
             </p>
           )}

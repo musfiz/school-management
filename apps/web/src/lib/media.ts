@@ -10,6 +10,11 @@ export function resolveImageUrl(path: string | null | undefined): string {
   if (!path) return "";
   if (/^https?:\/\//i.test(path)) return path; // already absolute (external URL)
   if (path.startsWith("/uploads/")) return `${API_BASE}${path}`; // API-hosted upload
+  if (path.startsWith("schools/")) {
+    // Storage-strategy key (schools/<tenant>/<folder>/<uuid>.webp) — served
+    // by the local driver under /uploads/** or by the S3/R2 public URL.
+    return `${API_BASE}/uploads/${path}`;
+  }
   return path; // Next.js /public asset (e.g. /logo.png)
 }
 

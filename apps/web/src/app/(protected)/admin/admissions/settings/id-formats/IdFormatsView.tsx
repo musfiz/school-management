@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { DashPageHeader } from "@/components/dashboard/DashPage";
 import { DashCard } from "@/components/dashboard/DashPage";
-import { CheckCircle2, Loader2 } from "lucide-react";
+import { FiCheckCircle, FiLoader } from "react-icons/fi";
 import SearchSelect from "@/components/ui/SearchSelect";
 import { apiFetch } from "@/lib/api";
 import { listClassOrDepts } from "@/lib/academic-results";
@@ -244,7 +244,7 @@ function IdFormatsView() {
       <div className="flex justify-end gap-2">
         <button type="button" className={BTN} disabled={loading} onClick={onSubmit}>
           {showLoader ? (
-            <span className="inline-flex items-center gap-1"><Loader2 className="h-3.5 w-3.5 animate-spin" /> Saving…</span>
+            <span className="inline-flex items-center gap-1"><FiLoader className="h-3.5 w-3.5 animate-spin" /> Saving…</span>
           ) : (
             <span>Save ID Format</span>
           )}

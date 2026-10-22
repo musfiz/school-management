@@ -57,11 +57,17 @@ export function Button({
   );
 }
 
-export function Breadcrumbs({ items }: { items: { name: string; href: string }[] }) {
+export function Breadcrumbs({
+  items,
+  className = "py-3",
+}: {
+  items: { name: string; href: string }[];
+  className?: string;
+}) {
   return (
     <nav aria-label="Breadcrumb" className="border-b border-ink-200 bg-white">
       <Container>
-        <ol className="flex flex-wrap items-center gap-1.5 py-3 text-sm text-ink-500">
+        <ol className={`flex flex-wrap items-center gap-1.5 text-sm text-ink-500 ${className}`}>
           {items.map((item, i) => (
             <li key={item.href} className="flex items-center gap-1.5">
               {i > 0 && (
@@ -97,16 +103,18 @@ export function PageHeader({
   title,
   description,
   children,
+  className = "py-12 sm:py-16",
 }: {
   eyebrow?: string;
   title: string;
   description?: string;
   children?: ReactNode;
+  className?: string;
 }) {
   return (
     <div className="border-b border-ink-200 bg-linear-to-b from-navy-50 to-white">
       <Container>
-        <div className="py-12 sm:py-16">
+        <div className={className}>
           {eyebrow && (
             <p className="text-sm font-bold uppercase tracking-wider text-gold-600">{eyebrow}</p>
           )}

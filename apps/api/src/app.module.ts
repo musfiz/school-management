@@ -20,6 +20,7 @@ import { AccountingModule } from './accounting/accounting.module';
 import { AdmissionsModule } from './admissions/admissions.module';
 import { DocumentsModule } from './documents/documents.module';
 import { AcademicResultsModule } from './academic-results/academic-results.module';
+import { StorageModule } from './modules/storage/storage.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -48,6 +49,8 @@ import { JwtAuthGuard } from './auth/jwt-auth.guard';
     AdmissionsModule,
     DocumentsModule,
     AcademicResultsModule,
+    // Global strategy module for image storage (local ⇄ S3/R2 via env).
+    StorageModule,
   ],
   controllers: [AppController],
   providers: [

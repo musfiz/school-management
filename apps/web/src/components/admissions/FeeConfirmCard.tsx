@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { BadgeCheck, Calculator, Loader2 } from "lucide-react";
+import { FiLoader } from "react-icons/fi";
+import { FaCalculator } from "react-icons/fa";
+import { BiBadgeCheck } from "react-icons/bi";
 import { DashCard } from "@/components/dashboard/DashPage";
 import SearchSelect from "@/components/ui/SearchSelect";
 import { apiFetch } from "@/lib/api";
@@ -257,7 +259,7 @@ export default function FeeConfirmCard({ family, placement, waiverInputs, waiver
     <DashCard title="Step 5 — Admission Fee Breakdown & Instant Collection">
       {done && (
         <p className="mb-3 flex flex-wrap items-center gap-2 rounded-xs border border-emerald-200 bg-emerald-50 px-2.5 py-1.5 text-xs font-semibold text-emerald-800">
-          <BadgeCheck className="h-4 w-4" />
+          <BiBadgeCheck className="h-4 w-4" />
           Admitted {done.studentUniqueId} (roll {done.classRollNo}) — invoice {done.invoiceNo}:
           net {done.netAmount} BDT
           {done.moneyReceiptNo ? ` — receipt ${done.moneyReceiptNo}` : " — pay later"}
@@ -361,14 +363,14 @@ export default function FeeConfirmCard({ family, placement, waiverInputs, waiver
       <div className="mt-3 flex flex-wrap items-end gap-3">
         <button type="button" className={BTN_OUTLINE} disabled={busy !== null} onClick={() => runPreview()}>
           {busy === "preview" ? (
-            <span className="inline-flex items-center gap-1.5"><Loader2 className="h-3.5 w-3.5 animate-spin" /> Previewing…</span>
+            <span className="inline-flex items-center gap-1.5"><FiLoader className="h-3.5 w-3.5 animate-spin" /> Previewing…</span>
           ) : (
-            <span className="inline-flex items-center gap-1.5"><Calculator className="h-3.5 w-3.5" /> Preview breakdown</span>
+            <span className="inline-flex items-center gap-1.5"><FaCalculator className="h-3.5 w-3.5" /> Preview breakdown</span>
           )}
         </button>
         <button type="button" className={BTN_OUTLINE} disabled={busy !== null} onClick={() => confirm(false)}>
           {busy === "later" ? (
-            <span className="inline-flex items-center gap-1.5"><Loader2 className="h-3.5 w-3.5 animate-spin" /> Admitting…</span>
+            <span className="inline-flex items-center gap-1.5"><FiLoader className="h-3.5 w-3.5 animate-spin" /> Admitting…</span>
           ) : (
             "Confirm Admission & Generate Invoice (Pay Later)"
           )}
@@ -388,7 +390,7 @@ export default function FeeConfirmCard({ family, placement, waiverInputs, waiver
           />
           <button type="button" className={BTN} disabled={busy !== null} onClick={() => confirm(true)}>
             {busy === "collect" ? (
-              <span className="inline-flex items-center gap-1.5"><Loader2 className="h-3.5 w-3.5 animate-spin" /> Admitting…</span>
+              <span className="inline-flex items-center gap-1.5"><FiLoader className="h-3.5 w-3.5 animate-spin" /> Admitting…</span>
             ) : (
               "Confirm & Collect Now (Cash / bKash / Bank)"
             )}

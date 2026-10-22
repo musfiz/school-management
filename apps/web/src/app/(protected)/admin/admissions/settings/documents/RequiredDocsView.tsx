@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Loader2, Plus, Trash2, X } from "lucide-react";
+import { FiLoader, FiPlus, FiTrash, FiX } from "react-icons/fi";
 import { DashCard, DashPageHeader } from "@/components/dashboard/DashPage";
 import AdminPageLoader from "@/components/dashboard/AdminPageLoader";
 import SearchSelect from "@/components/ui/SearchSelect";
@@ -184,7 +184,7 @@ export default function RequiredDocsView() {
         action={
           <button type="button" className={BTN} disabled={loading} onClick={openModal}>
             <span className="inline-flex items-center gap-1.5">
-              <Plus className="h-3.5 w-3.5" /> Add rule
+              <FiPlus className="h-3.5 w-3.5" /> Add rule
             </span>
           </button>
         }
@@ -248,7 +248,7 @@ export default function RequiredDocsView() {
                           onClick={() => removeRule(r)}
                           title="Delete rule"
                         >
-                          <Trash2 className="h-3 w-3" />
+                          <FiTrash className="h-3 w-3" />
                         </button>
                       </div>
                     </td>
@@ -277,7 +277,7 @@ export default function RequiredDocsView() {
                 onClick={() => !saving && setModalOpen(false)}
                 aria-label="Close"
               >
-                <X className="h-3.5 w-3.5" />
+                <FiX className="h-3.5 w-3.5" />
               </button>
             </div>
             <p className="mt-1 text-xs text-ink-500">
@@ -347,7 +347,7 @@ export default function RequiredDocsView() {
               >
                 {saving ? (
                   <span className="inline-flex items-center gap-1.5">
-                    <Loader2 className="h-3.5 w-3.5 animate-spin" /> Saving…
+                    <FiLoader className="h-3.5 w-3.5 animate-spin" /> Saving…
                   </span>
                 ) : (
                   "Add rule"

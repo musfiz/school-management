@@ -5,14 +5,14 @@ import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
-  AlertCircle,
-  ArrowRight,
-  Eye,
-  EyeOff,
-  Mail,
-  KeyRound,
-  Loader2,
-} from "lucide-react";
+  FiAlertCircle,
+  FiArrowRight,
+  FiEye,
+  FiEyeOff,
+  FiMail,
+  FiKey,
+  FiLoader,
+} from "react-icons/fi";
 import { loginSchema, type LoginInput } from "@/lib/validations";
 
 /**
@@ -120,7 +120,7 @@ export default function LoginForm({
               role="alert"
               className="flex items-start gap-2 rounded-xs border border-red-200 bg-red-50 px-3 py-1 text-sm text-red-700"
             >
-              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+              <FiAlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
               <span>{globalError}</span>
             </div>
           )}
@@ -133,7 +133,7 @@ export default function LoginForm({
             <div
               className={`mt-1.5 flex items-center gap-2 rounded-xs cursor-pointer border bg-white px-3 py-1 transition-colors focus-within:border-navy-400 ${ errors.email ? "border-red-400 focus-within:border-red-500" : "border-ink-200" }`}
             >
-              <Mail className="h-4 w-4 shrink-0 text-ink-400" aria-hidden />
+              <FiMail className="h-4 w-4 shrink-0 text-ink-400" aria-hidden />
               <input
                 id={emailId}
                 type="email"
@@ -158,7 +158,7 @@ export default function LoginForm({
                 role="alert"
                 className="mt-1.5 flex items-center gap-1 text-xs text-red-600"
               >
-                <AlertCircle className="h-3 w-3" aria-hidden />
+                <FiAlertCircle className="h-3 w-3" aria-hidden />
                 {errors.email.message}
               </p>
             )}
@@ -172,7 +172,7 @@ export default function LoginForm({
             <div
               className={`mt-1.5 flex items-center gap-2 rounded-xs cursor-pointer border bg-white px-3 py-1 transition-colors focus-within:border-navy-400 ${ errors.password ? "border-red-400 focus-within:border-red-500" : "border-ink-200" }`}
             >
-              <KeyRound className="h-4 w-4 shrink-0 text-ink-400" aria-hidden />
+              <FiKey className="h-4 w-4 shrink-0 text-ink-400" aria-hidden />
               <input
                 id={passwordId}
                 type={showPassword ? "text" : "password"}
@@ -196,9 +196,9 @@ export default function LoginForm({
                 aria-pressed={showPassword}
               >
                 {showPassword ? (
-                  <EyeOff className="h-4 w-4" aria-hidden />
+                  <FiEyeOff className="h-4 w-4" aria-hidden />
                 ) : (
-                  <Eye className="h-4 w-4" aria-hidden />
+                  <FiEye className="h-4 w-4" aria-hidden />
                 )}
               </button>
             </div>
@@ -208,7 +208,7 @@ export default function LoginForm({
                 role="alert"
                 className="mt-1.5 flex items-center gap-1 text-xs text-red-600"
               >
-                <AlertCircle className="h-3 w-3" aria-hidden />
+                <FiAlertCircle className="h-3 w-3" aria-hidden />
                 {errors.password.message}
               </p>
             )}
@@ -264,13 +264,13 @@ export default function LoginForm({
           >
             {isPending ? (
               <>
-                <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+                <FiLoader className="h-4 w-4 animate-spin" aria-hidden />
                 Signing in…
               </>
             ) : (
               <>
                 Sign in
-                <ArrowRight className="h-4 w-4" aria-hidden />
+                <FiArrowRight className="h-4 w-4" aria-hidden />
               </>
             )}
           </button>

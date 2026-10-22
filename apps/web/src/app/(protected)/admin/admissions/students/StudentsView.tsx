@@ -1,7 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useState, type ReactNode } from "react";
-import { FileText, Loader2, RefreshCw, Search, ShieldCheck, ShieldAlert, ArrowRightLeft, IdCard, UserPlus } from "lucide-react";
+import { FiFileText, FiLoader, FiRefreshCcw, FiSearch, FiUserPlus } from "react-icons/fi";
+import { RiShieldCheckLine } from "react-icons/ri";
+import { LuShieldAlert } from "react-icons/lu";
+import { FaArrowRightArrowLeft } from "react-icons/fa6";
+import { BiIdCard } from "react-icons/bi";
 import { DashCard, DashPageHeader } from "@/components/dashboard/DashPage";
 import AdminPageLoader from "@/components/dashboard/AdminPageLoader";
 import SearchSelect from "@/components/ui/SearchSelect";
@@ -287,16 +291,16 @@ export default function StudentsView() {
           <div className="flex flex-wrap items-center gap-1.5 sm:col-span-2 2xl:col-span-2">
             <button type="button" className={BTN} disabled={loading} onClick={load}>
               {loading ? (
-                <span className="inline-flex items-center gap-1.5"><Loader2 className="h-3.5 w-3.5 animate-spin" /> Loading…</span>
+                <span className="inline-flex items-center gap-1.5"><FiLoader className="h-3.5 w-3.5 animate-spin" /> Loading…</span>
               ) : (
-                <span className="inline-flex items-center gap-1.5"><Search className="h-3.5 w-3.5" /> Run</span>
+                <span className="inline-flex items-center gap-1.5"><FiSearch className="h-3.5 w-3.5" /> Run</span>
               )}
             </button>
             <button type="button" className={BTN} onClick={() => setAddOpen(true)}>
-              <span className="inline-flex items-center gap-1.5"><UserPlus className="h-3.5 w-3.5" /> Add student</span>
+              <span className="inline-flex items-center gap-1.5"><FiUserPlus className="h-3.5 w-3.5" /> Add student</span>
             </button>
             <button type="button" className={BTN_GHOST} disabled={loading} onClick={load}>
-              <span className="inline-flex items-center gap-1"><RefreshCw className="h-3.5 w-3.5" /> Refresh</span>
+              <span className="inline-flex items-center gap-1"><FiRefreshCcw className="h-3.5 w-3.5" /> Refresh</span>
             </button>
           </div>
         </div>
@@ -353,13 +357,13 @@ export default function StudentsView() {
                     <td className="px-2.5 py-1">
                       <div className="flex flex-wrap gap-1">
                         <button type="button" className={BTN_GHOST} onClick={() => openProfile(r)}>
-                          <span className="inline-flex items-center gap-1"><IdCard className="h-3 w-3" /> Profile</span>
+                          <span className="inline-flex items-center gap-1"><BiIdCard className="h-3 w-3" /> Profile</span>
                         </button>
                         <button type="button" className={BTN_GHOST} disabled={busy !== null} onClick={() => openTc(r)}>
-                          <span className="inline-flex items-center gap-1"><FileText className="h-3 w-3" /> Clearance / TC</span>
+                          <span className="inline-flex items-center gap-1"><FiFileText className="h-3 w-3" /> Clearance / TC</span>
                         </button>
                         <button type="button" className={BTN_GHOST} disabled={!r.enrollment} onClick={() => setTransferOf(r)}>
-                          <span className="inline-flex items-center gap-1"><ArrowRightLeft className="h-3 w-3" /> Transfer</span>
+                          <span className="inline-flex items-center gap-1"><FaArrowRightArrowLeft className="h-3 w-3" /> Transfer</span>
                         </button>
                       </div>
                     </td>
@@ -455,12 +459,12 @@ export default function StudentsView() {
                 </div>
                 {clearance.canIssueTc ? (
                   <p className="inline-flex items-center gap-1.5 rounded-xs border border-emerald-200 bg-emerald-50 px-2.5 py-1.5 font-semibold text-emerald-800">
-                    <ShieldCheck className="h-3.5 w-3.5" /> Dues clear — TC can be issued.
+                    <RiShieldCheckLine className="h-3.5 w-3.5" /> Dues clear — TC can be issued.
                   </p>
                 ) : (
                   <div className="rounded-xs border border-rose-200 bg-rose-50 px-2.5 py-1.5 text-rose-800">
                     <p className="inline-flex items-center gap-1.5 font-semibold">
-                      <ShieldAlert className="h-3.5 w-3.5" /> TC blocked:
+                      <LuShieldAlert className="h-3.5 w-3.5" /> TC blocked:
                     </p>
                     <ul className="mt-1 list-inside list-disc">
                       {clearance.blockers.map((b) => <li key={b}>{b}</li>)}
@@ -505,7 +509,7 @@ export default function StudentsView() {
                 onClick={issueTc}
               >
                 {busy === "tc" ? (
-                  <span className="inline-flex items-center gap-1.5"><Loader2 className="h-3.5 w-3.5 animate-spin" /> Issuing…</span>
+                  <span className="inline-flex items-center gap-1.5"><FiLoader className="h-3.5 w-3.5 animate-spin" /> Issuing…</span>
                 ) : clearance && !clearance.canIssueTc ? (
                   "Issue TC (waive dues)"
                 ) : (
@@ -544,7 +548,7 @@ export default function StudentsView() {
               <button type="button" className={MODAL_BTN_GHOST} onClick={() => setTransferOf(null)}>Cancel</button>
               <button type="button" className={MODAL_BTN} disabled={busy !== null} onClick={submitTransfer}>
                 {busy === "transfer" ? (
-                  <span className="inline-flex items-center gap-1.5"><Loader2 className="h-3.5 w-3.5 animate-spin" /> Transferring…</span>
+                  <span className="inline-flex items-center gap-1.5"><FiLoader className="h-3.5 w-3.5 animate-spin" /> Transferring…</span>
                 ) : (
                   "Confirm transfer"
                 )}

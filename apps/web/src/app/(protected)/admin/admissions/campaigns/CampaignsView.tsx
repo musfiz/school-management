@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Loader2, Pencil, Plus, RefreshCw, Save, X } from "lucide-react";
+import { FiLoader, FiEdit, FiPlus, FiRefreshCcw, FiSave, FiX } from "react-icons/fi";
 import { DashCard, DashPageHeader } from "@/components/dashboard/DashPage";
 import AdminPageLoader from "@/components/dashboard/AdminPageLoader";
 import SearchSelect from "@/components/ui/SearchSelect";
@@ -256,16 +256,16 @@ export default function CampaignsView() {
           <div className="flex flex-wrap items-center gap-1.5 sm:col-span-2 2xl:col-span-2">
             <button type="button" className={BTN} disabled={busy !== null} onClick={save}>
               {busy === "save" ? (
-                <span className="inline-flex items-center gap-1.5"><Loader2 className="h-3.5 w-3.5 animate-spin" /> Saving…</span>
+                <span className="inline-flex items-center gap-1.5"><FiLoader className="h-3.5 w-3.5 animate-spin" /> Saving…</span>
               ) : editingId ? (
-                <span className="inline-flex items-center gap-1.5"><Save className="h-3.5 w-3.5" /> Update campaign</span>
+                <span className="inline-flex items-center gap-1.5"><FiSave className="h-3.5 w-3.5" /> Update campaign</span>
               ) : (
-                <span className="inline-flex items-center gap-1.5"><Plus className="h-3.5 w-3.5" /> Create campaign</span>
+                <span className="inline-flex items-center gap-1.5"><FiPlus className="h-3.5 w-3.5" /> Create campaign</span>
               )}
             </button>
             {editingId && (
               <button type="button" className={BTN_SECONDARY} disabled={busy !== null} onClick={reset}>
-                <span className="inline-flex items-center gap-1"><X className="h-3.5 w-3.5" /> Cancel edit</span>
+                <span className="inline-flex items-center gap-1"><FiX className="h-3.5 w-3.5" /> Cancel edit</span>
               </button>
             )}
           </div>
@@ -279,7 +279,7 @@ export default function CampaignsView() {
         title={`Campaigns (${campaigns.length})`}
         action={
           <button type="button" className={BTN_GHOST} disabled={busy !== null} onClick={load}>
-            <span className="inline-flex items-center gap-1"><RefreshCw className="h-3.5 w-3.5" /> Refresh</span>
+            <span className="inline-flex items-center gap-1"><FiRefreshCcw className="h-3.5 w-3.5" /> Refresh</span>
           </button>
         }
       >
@@ -319,7 +319,7 @@ export default function CampaignsView() {
                     <td className="px-2.5 py-1">
                       <div className="flex flex-wrap gap-1">
                         <button type="button" className={BTN_GHOST} disabled={busy !== null} onClick={() => startEdit(c)}>
-                          <span className="inline-flex items-center gap-1"><Pencil className="h-3 w-3" /> Edit</span>
+                          <span className="inline-flex items-center gap-1"><FiEdit className="h-3 w-3" /> Edit</span>
                         </button>
                         <button type="button" className={BTN_GHOST} disabled={busy !== null} onClick={() => toggleActive(c)}>
                           {busy === c.id ? "…" : c.isActive ? "Close" : "Reopen"}

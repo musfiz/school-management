@@ -1,17 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  Plus,
-  Minus,
-  Trash2,
-  ChevronUp,
-  ChevronDown,
-  Eye,
-  EyeOff,
-  Save,
-  Loader2,
-} from "lucide-react";
+import { FiPlus, FiMinus, FiTrash2, FiChevronUp, FiChevronDown, FiEye, FiEyeOff, FiSave, FiLoader } from "react-icons/fi";
 import { mainNav, type NavItem } from "@/lib/navigation";
 import { confirmDialog, toast } from "@/lib/swal";
 import AdminPageLoader from "@/components/dashboard/AdminPageLoader";
@@ -158,7 +148,7 @@ function MenuRow({
             aria-label={isOpen ? "Collapse sub-items" : "Expand sub-items"}
             aria-expanded={isOpen}
           >
-            {isOpen ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+            {isOpen ? <FiMinus className="h-4 w-4" /> : <FiPlus className="h-4 w-4" />}
           </button>
         ) : (
           depth === 0 && <span className="w-7 shrink-0" />
@@ -189,7 +179,7 @@ function MenuRow({
             className="rounded-xs p-1.5 text-ink-500 disabled:opacity-30 hover:bg-ink-50"
             aria-label="Move up"
           >
-            <ChevronUp className="h-4 w-4" />
+            <FiChevronUp className="h-4 w-4" />
           </button>
           <button
             type="button"
@@ -198,7 +188,7 @@ function MenuRow({
             className="rounded-xs p-1.5 text-ink-500 disabled:opacity-30 hover:bg-ink-50"
             aria-label="Move down"
           >
-            <ChevronDown className="h-4 w-4" />
+            <FiChevronDown className="h-4 w-4" />
           </button>
           {depth === 0 && (
             <button
@@ -207,7 +197,7 @@ function MenuRow({
               className="rounded-xs p-1.5 text-brand-600 hover:bg-brand-50"
               aria-label="Add sub-item"
             >
-              <Plus className="h-4 w-4" />
+              <FiPlus className="h-4 w-4" />
             </button>
           )}
           <button
@@ -217,7 +207,7 @@ function MenuRow({
             aria-label={node.isVisible ? "Active — click to hide" : "Inactive — click to show"}
             title={node.isVisible ? "Active (visible on site)" : "Inactive (hidden from site)"}
           >
-            {node.isVisible ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+            {node.isVisible ? <FiEye className="h-4 w-4" /> : <FiEyeOff className="h-4 w-4" />}
           </button>
           <button
             type="button"
@@ -225,7 +215,7 @@ function MenuRow({
             className="rounded-xs p-1.5 text-red-600 hover:bg-red-50"
             aria-label="Delete"
           >
-            <Trash2 className="h-4 w-4" />
+            <FiTrash2 className="h-4 w-4" />
           </button>
         </div>
       </div>
@@ -330,7 +320,7 @@ export default function NavigationMenuPage() {
             disabled={saving}
             className="flex items-center gap-1.5 rounded-xs bg-brand-600 px-3 py-2 text-sm font-semibold text-white disabled:opacity-60 hover:bg-brand-700"
           >
-            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+            {saving ? <FiLoader className="h-4 w-4 animate-spin" /> : <FiSave className="h-4 w-4" />}
             Save
           </button>
         </div>
@@ -385,7 +375,7 @@ export default function NavigationMenuPage() {
         }
         className="mt-4 flex items-center gap-1.5 rounded-xs border border-dashed border-ink-300 px-3 py-2 text-sm font-semibold text-ink-600 hover:border-brand-400 hover:text-brand-600"
       >
-        <Plus className="h-4 w-4" /> Add top-level item
+        <FiPlus className="h-4 w-4" /> Add top-level item
       </button>
     </section>
   );

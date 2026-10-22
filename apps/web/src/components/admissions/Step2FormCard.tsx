@@ -4,13 +4,16 @@ import { useEffect, useRef, useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Camera, Loader2, Plus, Trash2, Upload } from "lucide-react";
+import { FiCamera, FiPlus, FiTrash } from "react-icons/fi";
 import { DashCard } from "@/components/dashboard/DashPage";
 import SearchSelect from "@/components/ui/SearchSelect";
 import DatePickerField, { todayISO } from "@/components/ui/DatePicker";
-import { apiFetch } from "@/lib/api";
+import GlobalImageUploader, {
+  type GlobalImageUploaderHandle,
+} from "@/components/common/image-uploader/global-image-uploader";
+import CropModal from "@/components/common/image-uploader/crop-modal";
+import { IMAGE_UPLOAD_PRESETS, ImagePreset } from "@/constants/image-upload-presets";
 import { toast } from "@/lib/swal";
-import { resolveImageUrl } from "@/lib/media";
 import type { IdentityState, PrevEduRow } from "@/lib/admissions";
 
 const INPUT =
@@ -84,8 +87,11 @@ export default function Step2FormCard({ institution, onInstitutionChange, value,
   const today = todayISO();
   const onChangeRef = useRef(onChange);
   onChangeRef.current = onChange;
-  const [uploading, setUploading] = useState(false);
+  /** Routes webcam captures through the uploader's delivery pipeline. */
+  const uploaderRef = useRef<GlobalImageUploaderHandle | null>(null);
   const [camOn, setCamOn] = useState(false);
+  /** ObjectURL of a raw webcam frame awaiting the crop modal (revoked on close). */
+  const [webcamCropUrl, setWebcamCropUrl] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
@@ -119,24 +125,6 @@ export default function Step2FormCard({ institution, onInstitutionChange, value,
   const isCollege = institution === "COLLEGE" || institution === "UNIVERSITY";
   const isMadrasah = institution === "MADRASAH";
 
-  async function uploadFile(file: File | Blob, name: string) {
-    setUploading(true);
-    try {
-      const fd = new FormData();
-      fd.append("file", file, name);
-      const res = await fetch("/api/uploads", { method: "POST", body: fd, credentials: "same-origin" });
-      const data = (await res.json().catch(() => null)) as { url?: string; message?: string } | null;
-      if (!res.ok || !data?.url) throw new Error(data?.message ?? `Upload failed (${res.status})`);
-      form.setValue("photoUrl", data.url, { shouldDirty: true });
-      onChangeRef.current({ ...(form.getValues() as IdentityState), photoUrl: data.url }, eduForm.getValues().rows.map((r) => ({ key: rowKey(), ...r })));
-      toast("Photo uploaded", "success");
-    } catch (e) {
-      toast(e instanceof Error ? e.message : "Upload failed", "error");
-    } finally {
-      setUploading(false);
-    }
-  }
-
   async function startCam() {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
@@ -169,7 +157,9 @@ export default function Step2FormCard({ institution, onInstitutionChange, value,
       return;
     }
     stopCam();
-    await uploadFile(blob, `webcam-${Date.now()}.jpg`);
+    // Route the raw frame through the shared crop modal (PASSPORT 3:4) —
+    // the pre-crop File/Blob never goes straight to the API.
+    setWebcamCropUrl(URL.createObjectURL(blob));
   }
 
   useEffect(() => () => stopCam(), []);
@@ -250,46 +240,64 @@ export default function Step2FormCard({ institution, onInstitutionChange, value,
       )}
 
       <div className="mt-3 flex flex-wrap items-start gap-3 rounded-xs border border-ink-200 p-2.5">
-        <div className="h-24 w-20 shrink-0 overflow-hidden rounded-xs border border-ink-200 bg-ink-50">
-          {photoUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={resolveImageUrl(photoUrl)} alt="Student photo" className="h-full w-full object-cover" />
-          ) : (
-            <p className="flex h-full items-center justify-center px-1 text-center text-[10px] text-ink-400">No photo</p>
-          )}
-        </div>
-        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5">
-          <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-xs border border-ink-200 bg-white px-2 py-1 text-xs font-semibold text-ink-700 hover:bg-ink-50">
-            <Upload className="h-3.5 w-3.5" /> Upload photo
-            <input
-              type="file"
-              accept="image/jpeg,image/png,image/webp"
-              className="hidden"
-              disabled={uploading}
-              onChange={(e) => {
-                const f = e.target.files?.[0];
-                if (f) uploadFile(f, f.name);
-                e.target.value = "";
-              }}
-            />
-          </label>
-          {!camOn ? (
-            <button type="button" className="inline-flex items-center gap-1.5 rounded-xs border border-ink-200 bg-white px-2 py-1 text-xs font-semibold text-ink-700 hover:bg-ink-50" onClick={startCam}>
-              <Camera className="h-3.5 w-3.5" /> Webcam
-            </button>
-          ) : (
-            <>
-              <video ref={videoRef} autoPlay playsInline muted className="h-24 w-32 rounded-xs border border-ink-200 bg-black" />
-              <button type="button" className="rounded-xs border border-brand-600 bg-brand-600 px-2 py-1 text-xs font-semibold text-white hover:bg-brand-500" onClick={snap}>
-                Capture
+        <div className="flex min-w-0 flex-1 flex-wrap items-start gap-1.5">
+          <GlobalImageUploader
+            ref={uploaderRef}
+            preset={ImagePreset.PASSPORT}
+            uploadEndpoint="/api/uploads/passport"
+            deleteOnRemove
+            value={photoUrl || null}
+            onChange={(url) => {
+              form.setValue("photoUrl", url ?? "", { shouldDirty: true });
+              onChangeRef.current(
+                { ...(form.getValues() as IdentityState), photoUrl: url ?? "" },
+                eduForm.getValues().rows.map((r) => ({ key: rowKey(), ...r })),
+              );
+            }}
+          />
+
+          <div className="flex flex-wrap items-center gap-1.5">
+            {!camOn ? (
+              <button type="button" className="inline-flex cursor-pointer items-center gap-1.5 rounded-xs border border-ink-200 bg-white px-2 py-1 text-xs font-semibold text-ink-700 hover:bg-ink-50" onClick={startCam}>
+                <FiCamera className="h-3.5 w-3.5" /> Webcam
               </button>
-              <button type="button" className="rounded-xs border border-ink-200 bg-white px-2 py-1 text-xs font-semibold text-ink-700 hover:bg-ink-50" onClick={stopCam}>
-                Close
-              </button>
-            </>
-          )}
-          {uploading && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+            ) : (
+              <>
+                <video ref={videoRef} autoPlay playsInline muted className="h-24 w-32 rounded-xs border border-ink-200 bg-black" />
+                <button type="button" className="inline-flex cursor-pointer items-center rounded-xs border border-brand-600 bg-brand-600 px-2 py-1 text-xs font-semibold text-white hover:bg-brand-500" onClick={snap}>
+                  Capture
+                </button>
+                <button type="button" className="inline-flex cursor-pointer items-center rounded-xs border border-ink-200 bg-white px-2 py-1 text-xs font-semibold text-ink-700 hover:bg-ink-50" onClick={stopCam}>
+                  Close
+                </button>
+              </>
+            )}
+          </div>
         </div>
+
+        {webcamCropUrl && (
+          <CropModal
+            isOpen
+            imageSrc={webcamCropUrl}
+            presetConfig={IMAGE_UPLOAD_PRESETS[ImagePreset.PASSPORT]}
+            initialCrop={{ x: 0, y: 0 }}
+            initialZoom={1}
+            initialRotation={0}
+            onClose={() => {
+              URL.revokeObjectURL(webcamCropUrl);
+              setWebcamCropUrl(null);
+            }}
+            onConfirm={(croppedFile) => {
+              // Crop session is single-shot here — cropState not persisted.
+              // Hand the sliced file to the uploader's pipeline (proxy post,
+              // session key tracking, delete-on-remove) instead of a bespoke
+              // fetch, so Remove unlinks the webcam upload like any other.
+              uploaderRef.current?.deliverFile(croppedFile);
+              URL.revokeObjectURL(webcamCropUrl);
+              setWebcamCropUrl(null);
+            }}
+          />
+        )}
       </div>
 
       {!isKg ? (
@@ -303,7 +311,7 @@ export default function Step2FormCard({ institution, onInstitutionChange, value,
               className="inline-flex items-center gap-1 rounded-xs border border-ink-200 bg-white px-2 py-1 text-xs font-semibold text-ink-700 hover:bg-ink-50"
               onClick={() => append({ examTitle: "", instituteName: "", educationBoard: "", academicGroup: "", rollNo: "", regNo: "", passingYear: "", gpaObtained: "", tcNumber: "" })}
             >
-              <Plus className="h-3 w-3" /> Add row
+              <FiPlus className="h-3 w-3" /> Add row
             </button>
           </div>
           {fields.length === 0 ? (
@@ -328,7 +336,7 @@ export default function Step2FormCard({ institution, onInstitutionChange, value,
                   <div className="col-span-2 flex gap-1.5 sm:col-span-4 2xl:col-span-9">
                     <input className={`${CELL} flex-1`} placeholder="TC number (transfer-in)…" {...eduForm.register(`rows.${i}.tcNumber` as const)} />
                     <button type="button" className="rounded-xs border border-ink-200 bg-white px-2 py-1 text-xs text-rose-600 hover:bg-rose-50" onClick={() => remove(i)} title="Remove row">
-                      <Trash2 className="h-3.5 w-3.5" />
+                      <FiTrash className="h-3.5 w-3.5" />
                     </button>
                   </div>
                 </div>

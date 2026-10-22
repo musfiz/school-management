@@ -1,24 +1,13 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import {
-  Plus,
-  Pencil,
-  Trash2,
-  Save,
-  X,
-  Loader2,
-  Eye,
-  EyeOff,
-  Pin,
-  FileText,
-  Calendar,
-  Search,
-} from "lucide-react";
+import { FiPlus, FiEdit, FiTrash2, FiSave, FiX, FiLoader, FiEye, FiEyeOff, FiFileText, FiCalendar, FiSearch } from "react-icons/fi";
+import { RiPinDistanceLine } from "react-icons/ri";
 import type { ColumnDef } from "@tanstack/react-table";
 import DataTable from "@/components/dashboard/DataTable";
 import { DashCard } from "@/components/dashboard/DashPage";
-import ImageUploader from "@/components/dashboard/ImageUploader";
+import GlobalImageUploader from "@/components/common/image-uploader/global-image-uploader";
+import { ImagePreset } from "@/constants/image-upload-presets";
 import PdfUploader from "@/components/dashboard/PdfUploader";
 import RichTextEditor from "@/components/dashboard/RichTextEditor";
 import AdminPageLoader from "@/components/dashboard/AdminPageLoader";
@@ -302,7 +291,7 @@ export default function NoticesView() {
                     className="inline-flex items-center gap-1 rounded-xs bg-amber-50 px-1.5 py-0.5 text-[11px] font-bold text-amber-700 ring-1 ring-amber-300"
                     title="Pinned Notice"
                   >
-                    <Pin className="h-3 w-3 fill-amber-500 text-amber-600" />
+                    <RiPinDistanceLine className="h-3 w-3 fill-amber-500 text-amber-600" />
                     Pinned
                   </span>
                 )}
@@ -338,7 +327,7 @@ export default function NoticesView() {
           const d = row.original.publishDate;
           return (
             <div className="flex items-center gap-1.5 text-xs text-ink-600">
-              <Calendar className="h-3.5 w-3.5 text-ink-400" />
+              <FiCalendar className="h-3.5 w-3.5 text-ink-400" />
               <span>
                 {d
                   ? new Date(d).toLocaleDateString("en-GB", {
@@ -367,7 +356,7 @@ export default function NoticesView() {
                   className="inline-flex items-center gap-1 rounded-xs bg-red-50 px-2 py-1 text-xs font-semibold text-red-700 hover:bg-red-100"
                   title="View PDF Document"
                 >
-                  <FileText className="h-3.5 w-3.5" />
+                  <FiFileText className="h-3.5 w-3.5" />
                   PDF
                 </a>
               ) : null}
@@ -390,11 +379,11 @@ export default function NoticesView() {
           const n = row.original;
           return n.isActive ? (
             <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700">
-              <Eye className="h-3 w-3" /> Active
+              <FiEye className="h-3 w-3" /> Active
             </span>
           ) : (
             <span className="inline-flex items-center gap-1 rounded-full bg-ink-100 px-2 py-0.5 text-xs font-semibold text-ink-500">
-              <EyeOff className="h-3 w-3" /> Hidden
+              <FiEyeOff className="h-3 w-3" /> Hidden
             </span>
           );
         },
@@ -412,9 +401,7 @@ export default function NoticesView() {
                 className={`rounded-xs p-1.5 hover:bg-amber-50 ${ n.isPinned ? "text-amber-600" : "text-ink-400" }`}
                 title={n.isPinned ? "Unpin notice" : "Pin notice"}
               >
-                <Pin
-                  className={`h-4 w-4 ${n.isPinned ? "fill-amber-500" : ""}`}
-                />
+                <RiPinDistanceLine className={`h-4 w-4 ${n.isPinned ? "fill-amber-500" : ""}`} />
               </button>
               <button
                 type="button"
@@ -423,9 +410,9 @@ export default function NoticesView() {
                 title={n.isActive ? "Hide from website" : "Show on website"}
               >
                 {n.isActive ? (
-                  <Eye className="h-4 w-4" />
+                  <FiEye className="h-4 w-4" />
                 ) : (
-                  <EyeOff className="h-4 w-4" />
+                  <FiEyeOff className="h-4 w-4" />
                 )}
               </button>
               <button
@@ -434,7 +421,7 @@ export default function NoticesView() {
                 className="rounded-xs p-1.5 text-brand-600 hover:bg-brand-50"
                 title="Edit notice"
               >
-                <Pencil className="h-4 w-4" />
+                <FiEdit className="h-4 w-4" />
               </button>
               <button
                 type="button"
@@ -442,7 +429,7 @@ export default function NoticesView() {
                 className="rounded-xs p-1.5 text-red-600 hover:bg-red-50"
                 title="Delete notice"
               >
-                <Trash2 className="h-4 w-4" />
+                <FiTrash2 className="h-4 w-4" />
               </button>
             </div>
           );
@@ -469,7 +456,7 @@ export default function NoticesView() {
             onClick={openAddForm}
             className="flex items-center gap-1.5 rounded-xs bg-brand-600 px-3.5 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-700"
           >
-            <Plus className="h-4 w-4" />
+            <FiPlus className="h-4 w-4" />
             Add Notice
           </button>
         )}
@@ -488,7 +475,7 @@ export default function NoticesView() {
               className="rounded-xs p-1 text-ink-400 hover:bg-ink-50 hover:text-ink-700"
               aria-label="Close form"
             >
-              <X className="h-4 w-4" />
+              <FiX className="h-4 w-4" />
             </button>
           </div>
 
@@ -635,11 +622,11 @@ export default function NoticesView() {
                   <span className="mb-1.5 block text-sm font-medium text-ink-700">
                     Notice Banner / Thumbnail Image
                   </span>
-                  <ImageUploader
-                    value={form.imageUrl}
-                    onChange={(url) => patchForm({ imageUrl: url })}
-                    emptyLabel="Notice Banner Image"
-                    previewClassName="aspect-video w-full"
+                  <GlobalImageUploader
+                    preset={ImagePreset.BANNER_16_9}
+                    uploadEndpoint="/api/uploads/banner-16-9"
+                    value={form.imageUrl || null}
+                    onChange={(url) => patchForm({ imageUrl: url ?? "" })}
                   />
                 </div>
 
@@ -689,9 +676,9 @@ export default function NoticesView() {
                 className="flex items-center gap-1.5 rounded-xs bg-brand-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60 hover:bg-brand-700"
               >
                 {saving ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <FiLoader className="h-4 w-4 animate-spin" />
                 ) : (
-                  <Save className="h-4 w-4" />
+                  <FiSave className="h-4 w-4" />
                 )}
                 {form.id ? "Save Changes" : "Publish Notice"}
               </button>
@@ -711,7 +698,7 @@ export default function NoticesView() {
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <div className="relative">
-            <Search className="absolute left-3 top-2.5 h-4 w-4 text-ink-400" />
+            <FiSearch className="absolute left-3 top-2.5 h-4 w-4 text-ink-400" />
             <input
               type="text"
               value={searchQuery}

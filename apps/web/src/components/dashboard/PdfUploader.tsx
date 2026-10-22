@@ -1,7 +1,8 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { FileText, Loader2, Trash2, Upload } from "lucide-react";
+import { FiFileText, FiTrash, FiUpload } from "react-icons/fi";
+import { RiLoader2Line } from "react-icons/ri";
 import { toast } from "@/lib/swal";
 import { resolveImageUrl } from "@/lib/media";
 
@@ -77,7 +78,7 @@ export default function PdfUploader({
         <div className="flex items-center justify-between gap-3 rounded-xs border border-ink-200 bg-ink-50 p-3">
           <div className="flex min-w-0 items-center gap-3">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xs bg-red-100 text-red-600">
-              <FileText className="h-5 w-5" />
+              <FiFileText className="h-5 w-5" />
             </div>
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold text-ink-900">{fileName}</p>
@@ -107,7 +108,7 @@ export default function PdfUploader({
               className="rounded-xs p-1.5 text-red-600 hover:bg-red-50"
               aria-label="Remove PDF"
             >
-              <Trash2 className="h-4 w-4" />
+              <FiTrash className="h-4 w-4" />
             </button>
           </div>
         </div>
@@ -120,9 +121,9 @@ export default function PdfUploader({
           className="flex cursor-pointer items-center justify-center gap-2 rounded-xs border-2 border-dashed border-ink-300 bg-ink-50 px-4 py-4 text-ink-600 transition-colors hover:border-brand-400 hover:bg-brand-50/20"
         >
           {uploading ? (
-            <Loader2 className="h-5 w-5 animate-spin text-brand-600" />
+            <RiLoader2Line className="h-5 w-5 animate-spin text-brand-600" />
           ) : (
-            <Upload className="h-5 w-5 text-ink-400" />
+            <FiUpload className="h-5 w-5 text-ink-400" />
           )}
           <span className="text-sm font-medium">
             {uploading ? "Uploading PDF..." : "Upload Notice PDF (up to 15MB)"}

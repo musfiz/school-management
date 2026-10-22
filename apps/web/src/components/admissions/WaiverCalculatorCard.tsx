@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Calculator, Loader2, ShieldAlert } from "lucide-react";
+import { FiAlertCircle, FiLoader } from "react-icons/fi";
+import { FaCalculator } from "react-icons/fa";
 import { DashCard } from "@/components/dashboard/DashPage";
 import SearchSelect from "@/components/ui/SearchSelect";
 import { apiFetch } from "@/lib/api";
@@ -134,11 +135,11 @@ export default function WaiverCalculatorCard({ familyId, familyCode, initialQuot
           <button type="button" className={BTN} disabled={busy} onClick={calculate}>
             {busy ? (
               <span className="inline-flex items-center gap-1.5">
-                <Loader2 className="h-3.5 w-3.5 animate-spin" /> Calculating…
+                <FiLoader className="h-3.5 w-3.5 animate-spin" /> Calculating…
               </span>
             ) : (
               <span className="inline-flex items-center gap-1.5">
-                <Calculator className="h-3.5 w-3.5" /> Calculate waiver
+                <FaCalculator className="h-3.5 w-3.5" /> Calculate waiver
               </span>
             )}
           </button>
@@ -182,7 +183,7 @@ export default function WaiverCalculatorCard({ familyId, familyCode, initialQuot
                 key={s.ruleCode}
                 className="flex flex-wrap items-center gap-2 rounded-xs border border-rose-200 bg-rose-50 px-2.5 py-1.5 text-xs text-rose-800"
               >
-                <ShieldAlert className="h-3.5 w-3.5" />
+                <FiAlertCircle className="h-3.5 w-3.5" />
                 <span className="font-semibold">{s.ruleName} — blocked:</span>
                 <span>{s.reason}</span>
               </p>

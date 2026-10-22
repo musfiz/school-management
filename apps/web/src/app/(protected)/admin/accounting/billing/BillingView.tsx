@@ -1,7 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Plus, Search, Undo2, Gavel, Receipt, Wallet, BookOpen } from "lucide-react";
+import { FiPlus, FiSearch, FiBookOpen, FiRefreshCcw } from "react-icons/fi";
+import { BiReceipt } from "react-icons/bi";
+import { FaWallet, FaGavel } from "react-icons/fa6";
 import { DashCard, DashPageHeader } from "@/components/dashboard/DashPage";
 import AdminPageLoader from "@/components/dashboard/AdminPageLoader";
 import { apiFetch } from "@/lib/api";
@@ -451,10 +453,10 @@ export default function BillingView() {
         <>
           <div className="mb-3 flex flex-wrap justify-end gap-2">
             <button type="button" onClick={() => { setShowSingle((s) => !s); setShowBulk(false); }} className="flex items-center gap-1.5 rounded-xs border border-brand-600 bg-brand-600 px-3 py-2 text-sm font-semibold text-white hover:bg-brand-700">
-              <Plus className="h-4 w-4" /> Single invoice
+              <FiPlus className="h-4 w-4" /> Single invoice
             </button>
             <button type="button" onClick={() => { setShowBulk((s) => !s); setShowSingle(false); }} className="flex items-center gap-1.5 rounded-xs border border-brand-300 px-3 py-2 text-sm font-semibold text-brand-700 hover:bg-brand-50">
-              <BookOpen className="h-4 w-4" /> Bulk generate
+              <FiBookOpen className="h-4 w-4" /> Bulk generate
             </button>
           </div>
 
@@ -544,7 +546,7 @@ export default function BillingView() {
           <DashCard title={`Invoices (${filteredInvoices.length})`}>
             <div className="mb-3 flex flex-wrap gap-2">
               <div className="relative min-w-52 flex-1">
-                <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-400" />
+                <FiSearch className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-400" />
                 <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search invoice no / student / period…" className={`${INPUT} pl-8`} />
               </div>
               <input value={periodFilter} onChange={(e) => setPeriodFilter(e.target.value)} placeholder="Period e.g. 2026-10" className="rounded-xs cursor-pointer border border-ink-200 bg-white px-2 py-1 text-sm" />
@@ -575,12 +577,12 @@ export default function BillingView() {
                       <span className="flex gap-1.5">
                         {!["PAID", "REVERSED"].includes(inv.status) && (
                           <button type="button" disabled={!!acting} onClick={() => lateFine(inv.id, inv.invoiceNo)} className="flex items-center gap-1 rounded-xs border border-amber-600 bg-amber-600 px-2 py-1 text-xs font-semibold text-white hover:bg-amber-700 disabled:opacity-50">
-                            <Gavel className="h-3.5 w-3.5" /> Fine
+                            <FaGavel className="h-3.5 w-3.5" /> Fine
                           </button>
                         )}
                         {!["REVERSED"].includes(inv.status) && Number(inv.paidAmount) === 0 && (
                           <button type="button" disabled={!!acting} onClick={() => reverseInvoice(inv.id, inv.invoiceNo)} className="flex items-center gap-1 rounded-xs border border-rose-200 px-2 py-1 text-xs font-semibold text-rose-600 hover:bg-rose-50 disabled:opacity-50">
-                            <Undo2 className="h-3.5 w-3.5" /> Reverse
+                            <FiRefreshCcw className="h-3.5 w-3.5" /> Reverse
                           </button>
                         )}
                       </span>
@@ -719,7 +721,7 @@ export default function BillingView() {
             <div className="flex flex-wrap gap-2">
               <input value={lStudent} onChange={(e) => setLStudent(e.target.value)} placeholder="Student UUID" className={`${INPUT} max-w-96 flex-1 font-mono`} />
               <button type="button" onClick={loadLedger} className="flex items-center gap-1 rounded-xs border border-brand-600 bg-brand-600 px-3 py-2 text-sm font-semibold text-white hover:bg-brand-700">
-                <Receipt className="h-4 w-4" /> Load ledger
+                <BiReceipt className="h-4 w-4" /> Load ledger
               </button>
             </div>
             {ledger && (
@@ -749,7 +751,7 @@ export default function BillingView() {
           </DashCard>
           <DashCard title="Defaulter aging (0–30 / 31–60 / 61–90 / 90+)">
             <button type="button" onClick={loadAging} className="flex items-center gap-1 rounded-xs border border-ink-200 px-3 py-2 text-sm font-semibold text-ink-700 hover:bg-ink-100">
-              <Wallet className="h-4 w-4" /> Refresh aging
+              <FaWallet className="h-4 w-4" /> Refresh aging
             </button>
             {aging && (
               <div className="mt-2 rounded-xs bg-ink-900 p-3 font-mono text-xs text-white">

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Loader2, Save } from "lucide-react";
+import { FiLoader, FiSave } from "react-icons/fi";
 import { DashCard } from "@/components/dashboard/DashPage";
 import AdminPageLoader from "@/components/dashboard/AdminPageLoader";
 import { toast } from "@/lib/swal";
@@ -211,7 +211,7 @@ export default function HeroSectionSettingsPage() {
           disabled={saving}
           className="inline-flex items-center gap-2 self-start rounded-xs bg-navy-800 px-4 py-2 text-sm font-semibold text-white hover:bg-navy-900 disabled:opacity-50 sm:self-auto"
         >
-          {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+          {saving ? <FiLoader className="h-4 w-4 animate-spin" /> : <FiSave className="h-4 w-4" />}
           {saving ? "Saving..." : "Save Settings"}
         </button>
       </div>
@@ -356,7 +356,7 @@ export default function HeroSectionSettingsPage() {
             disabled={saving}
             className="inline-flex items-center gap-2 rounded-xs bg-navy-800 px-6 py-2.5 text-sm font-semibold text-white hover:bg-navy-900 disabled:opacity-50"
           >
-            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+            {saving ? <FiLoader className="h-4 w-4 animate-spin" /> : <FiSave className="h-4 w-4" />}
             {saving ? "Saving..." : "Save Settings"}
           </button>
         </div>

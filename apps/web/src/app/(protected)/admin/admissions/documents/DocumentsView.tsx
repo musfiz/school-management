@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { CheckCircle2, Eye, FileText, Loader2, RefreshCw, Search, ShieldCheck, Trash2, Upload, XCircle } from "lucide-react";
+import { FiCheckCircle, FiEye, FiFileText, FiLoader, FiRefreshCcw, FiSearch, FiTrash, FiUpload as Upload, FiXCircle } from "react-icons/fi";
+import { RiShieldCheckLine } from "react-icons/ri";
 import { DashCard, DashPageHeader } from "@/components/dashboard/DashPage";
 import AdminPageLoader from "@/components/dashboard/AdminPageLoader";
 import SearchSelect from "@/components/ui/SearchSelect";
@@ -121,7 +122,9 @@ export default function DocumentsView() {
       const isPdf = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
       const fd = new FormData();
       fd.append("file", file);
-      const up = await fetch(isPdf ? "/api/uploads/document" : "/api/uploads", {
+      // Scans → DOCUMENT preset pipeline (WebP, magic-byte verified).
+      // PDFs stay on the legacy document endpoint (image pipeline can't take them).
+      const up = await fetch(isPdf ? "/api/uploads/document" : "/api/uploads/optimized", {
         method: "POST",
         body: fd,
         credentials: "same-origin",
@@ -237,13 +240,13 @@ export default function DocumentsView() {
               <div className="flex flex-wrap items-center gap-1.5 sm:col-span-2 2xl:col-span-2">
                 <button type="button" className={BTN} disabled={loading} onClick={load}>
                   {loading ? (
-                    <span className="inline-flex items-center gap-1.5"><Loader2 className="h-3.5 w-3.5 animate-spin" /> Loading…</span>
+                    <span className="inline-flex items-center gap-1.5"><FiLoader className="h-3.5 w-3.5 animate-spin" /> Loading…</span>
                   ) : (
-                    <span className="inline-flex items-center gap-1.5"><Search className="h-3.5 w-3.5" /> Run</span>
+                    <span className="inline-flex items-center gap-1.5"><FiSearch className="h-3.5 w-3.5" /> Run</span>
                   )}
                 </button>
                 <button type="button" className={BTN_GHOST} disabled={loading} onClick={load}>
-                  <span className="inline-flex items-center gap-1"><RefreshCw className="h-3.5 w-3.5" /> Refresh</span>
+                  <span className="inline-flex items-center gap-1"><FiRefreshCcw className="h-3.5 w-3.5" /> Refresh</span>
                 </button>
               </div>
             </div>
@@ -290,7 +293,7 @@ export default function DocumentsView() {
                         <td className="px-2.5 py-1 text-right font-mono text-ink-600">{r.originalsHeld}</td>
                         <td className="px-2.5 py-1">
                           <button type="button" className={BTN_GHOST} onClick={() => openDetail(r)}>
-                            <span className="inline-flex items-center gap-1"><Eye className="h-3 w-3" /> Checklist</span>
+                            <span className="inline-flex items-center gap-1"><FiEye className="h-3 w-3" /> Checklist</span>
                           </button>
                         </td>
                       </tr>
@@ -367,7 +370,7 @@ export default function DocumentsView() {
                               <div className="flex flex-wrap gap-1">
                                 <button type="button" className={BTN_GHOST} disabled={busy !== null} onClick={() => pickFile(type)}>
                                   {rowBusy && busy === type ? (
-                                    <span className="inline-flex items-center gap-1"><Loader2 className="h-3 w-3 animate-spin" /> Uploading…</span>
+                                    <span className="inline-flex items-center gap-1"><FiLoader className="h-3 w-3 animate-spin" /> Uploading…</span>
                                   ) : (
                                     <span className="inline-flex items-center gap-1"><Upload className="h-3 w-3" /> {doc ? "Replace" : "Upload"}</span>
                                   )}
@@ -379,7 +382,7 @@ export default function DocumentsView() {
                                     rel="noopener noreferrer"
                                     className={BTN_GHOST}
                                   >
-                                    <span className="inline-flex items-center gap-1"><FileText className="h-3 w-3" /> View</span>
+                                    <span className="inline-flex items-center gap-1"><FiFileText className="h-3 w-3" /> View</span>
                                   </a>
                                 )}
                                 {doc && (
@@ -390,11 +393,11 @@ export default function DocumentsView() {
                                     onClick={() => verify(doc, !verified)}
                                   >
                                     {rowBusy && busy === doc.id ? (
-                                      <span className="inline-flex items-center gap-1"><Loader2 className="h-3 w-3 animate-spin" /></span>
+                                      <span className="inline-flex items-center gap-1"><FiLoader className="h-3 w-3 animate-spin" /></span>
                                     ) : verified ? (
-                                      <span className="inline-flex items-center gap-1"><XCircle className="h-3 w-3" /> Unverify</span>
+                                      <span className="inline-flex items-center gap-1"><FiXCircle className="h-3 w-3" /> Unverify</span>
                                     ) : (
-                                      <span className="inline-flex items-center gap-1"><ShieldCheck className="h-3 w-3" /> Verify</span>
+                                      <span className="inline-flex items-center gap-1"><RiShieldCheckLine className="h-3 w-3" /> Verify</span>
                                     )}
                                   </button>
                                 )}
@@ -406,7 +409,7 @@ export default function DocumentsView() {
                                     onClick={() => removeDoc(doc)}
                                     title="Remove document"
                                   >
-                                    <Trash2 className="h-3 w-3" />
+                                    <FiTrash className="h-3 w-3" />
                                   </button>
                                 )}
                               </div>
@@ -419,7 +422,7 @@ export default function DocumentsView() {
                 </div>
 
                 <p className="mt-2 inline-flex items-center gap-1.5 text-xs text-ink-500">
-                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
+                  <FiCheckCircle className="h-3.5 w-3.5 text-emerald-600" />
                   {detail.documents.filter((d) => d.verifiedBy).length} verified ·{" "}
                   {detail.documents.filter((d) => !d.verifiedBy).length} pending ·{" "}
                   {checklistTypes.filter((t) => !detail.documents.some((d) => d.documentType === t)).length} missing

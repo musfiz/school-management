@@ -169,3 +169,120 @@ shell. New pages must copy it; edited pages must converge to it.
 - **Money & errors.** Amounts render with `font-mono` via shared `fmtMoney`
   helpers with a `BDT` suffix on totals; API failures surface through
   `toast(message, "error")` from `@/lib/swal`.
+
+## Global Image Upload Pipeline (backend — `apps/api`, frontend — `apps/web`)
+
+The image upload/crop/optimization architecture is implemented and is the
+standard for every image in the system. Full reference:
+`docs/image-upload-architecture.md`.
+
+**Preset constants — one source, one mirror.**
+- Backend single source of truth:
+  `apps/api/src/common/constants/image-presets.constant.ts` (`AVATAR`
+  500×500 1:1, `PASSPORT` 450×600 3:4, `BANNER_16_9` 1920×1080, `BANNER_19_6`
+  1900×600, `DOCUMENT` max 1800×1800 free-ratio `fit:'inside'`, `LOGO` max
+  500×500 free-ratio `fit:'inside'`).
+- Frontend mirror: `apps/web/src/constants/image-upload-presets.ts` — keep the
+  two files in sync byte-for-byte whenever a preset changes. The server is the
+  real enforcer; the mirror exists only for cropper geometry and size hints.
+
+**Backend wiring — decorator + explicit pipe pairing.**
+- Route decorator: `@UploadImage('<field>', ImagePreset.X, <maxSizeMB>)` from
+  `common/decorators/upload-image.decorator.ts` — composes
+  `FileInterceptor` with Multer `memoryStorage()` (validated uploads never
+  touch disk) plus a hard `limits.fileSize` cap.
+- Param pipe: `@UploadedFile(new ImageOptimizationPipe(ImagePreset.X, true))`
+  next to the same field. Parameter pipes cannot read route metadata, so the
+  preset is declared explicitly on both pairs; the enum is the source.
+  The pipe replaces `file.buffer/mimetype/originalname` in place — downstream
+  code only ever sees sanitized WebP.
+- `common/pipes/image-optimization.pipe.ts` anti-bypass security (never trust
+  the client): XML/SVG sniff before decode (stored-XSS vector), real binary
+  magic-byte inspection via `sharp().metadata()` (mimetype/extension are
+  ignored entirely — a renamed `.exe` or script is rejected), pixel-flood cap
+  `limitInputPixels: 64_000_000`, EXIF-orientation-aware aspect gate
+  (`orientation` 5–8 swap axes) with ±15% tolerance for strict presets, `.rotate()`
+  auto-orient + full metadata strip, `.resize()` per preset fit, `.webp()`
+  normalize. A failed/swallowed pipe result means no file and no residue.
+
+**Storage contract — `modules/storage` strategy.**
+- Inject with `@Inject(STORAGE_PROVIDER) storage: IStorageProvider`. Drivers:
+  `LocalStorageDriver` (fs/promises under `UPLOADS_DIR`, served by the
+  `/uploads` static mount in `main.ts`) and `S3StorageDriver` (AWS S3 /
+  Cloudflare R2). Switch by `.env` `STORAGE_DRIVER=local|s3` — never branch on
+  the driver in application code.
+- Canonical key (identical for every driver):
+  `schools/${tenantId}/${folder}/${uuidv4()}.webp` with `tenantId` defaulting
+  to `'default_school'` (future JWT tenancy passes it server-side only —
+  never from a request body). `upload()` returns `{ key, url }`; **only the
+  relative `key` is persisted in the DB** — URLs are resolved at read time
+  (local: `/uploads/${key}`; S3/R2: `S3_PUBLIC_URL`/virtual-host).
+- Orphan cleanup after replacing/deleting an image: DB update first, then
+  `storage.deleteFile(previousKey)` — but **only when
+  `isManagedFileKey(previousKey)`** is true (legacy rows hold hand-written
+  `/uploads/x.jpg` or `/logo.png` values; those must never be treated as
+  deletable keys). Wrap in try/catch + `logger.warn`; deletion is idempotent.
+
+**Frontend components — `components/common/image-uploader` + `utils`.**
+- `GlobalImageUploader` (`image-uploader/global-image-uploader.tsx`) is the
+  intake widget for any image field: native HTML5 drag & drop (idle → active
+  brand highlight → error state), client-side JPEG/PNG/WebP + size validation
+  mirroring the preset caps, shaped preview card (circular for `AVATAR`,
+  aspect-matched otherwise) with hover actions Re-crop / Change / Remove, and
+  non-destructive re-cropping (the ORIGINAL ObjectURL + last crop position
+  survive until replace/remove). Ratio-locked presets (`AVATAR`/`PASSPORT`/
+  `BANNER_*`) open `CropModal` (`image-uploader/crop-modal.tsx`,
+  react-easy-crop: zoom slider + ±90° steps + ±45° fine-tune + reset, aspect
+  locked to the preset); `DOCUMENT`/`LOGO` bypass the cropper and deliver the
+  full frame downscaled inside the preset bounds (`fit:'inside'` on the
+  server preserves every pixel of any ratio — never impose aspect on them).
+  Delivery modes: URL mode `{ preset, uploadEndpoint, value, onChange }`
+  posts the ready file through a same-origin proxy and lands the URL in the
+  form field (the Teachers page uses `/api/uploads/passport`), or file mode
+  `{ preset, onFileReady(file) }` hands the processed `File` to the parent
+  (see `components/examples/student-admission-form.tsx`). URL-mode forms that
+  hold never-persisted images (draft wizards) pass `deleteOnRemove` — Remove
+  then also `DELETE`s the key this uploader posted this session
+  (`/api/uploads/delete` → `DELETE /uploads?key=…`; managed `schools/…` keys
+  only). **This is the only
+  image intake in the app** — the legacy generic uploader
+  (`components/dashboard/ImageUploader.tsx`) was deleted and all surfaces
+  (teachers, staff, governing body, ex-principals, sliders, notices, site
+  logo, CMS pages, admission wizard photo + document scans) already flow
+  through it; never recreate a raw file-picker upload UI. Programmatic
+  intake (e.g. the admission wizard's webcam capture) routes through
+  `CropModal` + the same proxy endpoints.
+- `CropModal` follows the shared modal standard (navy overlay, `rounded-xs`
+  card, `h-[400px] bg-navy-950` cropper stage, 38px footer buttons with
+  `disabled:opacity-50` processing state); small buttons use the 30px recipe
+  and all controls are flat `cursor-pointer` boxes.
+- `utils/canvas-crop.util.ts` (`getCroppedWebpFile`) does the canvas slice
+  using the official react-easy-crop rotation math (`getRadianAngle`,
+  `rotateSize`): rotated safe-area render → exact crop rectangle →
+  proportional downscale only when the crop exceeds the preset bounds →
+  `image/webp` encode at the preset quality with a PNG feature-fallback
+  (Safari < 17 — the backend pipe normalizes to WebP either way);
+  `pixelCrop === null` engages the Document/Logo bypass (full frame, original
+  ratio). Uploaders own and revoke the ObjectURLs (on replace, modal close,
+  and unmount) — never leak them.
+- Same-origin proxies live under `apps/web/src/app/api/**/route.ts`
+  (see `/api/uploads/avatar`, `/api/uploads/passport`, `/api/uploads/optimized`,
+  `/api/uploads/banner-16-9`, `/api/uploads/banner-19-6`, `/api/uploads/logo`):
+  forward `FormData` as-is so the browser writes the multipart boundary,
+  attaching `Authorization: Bearer <session cookie>` from `lib/session-cookie.ts`.
+- `resolveImageUrl` in `lib/media.ts` understands storage keys
+  (`schools/…` → `/uploads/…` resolved against `NEXT_PUBLIC_API_BASE_URL`),
+  legacy `/uploads/…` values, absolute URLs, and `/public` assets. Use it for
+  every uploaded-image display; do not build URLs inline.
+
+**Adding an image field elsewhere — checklist.**
+1. Backend route: `@UploadImage('<field>', ImagePreset.X, <maxMB>)` + param
+   `@UploadedFile(new ImageOptimizationPipe(ImagePreset.X, true))`.
+2. `storage.upload({ buffer: file.buffer, folder: '<logical-folder>',
+   tenantId? })` after the pipe; store `key` only.
+3. Replace-cleanup: `isManagedFileKey(oldKey)` guard → `deleteFile` after a
+   successful DB commit; log, never throw.
+4. Frontend field: `<GlobalImageUploader preset={ImagePreset.X}
+   uploadEndpoint="/api/<module>/<route>" value={form.imageUrl}
+   onChange={…} />` and a thin proxy `route.ts` copying the avatar one.
+5. DB column: `VarChar(255)` minimum (keys are ≈55 chars).

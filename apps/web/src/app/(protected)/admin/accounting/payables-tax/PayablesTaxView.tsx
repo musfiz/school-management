@@ -1,7 +1,9 @@
 "use client";
 
 import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
-import { Building2, Landmark, ReceiptText, Trash2 } from "lucide-react";
+import { FiTrash } from "react-icons/fi";
+import { BiBuilding, BiSolidLandmark } from "react-icons/bi";
+import { FaReceipt } from "react-icons/fa6";
 import { DashCard, DashPageHeader } from "@/components/dashboard/DashPage";
 import AdminPageLoader from "@/components/dashboard/AdminPageLoader";
 import { apiFetch } from "@/lib/api";
@@ -664,7 +666,7 @@ export default function PayablesTaxView() {
                                     className="cursor-pointer rounded-xs border border-ink-200 px-2 py-1 text-xs text-ink-600 hover:bg-ink-50 disabled:opacity-50"
                                     title="Void draft"
                                   >
-                                    <Trash2 className="h-3.5 w-3.5" />
+                                    <FiTrash className="h-3.5 w-3.5" />
                                   </button>
                                 </>
                               )}
@@ -994,7 +996,7 @@ export default function PayablesTaxView() {
                       <tr key={v.id} className="border-b border-ink-100">
                         <td className="px-2 py-1.5">
                           <div className="flex items-center gap-1.5 font-semibold">
-                            <Building2 className="h-3.5 w-3.5 text-ink-400" />
+                            <BiBuilding className="h-3.5 w-3.5 text-ink-400" />
                             {v.vendorName}
                           </div>
                           <div className="text-[11px] text-ink-500">
@@ -1021,12 +1023,12 @@ export default function PayablesTaxView() {
       )}
 
       <div className="mt-4 flex items-start gap-2 text-xs text-ink-500">
-        <Landmark className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+        <BiSolidLandmark className="mt-0.5 h-3.5 w-3.5 shrink-0" />
         <p>
           Approval posts Dr 5xxxx/121xx (gross) / Cr 21101 AP (net) + Cr 21302 TDS + Cr 21304 VDS
           within one fund. Challan deposits post Dr 21302/21304 / Cr operating bank.{" "}
           <span className="inline-flex items-center gap-1">
-            <ReceiptText className="h-3 w-3" /> Voucher numbers appear beside each posted row.
+            <FaReceipt className="h-3 w-3" /> Voucher numbers appear beside each posted row.
           </span>
         </p>
       </div>

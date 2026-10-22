@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { AlertTriangle, CheckCircle2, Cpu, Play, RefreshCw, ShieldCheck, Zap } from "lucide-react";
+import { FiAlertTriangle as AlertTriangle, FiCheckCircle as CheckCircle2, FiCpu as Cpu, FiPlay as Play, FiRefreshCcw as RefreshCw, FiZap as Zap } from "react-icons/fi";
+import { RiShieldCheckLine as ShieldCheck } from "react-icons/ri";
 import { DashCard, DashPageHeader } from "@/components/dashboard/DashPage";
 import AdminPageLoader from "@/components/dashboard/AdminPageLoader";
 import {

@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Loader2, Sprout, XCircle } from "lucide-react";
+import { FiLoader, FiXCircle } from "react-icons/fi";
+import { LuSprout } from "react-icons/lu";
 import { DashCard, DashPageHeader } from "@/components/dashboard/DashPage";
 import AdminPageLoader from "@/components/dashboard/AdminPageLoader";
 import { apiFetch } from "@/lib/api";
@@ -97,11 +98,11 @@ export default function WaiverPresetsView() {
           <button type="button" className={BTN} disabled={acting !== null} onClick={seed}>
             {acting === "seed" ? (
               <span className="inline-flex items-center gap-1.5">
-                <Loader2 className="h-3.5 w-3.5 animate-spin" /> Seeding…
+                <FiLoader className="h-3.5 w-3.5 animate-spin" /> Seeding…
               </span>
             ) : (
               <span className="inline-flex items-center gap-1.5">
-                <Sprout className="h-3.5 w-3.5" /> Seed defaults
+                <LuSprout className="h-3.5 w-3.5" /> Seed defaults
               </span>
             )}
           </button>
@@ -177,7 +178,7 @@ export default function WaiverPresetsView() {
                         onClick={() => deleteRule(r)}
                         title="Delete preset"
                       >
-                        <XCircle className="h-3 w-3" />
+                        <FiXCircle className="h-3 w-3" />
                       </button>
                     </td>
                   </tr>

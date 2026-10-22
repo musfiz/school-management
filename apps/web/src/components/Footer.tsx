@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { Mail, MapPin, Phone } from "lucide-react";
+import { FiMail as Mail, FiMapPin as MapPin, FiPhone as Phone } from "react-icons/fi";
 import type { PublicSiteSettings } from "@/lib/site-settings";
 import { resolveImageUrl, isExternalImage } from "@/lib/media";
 import { FacebookIcon, LinkedinIcon, XIconBrand, YoutubeIcon } from "./icons";

@@ -1,12 +1,22 @@
 import type { Metadata } from "next";
+import { Roboto } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
-import { GeistSans } from "geist/font/sans";
 import "./globals.css";
 import "sweetalert2/dist/sweetalert2.min.css";
 import { site } from "@/lib/site";
 import { organizationJsonLd } from "@/lib/jsonld";
 import { JsonLd } from "@/components/ui";
+
+// Dashboard font — self-hosted via next/font (no runtime request to Google).
+// Exposed as a CSS variable so globals.css can scope it to .dashboard-font.
+// Weights cover the dashboard usage: 400 body, 500/600 labels/badges, 700 bold.
+const roboto = Roboto({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-roboto",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL(site.url),
@@ -40,7 +50,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const messages = await getMessages();
 
   return (
-    <html lang={locale} className={`${GeistSans.variable} lang-${locale}`}>
+    <html lang={locale} className={`lang-${locale} ${roboto.variable}`}>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />

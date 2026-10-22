@@ -1,7 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { CalendarDays, Loader2, RefreshCw, Wallet } from "lucide-react";
+import { GoCalendar } from "react-icons/go";
+import { FiLoader, FiRefreshCcw } from "react-icons/fi";
+import { BiWallet as FiWallet } from "react-icons/bi";
 import { DashCard, DashPageHeader } from "@/components/dashboard/DashPage";
 import AdminPageLoader from "@/components/dashboard/AdminPageLoader";
 import { apiFetch } from "@/lib/api";
@@ -84,9 +86,9 @@ export default function AdmissionDashboardView() {
             action={
               <button type="button" className={BTN_GHOST} disabled={loading} onClick={load}>
                 {loading ? (
-                  <span className="inline-flex items-center gap-1"><Loader2 className="h-3.5 w-3.5 animate-spin" /> Loading…</span>
+                  <span className="inline-flex items-center gap-1"><FiLoader className="h-3.5 w-3.5 animate-spin" /> Loading…</span>
                 ) : (
-                  <span className="inline-flex items-center gap-1"><RefreshCw className="h-3.5 w-3.5" /> Refresh</span>
+                  <span className="inline-flex items-center gap-1"><FiRefreshCcw className="h-3.5 w-3.5" /> Refresh</span>
                 )}
               </button>
             }
@@ -188,7 +190,7 @@ export default function AdmissionDashboardView() {
             <DashCard title={`Today's admissions (${data.todayAdmissions.length})`} className="lg:col-span-2">
               {data.todayAdmissions.length === 0 ? (
                 <p className="inline-flex items-center gap-1.5 py-6 text-sm text-ink-400">
-                  <CalendarDays className="h-4 w-4" /> No admissions recorded today ({data.today}).
+                  <GoCalendar className="h-4 w-4" /> No admissions recorded today ({data.today}).
                 </p>
               ) : (
                 <div className="overflow-x-auto rounded-xs border border-ink-100">
@@ -230,7 +232,7 @@ export default function AdmissionDashboardView() {
             action={
               k.pendingFeeAmount !== "0.00" ? (
                 <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-rose-700">
-                  <Wallet className="h-3.5 w-3.5" /> {k.pendingFeeAmount} BDT outstanding
+                  <FiWallet className="h-3.5 w-3.5" /> {k.pendingFeeAmount} BDT outstanding
                 </span>
               ) : undefined
             }

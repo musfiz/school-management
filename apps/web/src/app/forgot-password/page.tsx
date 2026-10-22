@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft, MailCheck } from "lucide-react";
+import { FiArrowLeft, FiMail } from "react-icons/fi";
 import { site } from "@/lib/site";
 import { getSession, safeReturnTo } from "@/lib/auth";
 import { redirect } from "next/navigation";
@@ -54,7 +54,7 @@ export default async function ForgotPasswordPage({
             aria-hidden
             className="mb-3 inline-flex h-12 w-12 items-center justify-center rounded-xs bg-navy-900 text-white shadow-card"
           >
-            <MailCheck className="h-5 w-5" />
+            <FiMail className="h-5 w-5" />
           </span>
           <p className="text-xs font-semibold uppercase tracking-[0.25em] text-gold-600">
             {site.name}
@@ -76,7 +76,7 @@ export default async function ForgotPasswordPage({
             role="status"
             className="mt-6 flex items-start gap-2 rounded-xs border border-amber-200 bg-amber-50 px-3 py-2.5 text-sm text-amber-800"
           >
-            <MailCheck className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+            <FiMail className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
             <span>
               The reset flow is not enabled yet. Please contact your school
               administrator to reset your password.
@@ -88,7 +88,7 @@ export default async function ForgotPasswordPage({
               href={`/login?returnTo=${encodeURIComponent(safeTo)}`}
               className="inline-flex items-center gap-1.5 font-semibold text-navy-700 transition-colors hover:text-navy-900"
             >
-              <ArrowLeft className="h-4 w-4" aria-hidden />
+              <FiArrowLeft className="h-4 w-4" aria-hidden />
               Back to sign in
             </Link>
           </div>

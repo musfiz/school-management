@@ -18,10 +18,10 @@ import {
 import { roleLabels, type Role } from "@/lib/dashboard-nav";
 export type { Role };
 import { RiGraduationCapLine, RiArrowDownSLine, RiSidebarFoldLine, RiSidebarUnfoldLine } from "react-icons/ri";
-import type { LucideIcon } from "lucide-react";
+import type { IconType } from "react-icons";
 
-function iconFor(icon: LucideIcon | undefined): LucideIcon {
-  return (icon ?? RiGraduationCapLine) as unknown as LucideIcon;
+function iconFor(icon: IconType | undefined): IconType {
+  return (icon ?? RiGraduationCapLine) as unknown as IconType;
 }
 
 const COLLAPSE_STORAGE_KEY = "dashboard:sidebar-collapsed";

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Layers } from "lucide-react";
+import { FiLayers as Layers } from "react-icons/fi";
 import { DashCard, DashPageHeader } from "@/components/dashboard/DashPage";
 import AdminPageLoader from "@/components/dashboard/AdminPageLoader";
 import PrintMenu from "@/components/dashboard/PrintMenu";

@@ -2,11 +2,12 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
-import { Plus, Pencil, Trash2, Save, X, Loader2 } from "lucide-react";
+import { FiPlus, FiEdit, FiTrash, FiSave, FiX, FiLoader } from "react-icons/fi";
 import type { ColumnDef } from "@tanstack/react-table";
 import DataTable from "@/components/dashboard/DataTable";
 import { DashCard } from "@/components/dashboard/DashPage";
-import ImageUploader from "@/components/dashboard/ImageUploader";
+import GlobalImageUploader from "@/components/common/image-uploader/global-image-uploader";
+import { ImagePreset } from "@/constants/image-upload-presets";
 import AdminPageLoader from "@/components/dashboard/AdminPageLoader";
 import { resolveImageUrl, isExternalImage } from "@/lib/media";
 import { confirmDialog, toast } from "@/lib/swal";
@@ -190,7 +191,7 @@ export default function StaffPage() {
               className="rounded-xs p-1.5 text-brand-600 hover:bg-brand-50"
               aria-label="Edit"
             >
-              <Pencil className="h-4 w-4" />
+              <FiEdit className="h-4 w-4" />
             </button>
             <button
               type="button"
@@ -198,7 +199,7 @@ export default function StaffPage() {
               className="rounded-xs p-1.5 text-red-600 hover:bg-red-50"
               aria-label="Delete"
             >
-              <Trash2 className="h-4 w-4" />
+              <FiTrash className="h-4 w-4" />
             </button>
           </div>
         ),
@@ -220,7 +221,7 @@ export default function StaffPage() {
             onClick={openAddForm}
             className="flex items-center gap-1.5 rounded-xs bg-brand-600 px-3 py-2 text-sm font-semibold text-white hover:bg-brand-700"
           >
-            <Plus className="h-4 w-4" />
+            <FiPlus className="h-4 w-4" />
             Add staff member
           </button>
         )}
@@ -238,7 +239,7 @@ export default function StaffPage() {
               className="rounded-xs p-1 text-ink-400 hover:bg-ink-50 hover:text-ink-700"
               aria-label="Close form"
             >
-              <X className="h-4 w-4" />
+              <FiX className="h-4 w-4" />
             </button>
           </div>
 
@@ -247,11 +248,11 @@ export default function StaffPage() {
             <div className="grid gap-6 lg:grid-cols-[220px_1fr]">
               <div>
                 <span className="mb-1.5 block text-sm font-medium text-ink-700">Photo</span>
-                <ImageUploader
-                  value={form.imageUrl}
-                  onChange={(url) => setForm((prev) => ({ ...prev, imageUrl: url }))}
-                  emptyLabel="Drop or click to upload"
-                  previewClassName="h-[150px] w-[100px]"
+                <GlobalImageUploader
+                  preset={ImagePreset.PASSPORT}
+                  uploadEndpoint="/api/uploads/passport"
+                  value={form.imageUrl || null}
+                  onChange={(url) => setForm((prev) => ({ ...prev, imageUrl: url ?? "" }))}
                 />
               </div>
 
@@ -318,7 +319,7 @@ export default function StaffPage() {
                 disabled={saving}
                 className="flex items-center gap-1.5 rounded-xs bg-brand-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60 hover:bg-brand-700"
               >
-                {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                {saving ? <FiLoader className="h-4 w-4 animate-spin" /> : <FiSave className="h-4 w-4" />}
                 Save
               </button>
               <button

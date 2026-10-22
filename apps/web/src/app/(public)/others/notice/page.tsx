@@ -4,8 +4,7 @@ import { Breadcrumbs, PageHeader, Section } from "@/components/ui";
 import { notices as fallbackNotices } from "@/lib/content/collections";
 import type { NoticeItem } from "@/lib/notices";
 import { resolveImageUrl } from "@/lib/media";
-import { sanitizeHtml } from "@/lib/sanitize-html";
-import { FileText, Pin } from "lucide-react";
+import { FiDownload, FiExternalLink, FiMapPin } from "react-icons/fi";
 
 export const metadata: Metadata = {
   title: "Notice Board",
@@ -31,122 +30,151 @@ export default async function NoticePage() {
 
   return (
     <>
-      <PageHeader
-        eyebrow="Others"
-        title="Notice Board"
-        description="Official notices and circulars for students, parents and staff."
-      />
+      <PageHeader eyebrow="Others" title="Notice Board" className="py-6 sm:py-8" />
       <Breadcrumbs
+        className="py-1.5"
         items={[
           { name: "Home", href: "/" },
           { name: "Others", href: "/others" },
           { name: "Notice", href: "/others/notice" },
         ]}
       />
-      <Section>
+      <Section className="py-6! sm:py-8!">
         {apiNotices.length > 0 ? (
-          <ul className="space-y-6">
-            {apiNotices.map((n) => {
-              const title = (locale === "bn" && n.titleBn) || n.title;
-              const shortDesc =
-                (locale === "bn" && n.shortDescriptionBn) || n.shortDescription;
-              const description =
-                (locale === "bn" && n.descriptionBn) || n.description;
-              const dateStr = n.publishDate || n.createdAt;
+          <div className="overflow-x-auto rounded-xs border border-ink-200 bg-white shadow-soft">
+            <table className="w-full text-left text-sm">
+              <thead className="bg-ink-50 text-ink-700">
+                <tr>
+                  <th className="px-4 py-3 font-semibold">SI</th>
+                  <th className="px-4 py-3 font-semibold">Date</th>
+                  <th className="px-4 py-3 font-semibold">Notice</th>
+                  <th className="px-4 py-3 font-semibold">Category</th>
+                  <th className="px-4 py-3 text-center font-semibold">Download</th>
+                  <th className="px-4 py-3 text-center font-semibold">Details</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-ink-100">
+                {apiNotices.map((n, i) => {
+                  const title = (locale === "bn" && n.titleBn) || n.title;
+                  const shortDesc = (locale === "bn" && n.shortDescriptionBn) || n.shortDescription;
+                  const dateStr = n.publishDate || n.createdAt;
 
-              return (
-                <li
-                  key={n.id}
-                  className="rounded-xs border border-ink-200 bg-white p-6 shadow-soft transition-all hover:shadow-card"
-                >
-                  <div className="flex flex-wrap items-center justify-between gap-3 border-b border-ink-100 pb-3">
-                    <div className="flex items-center gap-2">
-                      <span className="rounded-xs bg-navy-50 px-2.5 py-1 text-xs font-semibold text-navy-700">
-                        {n.category}
-                      </span>
-                      {n.isPinned && (
-                        <span className="inline-flex items-center gap-1 rounded-xs bg-amber-50 px-2 py-0.5 text-xs font-bold text-amber-700 ring-1 ring-amber-300">
-                          <Pin className="h-3 w-3 fill-amber-500 text-amber-600" />
-                          Pinned
+                  return (
+                    <tr key={n.id} className="align-top hover:bg-ink-50">
+                      <td className="px-4 py-3 text-ink-500">{i + 1}</td>
+                      <td className="px-4 py-3 whitespace-nowrap text-ink-500">
+                        {dateStr
+                          ? new Date(dateStr).toLocaleDateString("en-GB", {
+                              day: "2-digit",
+                              month: "short",
+                              year: "numeric",
+                            })
+                          : "—"}
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-start gap-2">
+                          {n.isPinned && (
+                            <FiMapPin
+                              title="Pinned"
+                              className="mt-0.5 h-3.5 w-3.5 shrink-0 fill-amber-500 text-amber-600"
+                            />
+                          )}
+                          <div>
+                            <p className="font-semibold text-navy-900">{title}</p>
+                            {shortDesc && (
+                              <p className="mt-0.5 line-clamp-2 text-ink-500">{shortDesc}</p>
+                            )}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="rounded-xs bg-navy-50 px-2 py-0.5 text-xs font-semibold text-navy-700">
+                          {n.category}
                         </span>
-                      )}
-                    </div>
-                    {dateStr && (
-                      <span className="text-sm font-medium text-ink-500">
-                        {new Date(dateStr).toLocaleDateString("en-GB", {
-                          day: "2-digit",
-                          month: "long",
-                          year: "numeric",
-                        })}
-                      </span>
-                    )}
-                  </div>
-
-                  <h3 className="mt-4 font-display text-xl font-bold text-navy-900">
-                    {title}
-                  </h3>
-
-                  {shortDesc && (
-                    <p className="mt-2 text-base font-medium text-ink-600">
-                      {shortDesc}
-                    </p>
-                  )}
-
-                  {description && (
-                    <div
-                      className="cms-rich mt-4 text-sm leading-relaxed text-ink-700"
-                      dangerouslySetInnerHTML={{ __html: sanitizeHtml(description) }}
-                    />
-                  )}
-
-                  {(n.pdfUrl || n.imageUrl) && (
-                    <div className="mt-5 flex flex-wrap items-center gap-3 border-t border-ink-100 pt-4">
-                      {n.pdfUrl && (
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        {n.pdfUrl ? (
+                          <a
+                            href={resolveImageUrl(n.pdfUrl)}
+                            download
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            title="Download PDF"
+                            className="inline-flex items-center justify-center rounded-xs p-1.5 text-red-600 transition-colors hover:bg-red-50"
+                          >
+                            <FiDownload className="h-4 w-4" />
+                          </a>
+                        ) : (
+                          <span className="text-ink-300">—</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-center">
                         <a
-                          href={resolveImageUrl(n.pdfUrl)}
+                          href={`/others/notice/${n.id}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-2 rounded-xs bg-red-50 px-3.5 py-2 text-xs font-semibold text-red-700 transition-colors hover:bg-red-100"
+                          className="inline-flex items-center gap-1.5 rounded-xs border border-ink-200 px-2.5 py-1 text-xs font-semibold text-navy-700 transition-colors hover:border-brand-400 hover:text-brand-600"
                         >
-                          <FileText className="h-4 w-4" />
-                          Download Official Notice (PDF)
+                          View details
+                          <FiExternalLink className="h-3 w-3" />
                         </a>
-                      )}
-                    </div>
-                  )}
-                </li>
-              );
-            })}
-          </ul>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         ) : (
-          <ul className="space-y-4">
-            {fallbackNotices.map((n) => (
-              <li
-                key={n.id}
-                className="rounded-xs border border-ink-200 bg-white p-6 shadow-soft"
-              >
-                <div className="flex flex-wrap items-center gap-3">
-                  <span className="rounded-xs bg-navy-50 px-2.5 py-1 text-xs font-semibold text-navy-700">
-                    {n.category}
-                  </span>
-                  <span className="text-sm text-ink-400">
-                    {new Date(n.date).toLocaleDateString("en-GB", {
-                      day: "2-digit",
-                      month: "long",
-                      year: "numeric",
-                    })}
-                  </span>
-                  {n.pinned && (
-                    <span className="text-xs font-bold text-gold-600">★ Pinned</span>
-                  )}
-                </div>
-                <h3 className="mt-3 font-display text-lg font-bold text-navy-900">
-                  {n.title}
-                </h3>
-                <p className="mt-2 text-ink-600">{n.body}</p>
-              </li>
-            ))}
-          </ul>
+          <div className="overflow-x-auto rounded-xs border border-ink-200 bg-white shadow-soft">
+            <table className="w-full text-left text-sm">
+              <thead className="bg-ink-50 text-ink-700">
+                <tr>
+                  <th className="px-4 py-3 font-semibold">SI</th>
+                  <th className="px-4 py-3 font-semibold">Date</th>
+                  <th className="px-4 py-3 font-semibold">Notice</th>
+                  <th className="px-4 py-3 font-semibold">Category</th>
+                  <th className="px-4 py-3 text-center font-semibold">Download</th>
+                  <th className="px-4 py-3 text-center font-semibold">Details</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-ink-100">
+                {fallbackNotices.map((n, i) => (
+                  <tr key={n.id} className="align-top hover:bg-ink-50">
+                    <td className="px-4 py-3 text-ink-500">{i + 1}</td>
+                    <td className="px-4 py-3 whitespace-nowrap text-ink-500">
+                      {new Date(n.date).toLocaleDateString("en-GB", {
+                        day: "2-digit",
+                        month: "short",
+                        year: "numeric",
+                      })}
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-start gap-2">
+                        {n.pinned && (
+                          <FiMapPin
+                            title="Pinned"
+                            className="mt-0.5 h-3.5 w-3.5 shrink-0 fill-amber-500 text-amber-600"
+                          />
+                        )}
+                        <div>
+                          <p className="font-semibold text-navy-900">{n.title}</p>
+                          <p className="mt-0.5 line-clamp-2 text-ink-500">{n.body}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className="rounded-xs bg-navy-50 px-2 py-0.5 text-xs font-semibold text-navy-700">
+                        {n.category}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-center text-ink-300">—</td>
+                    <td className="px-4 py-3 text-center text-ink-300">—</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </Section>
     </>

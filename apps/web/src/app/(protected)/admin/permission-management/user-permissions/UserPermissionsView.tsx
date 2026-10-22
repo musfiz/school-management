@@ -1,17 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import {
-  Save,
-  Loader2,
-  Search,
-  X,
-  ShieldCheck,
-  ChevronDown,
-  Users,
-  LayoutGrid,
-  Check,
-} from "lucide-react";
+import { FiSave, FiLoader, FiSearch, FiX, FiShield, FiChevronDown, FiUsers, FiGrid, FiCheck } from "react-icons/fi";
 import type { UserSummary } from "@/lib/permissions";
 import {
   listPermissions,
@@ -85,7 +75,7 @@ function UserMultiSelect({
         onClick={() => setOpen((o) => !o)}
         className="flex min-h-10.5 w-full items-center gap-1.5 rounded-xs cursor-pointer border border-ink-200 bg-white px-3 py-1 text-left text-sm outline-none focus:border-brand-400"
       >
-        <Users className="h-4 w-4 shrink-0 text-ink-400" />
+        <FiUsers className="h-4 w-4 shrink-0 text-ink-400" />
         {selected.length === 0 ? (
           <span className="text-ink-400">Search and select users…</span>
         ) : (
@@ -111,20 +101,20 @@ function UserMultiSelect({
                   }}
                   className="ml-0.5 rounded-xs hover:bg-brand-100"
                 >
-                  <X className="h-3 w-3" />
+                  <FiX className="h-3 w-3" />
                 </span>
               </span>
             ))}
           </span>
         )}
-        <ChevronDown className="ml-auto h-4 w-4 shrink-0 text-ink-400" />
+        <FiChevronDown className="ml-auto h-4 w-4 shrink-0 text-ink-400" />
       </button>
 
       {/* Dropdown */}
       {open && (
         <div className="absolute left-0 right-0 top-full z-30 mt-1 overflow-hidden rounded-xs border border-ink-200 bg-white shadow-lg">
           <div className="relative border-b border-ink-100 p-2">
-            <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-400" />
+            <FiSearch className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-400" />
             <input
               autoFocus
               value={query}
@@ -162,7 +152,7 @@ function UserMultiSelect({
                       <span
                         className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-xs border ${ isSel ? "border-brand-600 bg-brand-600 text-white" : "border-ink-300" }`}
                       >
-                        {isSel && <Check className="h-3 w-3" />}
+                        {isSel && <FiCheck className="h-3 w-3" />}
                       </span>
                       <span className="min-w-0 flex-1">
                         <span className="block truncate font-medium text-ink-900">
@@ -219,11 +209,11 @@ function ModuleSelect({
         onClick={() => setOpen((o) => !o)}
         className="flex h-10.5 w-full items-center gap-2 rounded-xs cursor-pointer border border-ink-200 bg-white px-3 text-left text-sm outline-none focus:border-brand-400"
       >
-        <LayoutGrid className="h-4 w-4 shrink-0 text-ink-400" />
+        <FiGrid className="h-4 w-4 shrink-0 text-ink-400" />
         <span className={value === "all" ? "text-ink-400" : "text-ink-900"}>
           {value === "all" ? "All Modules" : value}
         </span>
-        <ChevronDown className="ml-auto h-4 w-4 shrink-0 text-ink-400" />
+        <FiChevronDown className="ml-auto h-4 w-4 shrink-0 text-ink-400" />
       </button>
 
       {open && (
@@ -483,7 +473,7 @@ export default function UserPermissionsView() {
           {selectedUsers.length === 0 ? (
             <DashCard className="mt-6">
               <div className="flex min-h-[30vh] flex-col items-center justify-center text-center">
-                <Users className="mb-3 h-10 w-10 text-ink-300" />
+                <FiUsers className="mb-3 h-10 w-10 text-ink-300" />
                 <p className="text-sm text-ink-500">
                   Select one or more users above to manage their permissions.
                 </p>
@@ -505,9 +495,9 @@ export default function UserPermissionsView() {
                   className="flex items-center gap-1.5 rounded-xs bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-60"
                 >
                   {saving ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <FiLoader className="h-4 w-4 animate-spin" />
                   ) : (
-                    <Save className="h-4 w-4" />
+                    <FiSave className="h-4 w-4" />
                   )}
                   Save Permissions
                 </button>

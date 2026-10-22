@@ -2,11 +2,12 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
-import { Plus, Pencil, Trash2, Save, X, Loader2, Eye, EyeOff } from "lucide-react";
+import { FiPlus, FiEdit, FiTrash, FiSave, FiX, FiLoader, FiEye, FiEyeOff } from "react-icons/fi";
 import type { ColumnDef } from "@tanstack/react-table";
 import DataTable from "@/components/dashboard/DataTable";
 import { DashCard } from "@/components/dashboard/DashPage";
-import ImageUploader from "@/components/dashboard/ImageUploader";
+import GlobalImageUploader from "@/components/common/image-uploader/global-image-uploader";
+import { ImagePreset } from "@/constants/image-upload-presets";
 import AdminPageLoader from "@/components/dashboard/AdminPageLoader";
 import { resolveImageUrl, isExternalImage } from "@/lib/media";
 import { confirmDialog, toast } from "@/lib/swal";
@@ -194,11 +195,11 @@ export default function SlidersPage() {
           const s = row.original;
           return s.isActive ? (
             <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700">
-              <Eye className="h-3 w-3" /> Active
+              <FiEye className="h-3 w-3" /> Active
             </span>
           ) : (
             <span className="inline-flex items-center gap-1 rounded-full bg-ink-100 px-2 py-0.5 text-xs font-semibold text-ink-500">
-              <EyeOff className="h-3 w-3" /> Hidden
+              <FiEyeOff className="h-3 w-3" /> Hidden
             </span>
           );
         },
@@ -215,7 +216,7 @@ export default function SlidersPage() {
               aria-label={row.original.isActive ? "Hide slide" : "Show slide"}
               title={row.original.isActive ? "Hide from site" : "Show on site"}
             >
-              {row.original.isActive ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+              {row.original.isActive ? <FiEye className="h-4 w-4" /> : <FiEyeOff className="h-4 w-4" />}
             </button>
             <button
               type="button"
@@ -223,7 +224,7 @@ export default function SlidersPage() {
               className="rounded-xs p-1.5 text-brand-600 hover:bg-brand-50"
               aria-label="Edit"
             >
-              <Pencil className="h-4 w-4" />
+              <FiEdit className="h-4 w-4" />
             </button>
             <button
               type="button"
@@ -231,7 +232,7 @@ export default function SlidersPage() {
               className="rounded-xs p-1.5 text-red-600 hover:bg-red-50"
               aria-label="Delete"
             >
-              <Trash2 className="h-4 w-4" />
+              <FiTrash className="h-4 w-4" />
             </button>
           </div>
         ),
@@ -253,7 +254,7 @@ export default function SlidersPage() {
             onClick={openAddForm}
             className="flex items-center gap-1.5 rounded-xs bg-brand-600 px-3 py-2 text-sm font-semibold text-white hover:bg-brand-700"
           >
-            <Plus className="h-4 w-4" />
+            <FiPlus className="h-4 w-4" />
             Add slide
           </button>
         )}
@@ -271,7 +272,7 @@ export default function SlidersPage() {
               className="rounded-xs p-1 text-ink-400 hover:bg-ink-50 hover:text-ink-700"
               aria-label="Close form"
             >
-              <X className="h-4 w-4" />
+              <FiX className="h-4 w-4" />
             </button>
           </div>
 
@@ -279,12 +280,11 @@ export default function SlidersPage() {
             <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
               <div>
                 <span className="mb-1.5 block text-sm font-medium text-ink-700">Slide image</span>
-                <ImageUploader
-                  endpoint="/api/uploads/hero-slider"
-                  value={form.imageUrl}
-                  onChange={(url) => setForm((prev) => ({ ...prev, imageUrl: url }))}
-                  emptyLabel="Drop or click to upload"
-                  previewClassName="aspect-[16/9] w-full"
+                <GlobalImageUploader
+                  preset={ImagePreset.BANNER_16_9}
+                  uploadEndpoint="/api/uploads/banner-16-9"
+                  value={form.imageUrl || null}
+                  onChange={(url) => setForm((prev) => ({ ...prev, imageUrl: url ?? "" }))}
                 />
                 {errors.imageUrl && (
                   <span className="mt-1 block text-xs leading-tight text-red-600">
@@ -353,7 +353,7 @@ export default function SlidersPage() {
                 disabled={saving}
                 className="flex items-center gap-1.5 rounded-xs bg-brand-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60 hover:bg-brand-700"
               >
-                {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                {saving ? <FiLoader className="h-4 w-4 animate-spin" /> : <FiSave className="h-4 w-4" />}
                 Save
               </button>
               <button

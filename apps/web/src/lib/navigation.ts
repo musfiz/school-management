@@ -71,39 +71,6 @@ export const mainNav: NavItem[] = [
       },
     ],
   },
-
-  {
-    label: "Information",
-    href: "/information",
-    section: "information",
-    children: [
-      {
-        label: "Permission Recognition Letter",
-        href: "/information/permission-recognition-letter",
-        section: "information",
-        slug: "permission-recognition-letter",
-      },
-      {
-        label: "Nationalization",
-        href: "/information/nationalization",
-        section: "information",
-        slug: "nationalization",
-      },
-      {
-        label: "Statistics Report",
-        href: "/information/statistics-report",
-        section: "information",
-        slug: "statistics-report",
-      },
-      {
-        label: "Govt. Approval Letter",
-        href: "/information/govt-approval-letter",
-        section: "information",
-        slug: "govt-approval-letter",
-      },
-    ],
-  },
-
   {
     label: "Academic",
     href: "/academic",

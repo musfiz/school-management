@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { CheckCircle2, RefreshCw, Search } from "lucide-react";
+import { FiCheckCircle as CheckCircle2, FiRefreshCcw as RefreshCw, FiSearch as Search } from "react-icons/fi";
 import { DashCard, DashPageHeader } from "@/components/dashboard/DashPage";
 import AdminPageLoader from "@/components/dashboard/AdminPageLoader";
 import { toast } from "@/lib/swal";

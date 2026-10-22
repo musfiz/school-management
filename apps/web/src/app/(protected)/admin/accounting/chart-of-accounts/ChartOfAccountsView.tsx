@@ -2,13 +2,13 @@
 
 import { useEffect, useMemo, useState } from "react";
 import {
-  Plus,
-  Pencil,
-  Trash2,
-  ChevronDown,
-  ChevronRight,
-  Search,
-} from "lucide-react";
+  FiPlus,
+  FiEdit,
+  FiTrash,
+  FiChevronDown,
+  FiChevronRight,
+  FiSearch,
+} from "react-icons/fi";
 import type { ColumnDef } from "@tanstack/react-table";
 import DataTable from "@/components/dashboard/DataTable";
 import { DashCard, DashPageHeader, StatGrid } from "@/components/dashboard/DashPage";
@@ -373,7 +373,7 @@ export default function ChartOfAccountsView() {
               className="flex h-5 w-5 shrink-0 items-center justify-center rounded-xs text-ink-400 hover:bg-ink-200 hover:text-navy-800"
               aria-label={isOpen ? "Collapse" : "Expand"}
             >
-              {isOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+              {isOpen ? <FiChevronDown size={14} /> : <FiChevronRight size={14} />}
             </button>
           ) : (
             <span className="h-5 w-5 shrink-0 text-center text-xs leading-5 text-ink-300">·</span>
@@ -409,14 +409,14 @@ export default function ChartOfAccountsView() {
               onClick={() => openAccountModal(undefined, node)}
               className="rounded-xs p-1 text-ink-400 hover:bg-white hover:text-brand-600"
             >
-              <Plus size={14} />
+              <FiPlus size={14} />
             </button>
             <button
               title="Edit account"
               onClick={() => openAccountModal(node)}
               className="rounded-xs p-1 text-ink-400 hover:bg-white hover:text-navy-800"
             >
-              <Pencil size={14} />
+              <FiEdit size={14} />
             </button>
             <button
               title={node.isActive ? "Deactivate" : "Reactivate"}
@@ -430,7 +430,7 @@ export default function ChartOfAccountsView() {
               onClick={() => deleteAccount(node)}
               className="rounded-xs p-1 text-ink-400 hover:bg-white hover:text-red-600"
             >
-              <Trash2 size={14} />
+              <FiTrash size={14} />
             </button>
           </span>
         </div>
@@ -461,7 +461,7 @@ export default function ChartOfAccountsView() {
         header: "Actions",
         cell: ({ row }) => (
           <button onClick={() => openFundModal(row.original)} className="rounded-xs p-1 text-ink-400 hover:bg-ink-100 hover:text-navy-800" title="Edit fund">
-            <Pencil size={14} />
+            <FiEdit size={14} />
           </button>
         ),
       },
@@ -478,7 +478,7 @@ export default function ChartOfAccountsView() {
         header: "Actions",
         cell: ({ row }) => (
           <button onClick={() => openCenterModal(row.original)} className="rounded-xs p-1 text-ink-400 hover:bg-ink-100 hover:text-navy-800" title="Edit cost center">
-            <Pencil size={14} />
+            <FiEdit size={14} />
           </button>
         ),
       },
@@ -506,7 +506,7 @@ export default function ChartOfAccountsView() {
           <span className="flex items-center gap-1">
             {!row.original.isClosed && (
               <button onClick={() => openPeriodModal(row.original)} className="rounded-xs p-1 text-ink-400 hover:bg-ink-100 hover:text-navy-800" title="Edit period">
-                <Pencil size={14} />
+                <FiEdit size={14} />
               </button>
             )}
             <button
@@ -560,7 +560,7 @@ export default function ChartOfAccountsView() {
         <DashCard title="Account Tree">
           <div className="mb-3 flex flex-col gap-2 lg:flex-row lg:items-center">
             <label className="relative flex-1">
-              <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-400" />
+              <FiSearch size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-400" />
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
@@ -592,7 +592,7 @@ export default function ChartOfAccountsView() {
                 Collapse
               </button>
               <button onClick={() => openAccountModal()} className="flex items-center gap-1 rounded-xs border border-navy-800 bg-navy-800 px-3 py-1.5 text-xs font-semibold text-white hover:bg-navy-900">
-                <Plus size={14} /> New Account
+                <FiPlus size={14} /> New Account
               </button>
             </span>
           </div>
@@ -615,7 +615,7 @@ export default function ChartOfAccountsView() {
           <DashCard title="Funds">
             <div className="mb-2 flex justify-end">
               <button onClick={() => openFundModal()} className="flex items-center gap-1 rounded-xs border border-ink-200 px-3 py-1.5 text-xs font-semibold text-ink-600 hover:bg-ink-50">
-                <Plus size={13} /> New Fund
+                <FiPlus size={13} /> New Fund
               </button>
             </div>
             <DataTable columns={fundColumns} data={funds} emptyMessage="No funds yet." />
@@ -624,7 +624,7 @@ export default function ChartOfAccountsView() {
           <DashCard title="Cost Centers">
             <div className="mb-2 flex justify-end">
               <button onClick={() => openCenterModal()} className="flex items-center gap-1 rounded-xs border border-ink-200 px-3 py-1.5 text-xs font-semibold text-ink-600 hover:bg-ink-50">
-                <Plus size={13} /> New Center
+                <FiPlus size={13} /> New Center
               </button>
             </div>
             <DataTable columns={centerColumns} data={centers} emptyMessage="No cost centers yet." />
@@ -634,7 +634,7 @@ export default function ChartOfAccountsView() {
         <DashCard title="Fiscal Periods">
           <div className="mb-2 flex justify-end">
             <button onClick={() => openPeriodModal()} className="flex items-center gap-1 rounded-xs border border-ink-200 px-3 py-1.5 text-xs font-semibold text-ink-600 hover:bg-ink-50">
-              <Plus size={13} /> New Period
+              <FiPlus size={13} /> New Period
             </button>
           </div>
           <DataTable columns={periodColumns} data={periods} emptyMessage="No fiscal periods yet." />

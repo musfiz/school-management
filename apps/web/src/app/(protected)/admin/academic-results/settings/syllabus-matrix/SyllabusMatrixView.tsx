@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Copy, Pencil, Plus, RefreshCw, ShieldCheck, Trash2 } from "lucide-react";
+import { FiCopy as Copy, FiEdit as Pencil, FiPlus as Plus, FiRefreshCcw as RefreshCw, FiTrash as Trash } from "react-icons/fi";
+import { RiShieldCheckLine as ShieldCheck } from "react-icons/ri";
 import { DashCard, DashPageHeader } from "@/components/dashboard/DashPage";
 import AdminPageLoader from "@/components/dashboard/AdminPageLoader";
 import { confirmDialog, toast } from "@/lib/swal";
@@ -320,7 +321,7 @@ export default function SyllabusMatrixView() {
                             Edit
                           </button>
                           <button type="button" className={`${BTN_ROW} text-rose-700`} onClick={() => void removeRow(row)}>
-                            <Trash2 className="h-3 w-3" />
+                            <Trash className="h-3 w-3" />
                           </button>
                         </div>
                       </td>

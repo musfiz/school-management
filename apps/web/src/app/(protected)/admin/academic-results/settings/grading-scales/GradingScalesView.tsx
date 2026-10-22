@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Pencil, Plus, RefreshCw, Trash2, Wand2 } from "lucide-react";
+import { FiEdit as Pencil, FiPlus as Plus, FiRefreshCcw as RefreshCw, FiTrash as Trash } from "react-icons/fi";
+import { RiMagicLine as Wand2 } from "react-icons/ri";
 import { DashCard, DashPageHeader } from "@/components/dashboard/DashPage";
 import AdminPageLoader from "@/components/dashboard/AdminPageLoader";
 import { confirmDialog, toast } from "@/lib/swal";
@@ -319,7 +320,7 @@ export default function GradingScalesView() {
                 Edit
               </button>
               <button type="button" className={`${BTN_ROW} text-rose-700`} onClick={() => void remove(detail)}>
-                <Trash2 className="h-3 w-3" />
+                <Trash className="h-3 w-3" />
                 Delete
               </button>
             </div>
@@ -533,7 +534,7 @@ export default function GradingScalesView() {
                           className={`${BTN_ROW} text-rose-700`}
                           onClick={() => setForm({ ...form, ranges: form.ranges.filter((_, i) => i !== index) })}
                         >
-                          <Trash2 className="h-3 w-3" />
+                          <Trash className="h-3 w-3" />
                         </button>
                       </td>
                     </tr>
