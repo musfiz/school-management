@@ -8,6 +8,7 @@ import { resolveImageUrl, isExternalImage } from "@/lib/media";
 import { sanitizeHtml } from "@/lib/sanitize-html";
 import { Section } from "./ui";
 import { ArrowRightIcon } from "./icons";
+import { FiDownload, FiExternalLink, FiMapPin } from "react-icons/fi";
 
 export function AboutPreview({
   settings,
@@ -163,8 +164,7 @@ export function AboutPreview({
         <Section className="py-0!">
           {(() => {
             const aboutTitle = (locale === "bn" && aboutUs.titleBn) || aboutUs.titleEn;
-            const aboutContent =
-              (locale === "bn" && aboutUs.contentBn) || aboutUs.contentEn || "";
+            const aboutContent = (locale === "bn" && aboutUs.contentBn) || aboutUs.contentEn || "";
 
             return (
               <div className="relative overflow-hidden rounded-xs border border-navy-100 bg-linear-to-br from-white via-ink-50/30 to-brand-50/20 p-6 shadow-card transition-all hover:shadow-lg sm:p-8 lg:p-10">
@@ -239,8 +239,8 @@ export function NoticeBoard({
 } = {}) {
   const items =
     dynamicNotices && dynamicNotices.length > 0
-      ? dynamicNotices.slice(0, 4)
-      : staticNotices.slice(0, 4);
+      ? dynamicNotices.slice(0, 5)
+      : staticNotices.slice(0, 5);
 
   return (
     <Section className="bg-ink-50">
@@ -260,47 +260,97 @@ export function NoticeBoard({
         </Link>
       </div>
 
-      <ul className="mt-8 divide-y divide-ink-200 overflow-hidden rounded-xs border border-ink-200 bg-white shadow-soft">
-        {items.map((n) => {
-          const isDynamic = "createdAt" in n || "publishDate" in n;
-          const rawDate = isDynamic
-            ? (n as NoticeItem).publishDate || (n as NoticeItem).createdAt
-            : (n as (typeof staticNotices)[0]).date;
-          const title = isDynamic
-            ? (locale === "bn" && (n as NoticeItem).titleBn) || (n as NoticeItem).title
-            : (n as (typeof staticNotices)[0]).title;
-          const isPinned = isDynamic
-            ? (n as NoticeItem).isPinned
-            : (n as (typeof staticNotices)[0]).pinned;
+      <div className="mt-8 overflow-x-auto rounded-xs border border-ink-200 bg-white shadow-soft">
+        <table className="w-full text-left text-sm">
+          <thead className="bg-ink-50 text-ink-700">
+            <tr>
+              <th className="px-4 py-3 font-semibold">SI</th>
+              <th className="px-4 py-3 font-semibold">Date</th>
+              <th className="px-4 py-3 font-semibold">Notice</th>
+              <th className="px-4 py-3 font-semibold">Category</th>
+              <th className="px-4 py-3 text-center font-semibold">Download</th>
+              <th className="px-4 py-3 text-center font-semibold">Details</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-ink-100">
+            {items.map((n, i) => {
+              const isDynamic = "createdAt" in n || "publishDate" in n;
+              const rawDate = isDynamic
+                ? (n as NoticeItem).publishDate || (n as NoticeItem).createdAt
+                : (n as (typeof staticNotices)[0]).date;
+              const title = isDynamic
+                ? (locale === "bn" && (n as NoticeItem).titleBn) || (n as NoticeItem).title
+                : (n as (typeof staticNotices)[0]).title;
+              const isPinned = isDynamic
+                ? (n as NoticeItem).isPinned
+                : (n as (typeof staticNotices)[0]).pinned;
+              const pdfUrl = isDynamic ? (n as NoticeItem).pdfUrl : null;
 
-          return (
-            <li
-              key={n.id}
-              className="flex flex-col gap-1 px-6 py-4 sm:flex-row sm:items-center sm:gap-4"
-            >
-              <span className="w-24 shrink-0 text-sm font-semibold text-brand-600">
-                {rawDate
-                  ? new Date(rawDate).toLocaleDateString("en-GB", {
-                      day: "2-digit",
-                      month: "short",
-                      year: "numeric",
-                    })
-                  : "—"}
-              </span>
-              <span className="hidden shrink-0 rounded-xs bg-navy-50 px-2.5 py-1 text-xs font-semibold text-navy-700 sm:inline">
-                {n.category}
-              </span>
-              <Link
-                href="/others/notice"
-                className="flex-1 text-ink-800 transition-colors hover:text-navy-700"
-              >
-                {title}
-              </Link>
-              {isPinned && <span className="shrink-0 text-xs font-bold text-gold-600">Pinned</span>}
-            </li>
-          );
-        })}
-      </ul>
+              return (
+                <tr key={n.id} className="align-top hover:bg-ink-50">
+                  <td className="px-4 py-3 text-ink-500">{i + 1}</td>
+                  <td className="px-4 py-3 whitespace-nowrap text-ink-500">
+                    {rawDate
+                      ? new Date(rawDate).toLocaleDateString("en-GB", {
+                          day: "2-digit",
+                          month: "short",
+                          year: "numeric",
+                        })
+                      : "—"}
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-start gap-2">
+                      {isPinned && (
+                        <FiMapPin
+                          title="Pinned"
+                          className="mt-0.5 h-3.5 w-3.5 shrink-0 fill-amber-500 text-amber-600"
+                        />
+                      )}
+                      <p className="font-semibold text-navy-900">{title}</p>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <span className="rounded-xs bg-navy-50 px-2 py-0.5 text-xs font-semibold text-navy-700">
+                      {n.category}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-center">
+                    {pdfUrl ? (
+                      <a
+                        href={resolveImageUrl(pdfUrl)}
+                        download
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        title="Download PDF"
+                        className="inline-flex items-center justify-center rounded-xs p-1.5 text-red-600 transition-colors hover:bg-red-50"
+                      >
+                        <FiDownload className="h-4 w-4" />
+                      </a>
+                    ) : (
+                      <span className="text-ink-300">—</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 text-center">
+                    {isDynamic ? (
+                      <a
+                        href={`/others/notice/${n.id}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 rounded-xs border border-ink-200 px-2.5 py-1 text-xs font-semibold text-navy-700 transition-colors hover:border-brand-400 hover:text-brand-600"
+                      >
+                        View details
+                        <FiExternalLink className="h-3 w-3" />
+                      </a>
+                    ) : (
+                      <span className="text-ink-300">—</span>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
     </Section>
   );
 }

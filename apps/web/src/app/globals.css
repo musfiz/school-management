@@ -87,7 +87,7 @@
 
 @layer base {
   html {
-    scroll-behavior: smooth;
+    scroll-behavior: auto;
   }
 
   body {
@@ -111,28 +111,29 @@
     color: var(--color-navy-900);
   }
 
-    /* Tailwind Preflight doesn't set a pointer cursor on buttons — make every
+  /* Tailwind Preflight doesn't set a pointer cursor on buttons — make every
        clickable control (buttons, links, custom "role=button" triggers) show
        one, so this doesn't have to be repeated per-component. */
-    button:not(:disabled),
-    [type="button"]:not(:disabled),
-    [type="submit"]:not(:disabled),
-    [type="reset"]:not(:disabled),
-    [role="button"]:not([aria-disabled="true"]),
-    a,
-    summary,
-    select,
-    label[for] {
-      cursor: pointer;
-    }
-  
-    button:disabled,
-    [type="button"]:disabled,
-    [type="submit"]:disabled,
-    [type="reset"]:disabled,
-    [role="button"][aria-disabled="true"] {
-      cursor: not-allowed;
-    }
+  button:not(:disabled),
+  [type="button"]:not(:disabled),
+  [type="submit"]:not(:disabled),
+  [type="reset"]:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  a,
+  summary,
+  select,
+  label[for] {
+    cursor: pointer;
+  }
+
+  button:disabled,
+  [type="button"]:disabled,
+  [type="submit"]:disabled,
+  [type="reset"]:disabled,
+  [role="button"][aria-disabled="true"] {
+    cursor: not-allowed;
+  }
+
   /* Visible keyboard focus for accessibility */
   :focus-visible {
     outline: 2px solid var(--color-brand-500);
@@ -166,6 +167,7 @@ html.lang-en {
 .swal2-popup {
   font-family: var(--font-roboto), var(--font-sans), ui-sans-serif, system-ui, sans-serif;
 }
+
 @utility bg-grid {
   background-image:
     linear-gradient(to right, rgb(11 22 48 / 0.05) 1px, transparent 1px),
@@ -246,7 +248,7 @@ html.lang-en {
   width: 100%;
   min-height: 32px;
   padding: 3px 8px;
-    font-size: 13px;
+  font-size: 13px;
   line-height: 20px;
   font-weight: 600;
   color: var(--color-ink-800);
@@ -270,10 +272,11 @@ html.lang-en {
 }
 
 /* Hovering an already-active trail step deepens it one notch. */
-.sidebar-group[data-level="0"] > .sidebar-group-btn.active:hover {
+.sidebar-group[data-level="0"]>.sidebar-group-btn.active:hover {
   background-color: var(--color-brand-100);
 }
-.sidebar-group[data-level="1"] > .sidebar-group-btn.active:hover {
+
+.sidebar-group[data-level="1"]>.sidebar-group-btn.active:hover {
   background-color: var(--color-brand-200);
 }
 
@@ -288,13 +291,13 @@ html.lang-en {
    Level 1 = sub-parent (e.g. About)              → deeper tint.
    Leaf (selected page) L1/L2                     → deepest light tints.
    The `data-level` comes from Sidebar TreeNode (`li[data-level]`). */
-.sidebar-group[data-level="0"] > .sidebar-group-btn.active {
+.sidebar-group[data-level="0"]>.sidebar-group-btn.active {
   background-color: var(--color-brand-50);
   color: var(--color-navy-800);
   box-shadow: inset 3px 0 0 var(--color-brand-300);
 }
 
-.sidebar-group[data-level="1"] > .sidebar-group-btn.active {
+.sidebar-group[data-level="1"]>.sidebar-group-btn.active {
   background-color: var(--color-brand-100);
   color: var(--color-navy-800);
   box-shadow: inset 3px 0 0 var(--color-brand-500);
@@ -319,7 +322,7 @@ html.lang-en {
   box-shadow: inset 0 0 0 1px var(--color-brand-200);
 }
 
-.sidebar-group[data-level="1"] > .sidebar-group-btn.active .sidebar-icon-chip {
+.sidebar-group[data-level="1"]>.sidebar-group-btn.active .sidebar-icon-chip {
   background-color: #ffffff;
   color: var(--color-navy-800);
   box-shadow: inset 0 0 0 1px var(--color-brand-300);
@@ -337,7 +340,7 @@ html.lang-en {
   grid-template-rows: 1fr;
 }
 
-.sidebar-children > * {
+.sidebar-children>* {
   overflow: hidden;
   min-height: 0;
 }
@@ -346,7 +349,7 @@ html.lang-en {
 .sidebar-children-list {
   position: relative;
   margin: 1px 0 1px 20px;
-    padding-left: 12px;
+  padding-left: 12px;
   border-left: 1.5px solid var(--color-ink-200);
   display: flex;
   flex-direction: column;
@@ -361,11 +364,11 @@ html.lang-en {
    spine to the menu item (classic treeview). Anchored at 16px = middle
    of the 32px header row, so sub-parent stubs stay aligned with their
    own button even when expanded. */
-.sidebar-children-list > li {
+.sidebar-children-list>li {
   position: relative;
 }
 
-.sidebar-children-list > li::before {
+.sidebar-children-list>li::before {
   content: "";
   position: absolute;
   left: -12px;
@@ -377,8 +380,8 @@ html.lang-en {
 }
 
 /* Active trail tints its own connector stub. */
-.sidebar-children-list > li:has(> .sidebar-leaf-link.active)::before,
-.sidebar-children-list > li:has(> .sidebar-group-btn.active)::before {
+.sidebar-children-list>li:has(> .sidebar-leaf-link.active)::before,
+.sidebar-children-list>li:has(> .sidebar-group-btn.active)::before {
   background-color: var(--color-brand-400);
 }
 
@@ -472,7 +475,7 @@ html.lang-en {
 
 /* Nested page (e.g. About Us inside About) sits one step deeper, so it
    gets a slightly stronger tint than a direct child page. */
-.sidebar-leaf[data-level="2"] > .sidebar-leaf-link.active {
+.sidebar-leaf[data-level="2"]>.sidebar-leaf-link.active {
   background-color: var(--color-brand-300);
   box-shadow: inset 3px 0 0 var(--color-navy-800), var(--shadow-soft);
 }
@@ -721,12 +724,15 @@ html.lang-en {
 .cms-rich h1 {
   font-size: 1.75rem;
 }
+
 .cms-rich h2 {
   font-size: 1.5rem;
 }
+
 .cms-rich h3 {
   font-size: 1.25rem;
 }
+
 .cms-rich h4 {
   font-size: 1.125rem;
 }
@@ -737,12 +743,15 @@ html.lang-en {
   padding-left: 1.5rem;
   text-align: left;
 }
+
 .cms-rich ul {
   list-style: disc;
 }
+
 .cms-rich ol {
   list-style: decimal;
 }
+
 .cms-rich li {
   margin-bottom: 0.35rem;
 }
@@ -752,6 +761,7 @@ html.lang-en {
   text-decoration: underline;
   text-underline-offset: 2px;
 }
+
 .cms-rich a:hover {
   color: var(--color-brand-700);
 }
@@ -775,6 +785,7 @@ html.lang-en {
 .cms-rich code {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
 }
+
 .cms-rich pre {
   background: var(--color-ink-50);
   border: 1px solid var(--color-ink-200);
@@ -806,12 +817,14 @@ html.lang-en {
 .cms-rich pre::-webkit-scrollbar-track {
   background: transparent;
 }
+
 .cms-rich code {
   background: var(--color-ink-50);
   padding: 0.1rem 0.3rem;
   border-radius: 4px;
   font-size: 0.9em;
 }
+
 .cms-rich pre code {
   background: transparent;
   padding: 0;
@@ -823,12 +836,14 @@ html.lang-en {
   border-collapse: collapse;
   font-size: 0.9rem;
 }
+
 .cms-rich th,
 .cms-rich td {
   border: 1px solid var(--color-ink-200);
   padding: 0.5rem 0.75rem;
   text-align: left;
 }
+
 .cms-rich th {
   background: var(--color-ink-50);
   font-weight: 600;
@@ -850,20 +865,24 @@ html.lang-en {
 .react-datepicker-popper {
   z-index: 70 !important;
 }
+
 .sm-datepicker {
   font-family: inherit;
   border: 1px solid var(--color-ink-200);
   border-radius: 0.5rem;
   box-shadow: 0 8px 24px rgb(11 22 48 / 0.12);
 }
+
 .sm-datepicker .react-datepicker__header {
   background-color: var(--color-navy-50);
   border-bottom: 1px solid var(--color-ink-200);
 }
+
 .sm-datepicker .react-datepicker__current-month,
 .sm-datepicker .react-datepicker__day-name {
   color: var(--color-navy-800);
 }
+
 .sm-datepicker .react-datepicker__day--selected,
 .sm-datepicker .react-datepicker__day--keyboard-selected,
 .sm-datepicker .react-datepicker__month-text--keyboard-selected,
@@ -872,17 +891,21 @@ html.lang-en {
   background-color: var(--color-brand-600);
   color: #fff;
 }
+
 .sm-datepicker .react-datepicker__day--selected:hover,
 .sm-datepicker .react-datepicker__day--keyboard-selected:hover {
   background-color: var(--color-brand-500);
 }
+
 .sm-datepicker .react-datepicker__day:hover {
   background-color: var(--color-ink-100);
 }
+
 .sm-datepicker .react-datepicker__day--today {
   font-weight: 700;
   color: var(--color-navy-700);
 }
+
 .sm-datepicker .react-datepicker__navigation-icon::before {
   border-color: var(--color-navy-700);
 }
@@ -895,6 +918,7 @@ html.lang-en {
   right: 30px !important;
   padding-right: 0 !important;
 }
+
 .react-datepicker__close-icon::after {
   background-color: var(--color-ink-300);
   font-size: 12px;
@@ -902,6 +926,7 @@ html.lang-en {
   width: 16px;
   height: 16px;
 }
+
 .react-datepicker__close-icon:hover::after {
   background-color: var(--color-ink-500);
 }
@@ -933,6 +958,7 @@ html.lang-en {
   thead {
     display: table-header-group;
   }
+
   tr {
     break-inside: avoid;
   }
@@ -951,18 +977,22 @@ html.lang-en {
 /* ----------------------------------------------------------------------------
    Toast timer bar matches the alert color (success / error / warning / info).
 ---------------------------------------------------------------------------- */
-.swal2-container .swal2-icon.swal2-success ~ .swal2-timer-progress-bar {
+.swal2-container .swal2-icon.swal2-success~.swal2-timer-progress-bar {
   background: #a5dc86;
 }
-.swal2-container .swal2-icon.swal2-error ~ .swal2-timer-progress-bar {
+
+.swal2-container .swal2-icon.swal2-error~.swal2-timer-progress-bar {
   background: #f27474;
 }
-.swal2-container .swal2-icon.swal2-warning ~ .swal2-timer-progress-bar {
+
+.swal2-container .swal2-icon.swal2-warning~.swal2-timer-progress-bar {
   background: #f8bb86;
 }
-.swal2-container .swal2-icon.swal2-info ~ .swal2-timer-progress-bar {
+
+.swal2-container .swal2-icon.swal2-info~.swal2-timer-progress-bar {
   background: #3fc3ee;
 }
-.swal2-container .swal2-icon.swal2-question ~ .swal2-timer-progress-bar {
+
+.swal2-container .swal2-icon.swal2-question~.swal2-timer-progress-bar {
   background: #87adbd;
 }
