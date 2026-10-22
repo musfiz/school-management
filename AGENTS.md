@@ -223,28 +223,53 @@ standard for every image in the system. Full reference:
   `/uploads/x.jpg` or `/logo.png` values; those must never be treated as
   deletable keys). Wrap in try/catch + `logger.warn`; deletion is idempotent.
 
-**Frontend components — `components/common` + `lib`.**
-- `GlobalImageUploader` is the intake widget for any image field. Ratio-locked
-  presets (`AVATAR`/`PASSPORT`/`BANNER_*`) open `ImageCropModal`
-  (react-easy-crop: zoom/pan/90° rotation, aspect locked to the preset);
-  `DOCUMENT`/`LOGO` pass the raw file through (the server's `fit:'inside'`
-  preserves every pixel of any ratio — never impose aspect on them).
-  Two delivery modes: `{ preset, uploadEndpoint, value, onChange }` posts the
-  ready file through a same-origin proxy and lands the URL in the form field
-  (the Teachers page uses this), or `{ preset, onFileReady(file) }` hands the
-  cropped `File` to the parent (custom multipart forms).
-- `ImageCropModal` follows the shared modal standard (navy overlay, `rounded-xs`
-  card, 38px footer buttons with `disabled:opacity-50`); small buttons use the
-  30px recipe and all controls are flat `cursor-pointer` boxes.
-- `lib/crop-image.ts` (`getCroppedImg`) does the canvas slice: rotated
-  safe-area render → exact crop rectangle → dimension caps from the preset →
-  `image/webp` encode with a PNG feature-fallback (Safari < 17 — the backend
-  pipe normalizes to WebP either way). Uploaders own and revoke the ObjectURLs
-  (on replace, modal close, and unmount) — never leak them.
+**Frontend components — `components/common/image-uploader` + `utils`.**
+- `GlobalImageUploader` (`image-uploader/global-image-uploader.tsx`) is the
+  intake widget for any image field: native HTML5 drag & drop (idle → active
+  brand highlight → error state), client-side JPEG/PNG/WebP + size validation
+  mirroring the preset caps, shaped preview card (circular for `AVATAR`,
+  aspect-matched otherwise) with hover actions Re-crop / Change / Remove, and
+  non-destructive re-cropping (the ORIGINAL ObjectURL + last crop position
+  survive until replace/remove). Ratio-locked presets (`AVATAR`/`PASSPORT`/
+  `BANNER_*`) open `CropModal` (`image-uploader/crop-modal.tsx`,
+  react-easy-crop: zoom slider + ±90° steps + ±45° fine-tune + reset, aspect
+  locked to the preset); `DOCUMENT`/`LOGO` bypass the cropper and deliver the
+  full frame downscaled inside the preset bounds (`fit:'inside'` on the
+  server preserves every pixel of any ratio — never impose aspect on them).
+  Delivery modes: URL mode `{ preset, uploadEndpoint, value, onChange }`
+  posts the ready file through a same-origin proxy and lands the URL in the
+  form field (the Teachers page uses `/api/uploads/passport`), or file mode
+  `{ preset, onFileReady(file) }` hands the processed `File` to the parent
+  (see `components/examples/student-admission-form.tsx`). URL-mode forms that
+  hold never-persisted images (draft wizards) pass `deleteOnRemove` — Remove
+  then also `DELETE`s the key this uploader posted this session
+  (`/api/uploads/delete` → `DELETE /uploads?key=…`; managed `schools/…` keys
+  only). **This is the only
+  image intake in the app** — the legacy generic uploader
+  (`components/dashboard/ImageUploader.tsx`) was deleted and all surfaces
+  (teachers, staff, governing body, ex-principals, sliders, notices, site
+  logo, CMS pages, admission wizard photo + document scans) already flow
+  through it; never recreate a raw file-picker upload UI. Programmatic
+  intake (e.g. the admission wizard's webcam capture) routes through
+  `CropModal` + the same proxy endpoints.
+- `CropModal` follows the shared modal standard (navy overlay, `rounded-xs`
+  card, `h-[400px] bg-navy-950` cropper stage, 38px footer buttons with
+  `disabled:opacity-50` processing state); small buttons use the 30px recipe
+  and all controls are flat `cursor-pointer` boxes.
+- `utils/canvas-crop.util.ts` (`getCroppedWebpFile`) does the canvas slice
+  using the official react-easy-crop rotation math (`getRadianAngle`,
+  `rotateSize`): rotated safe-area render → exact crop rectangle →
+  proportional downscale only when the crop exceeds the preset bounds →
+  `image/webp` encode at the preset quality with a PNG feature-fallback
+  (Safari < 17 — the backend pipe normalizes to WebP either way);
+  `pixelCrop === null` engages the Document/Logo bypass (full frame, original
+  ratio). Uploaders own and revoke the ObjectURLs (on replace, modal close,
+  and unmount) — never leak them.
 - Same-origin proxies live under `apps/web/src/app/api/**/route.ts`
-  (see `/api/uploads/avatar`, `/api/uploads/optimized`): forward `FormData`
-  as-is so the browser writes the multipart boundary, attaching
-  `Authorization: Bearer <session cookie>` from `lib/session-cookie.ts`.
+  (see `/api/uploads/avatar`, `/api/uploads/passport`, `/api/uploads/optimized`,
+  `/api/uploads/banner-16-9`, `/api/uploads/banner-19-6`, `/api/uploads/logo`):
+  forward `FormData` as-is so the browser writes the multipart boundary,
+  attaching `Authorization: Bearer <session cookie>` from `lib/session-cookie.ts`.
 - `resolveImageUrl` in `lib/media.ts` understands storage keys
   (`schools/…` → `/uploads/…` resolved against `NEXT_PUBLIC_API_BASE_URL`),
   legacy `/uploads/…` values, absolute URLs, and `/public` assets. Use it for

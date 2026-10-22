@@ -6,7 +6,7 @@ import { FiPlus, FiEdit, FiTrash, FiSave, FiX, FiLoader } from "react-icons/fi";
 import type { ColumnDef } from "@tanstack/react-table";
 import DataTable from "@/components/dashboard/DataTable";
 import { DashCard } from "@/components/dashboard/DashPage";
-import GlobalImageUploader from "@/components/common/GlobalImageUploader";
+import GlobalImageUploader from "@/components/common/image-uploader/global-image-uploader";
 import AdminPageLoader from "@/components/dashboard/AdminPageLoader";
 import { ImagePreset } from "@/constants/image-upload-presets";
 import { resolveImageUrl, isExternalImage } from "@/lib/media";
@@ -271,14 +271,11 @@ export default function TeachersPage() {
           <DashCard>
             <div className="grid gap-6 lg:grid-cols-[220px_1fr]">
               <div>
-                <span className="mb-1.5 block text-sm font-medium text-ink-700">Photo</span>
                 <GlobalImageUploader
                   preset={ImagePreset.PASSPORT}
-                  uploadEndpoint="/api/uploads/avatar"
+                  uploadEndpoint="/api/uploads/passport"
                   value={form.imageUrl || null}
                   onChange={(url) => setForm((prev) => ({ ...prev, imageUrl: url ?? "" }))}
-                  emptyLabel="Drop or click to upload"
-                  previewClassName="h-[150px] w-[100px]"
                   alt="Teacher photo preview"
                 />
               </div>

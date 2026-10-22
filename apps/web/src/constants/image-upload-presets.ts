@@ -2,9 +2,11 @@
  * Mirror of the backend single source of truth
  * (apps/api/src/common/constants/image-presets.constant.ts).
  *
- * The server enforces the same numbers (aspect ratio ±15%, WebP re-encode);
- * this copy exists for client-side UX: cropper geometry, dimension caps,
- * and instant file-size feedback before any bytes hit the network.
+ * Geometry + quality numbers (aspectRatio, maxWidth/maxHeight, fit) MUST match
+ * the server preset map — the server is the real enforcer (aspect gate ±15%,
+ * metadata strip, WebP re-encode, Multer size caps). UI-only fields
+ * (label, helperText, cropShape, showGrid) live here and need no backend
+ * counterpart; the backend copy never imports this file.
  */
 export const ImagePreset = {
   AVATAR: "AVATAR",
@@ -17,107 +19,127 @@ export const ImagePreset = {
 
 export type ImagePreset = (typeof ImagePreset)[keyof typeof ImagePreset];
 
-export interface ImageUploadPresetConfig {
-  /** Exact final dimensions — used with `fit: "cover"` (ratio-locked presets). */
-  width: number | null;
-  height: number | null;
-  /** Hard dimension bounds — used with `fit: "inside"` (DOCUMENT/LOGO). */
-  maxWidth: number | null;
-  maxHeight: number | null;
-  /** Target aspect ratio (w/h) enforced by the server with ±15% tolerance. */
-  aspectRatio: number | null;
-  fit: "cover" | "inside";
-  /** Ratio-locked → the uploader opens the crop modal for this preset. */
-  requiresCrop: boolean;
-  quality: number;
-  /** Matches @UploadImage(field, preset, maxSizeMB) on the backend. */
-  maxFileSizeMB: number;
-  /** Human label rendered by the uploader. */
+/** Crop shape accepted directly by `react-easy-crop`'s `cropShape` prop. */
+export type PresetCropShape = "round" | "rect";
+
+export interface PresetConfig {
+  /** Target aspect ratio (w/h). `null` for skipCrop presets — the original
+   *  ratio (6:19, 19:6, anything) is preserved without cropping a pixel. */
+  aspect: number | null;
+  /** Hard output bounds — the canvas engine scales down proportionally
+   *  when the crop/output exceeds these. */
+  maxWidth: number;
+  maxHeight: number;
+  /** `true` (DOCUMENT / LOGO): the uploader bypasses the crop modal and
+   *  delivers the full original frame — matches the server `fit: 'inside'`. */
+  skipCrop: boolean;
+  /** Visual form of the crop viewport + preview. */
+  cropShape: PresetCropShape;
+  /** Rule-of-thirds grid inside the crop viewport. */
+  showGrid: boolean;
+  /** Human label rendered above the widget / in the modal header. */
   label: string;
-  /** Stored filename prefix in the cropped File. */
+  /** One-line helper rendered under the widget. */
+  helperText: string;
+  /** Canvas WebP export quality (the server re-encodes afterwards). */
+  outputQuality: number;
+  /** Raw input cap — mirrors the backend `@UploadImage(field, preset, maxMB)`. */
+  maxFileSizeMB: number;
+  /** Stored filename prefix for cropped/optimized files. */
   slug: string;
 }
 
-export const IMAGE_UPLOAD_PRESETS: Record<
-  ImagePreset,
-  ImageUploadPresetConfig
-> = {
-  AVATAR: {
-    width: 500,
-    height: 500,
-    maxWidth: null,
-    maxHeight: null,
-    aspectRatio: 1,
-    fit: "cover",
-    requiresCrop: true,
-    quality: 82,
-    maxFileSizeMB: 5,
-    label: "Avatar",
-    slug: "avatar",
-  },
-  PASSPORT: {
-    width: 450,
-    height: 600,
-    maxWidth: null,
-    maxHeight: null,
-    aspectRatio: 0.75,
-    fit: "cover",
-    requiresCrop: true,
-    quality: 85,
-    maxFileSizeMB: 5,
-    label: "Photo",
-    slug: "passport",
-  },
-  BANNER_16_9: {
-    width: 1920,
-    height: 1080,
-    maxWidth: null,
-    maxHeight: null,
-    aspectRatio: 16 / 9,
-    fit: "cover",
-    requiresCrop: true,
-    quality: 80,
-    maxFileSizeMB: 10,
-    label: "Banner (16:9)",
-    slug: "banner-16-9",
-  },
-  BANNER_19_6: {
-    width: 1900,
-    height: 600,
-    maxWidth: null,
-    maxHeight: null,
-    aspectRatio: 19 / 6,
-    fit: "cover",
-    requiresCrop: true,
-    quality: 80,
-    maxFileSizeMB: 10,
-    label: "Banner (19:6)",
-    slug: "banner-19-6",
-  },
-  DOCUMENT: {
-    width: null,
-    height: null,
-    maxWidth: 1800,
-    maxHeight: 1800,
-    aspectRatio: null, // preserves 6:19, 19:6, or ANY ratio — no crop, ever
-    fit: "inside",
-    requiresCrop: false,
-    quality: 85,
-    maxFileSizeMB: 15,
-    label: "Image",
-    slug: "document",
-  },
-  LOGO: {
-    width: null,
-    height: null,
+export const IMAGE_UPLOAD_PRESETS: Record<ImagePreset, PresetConfig> = {
+  [ImagePreset.AVATAR]: {
+    aspect: 1 / 1,
     maxWidth: 500,
     maxHeight: 500,
-    aspectRatio: null,
-    fit: "inside",
-    requiresCrop: false,
-    quality: 90,
+    skipCrop: false,
+    cropShape: "round",
+    showGrid: false,
+    label: "Profile Photo (1:1)",
+    helperText: "Square ratio, ideal for student/teacher avatars",
+    outputQuality: 0.88,
+    maxFileSizeMB: 5, // backend: @UploadImage(..., AVATAR, 5)
+    slug: "avatar",
+  },
+  [ImagePreset.PASSPORT]: {
+    aspect: 3 / 4,
+    maxWidth: 450,
+    maxHeight: 600,
+    skipCrop: false,
+    cropShape: "rect",
+    showGrid: true,
+    label: "ID Card Photo (3:4)",
+    helperText: "Passport ratio (3:4) for printable ID cards",
+    outputQuality: 0.88,
+    maxFileSizeMB: 5, // backend: @UploadImage(..., PASSPORT, 5)
+    slug: "passport",
+  },
+  [ImagePreset.BANNER_16_9]: {
+    aspect: 16 / 9,
+    maxWidth: 1920,
+    maxHeight: 1080,
+    skipCrop: false,
+    cropShape: "rect",
+    showGrid: true,
+    label: "Event Banner (16:9)",
+    helperText: "Widescreen banner (1920x1080)",
+    outputQuality: 0.88,
+    maxFileSizeMB: 10,
+    slug: "banner-16-9",
+  },
+  [ImagePreset.BANNER_19_6]: {
+    aspect: 19 / 6,
+    maxWidth: 1900,
+    maxHeight: 600,
+    skipCrop: false,
+    cropShape: "rect",
+    showGrid: true,
+    label: "Website Header (19:6)",
+    helperText: "Ultra-wide header banner (1900x600)",
+    outputQuality: 0.88,
+    maxFileSizeMB: 10,
+    slug: "banner-19-6",
+  },
+  [ImagePreset.DOCUMENT]: {
+    aspect: null, // preserves 6:19 / 19:6 / ANY ratio — no crop, ever
+    maxWidth: 1800,
+    maxHeight: 1800,
+    skipCrop: true,
+    cropShape: "rect",
+    showGrid: false,
+    label: "Notice / Document (Original Ratio)",
+    helperText: "Preserves full original aspect ratio (e.g., 6:19 or 19:6) without cropping",
+    outputQuality: 0.88,
+    maxFileSizeMB: 15, // backend: @UploadImage(..., DOCUMENT, 15)
+    slug: "document",
+  },
+  [ImagePreset.LOGO]: {
+    aspect: null,
+    maxWidth: 500,
+    maxHeight: 500,
+    skipCrop: true,
+    cropShape: "rect",
+    showGrid: false,
+    label: "School Logo / Signature",
+    helperText: "Preserves transparency and original aspect ratio",
+    outputQuality: 0.9, // higher — transparency survives compression better
     maxFileSizeMB: 5,
-    label: "Logo",
     slug: "logo",
   },
 };
+
+/**
+ * Client-side MIME gate mirrors the spec'd intake: JPEG / PNG / WebP.
+ * (The server pipe additionally accepts AVIF/HEIF/TIFF/GIF binaries via its
+ * magic-byte list; the UI keeps the fast path strict and predictable.)
+ */
+export const ACCEPTED_MIME_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+] as const;
+
+/** Fallback when a preset has no dedicated cap. */
+export const DEFAULT_MAX_RAW_FILE_SIZE_MB = 10;

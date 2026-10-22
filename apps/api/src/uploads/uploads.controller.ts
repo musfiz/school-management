@@ -1,4 +1,4 @@
-import { Controller, Inject, Post, UploadedFile, UseGuards, BadRequestException, UseInterceptors } from '@nestjs/common';
+import { Controller, Delete, Inject, Post, Query, UploadedFile, UseGuards, BadRequestException, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage, memoryStorage } from 'multer';
 import { extname } from 'path';
@@ -12,7 +12,11 @@ import {
 } from '../common/constants/image-presets.constant';
 import { ImageOptimizationPipe } from '../common/pipes/image-optimization.pipe';
 import { UploadImage } from '../common/decorators/upload-image.decorator';
-import { IStorageProvider, STORAGE_PROVIDER } from '../modules/storage/interfaces/storage-provider.interface';
+import {
+  IStorageProvider,
+  STORAGE_PROVIDER,
+  isManagedFileKey,
+} from '../modules/storage/interfaces/storage-provider.interface';
 
 const ALLOWED_IMAGE_MIME = ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'];
 const ALLOWED_DOC_MIME = ['application/pdf'];
@@ -148,6 +152,116 @@ export class UploadsController {
       folder: 'avatars',
       contentType: file.mimetype,
     });
+  }
+
+  /** ID/passport-style photo — strict 3:4, server re-crops to 450×600 WebP.
+   *  Pairs with the PASSPORT crop flow on the web (teachers photo form):
+   *  posting a 3:4 crop at the AVATAR endpoint would fail its 1:1 ±15% gate. */
+  @Post('passport')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.MANAGEMENT)
+  @ApiBearerAuth()
+  @UploadImage('file', ImagePreset.PASSPORT, 5)
+  @ApiOperation({
+    summary:
+      'Upload a passport-style photo (PASSPORT preset pipeline), returns its storage key',
+  })
+  uploadPassportImage(
+    @UploadedFile(new ImageOptimizationPipe(ImagePreset.PASSPORT, true))
+    file?: Express.Multer.File,
+  ) {
+    if (!file?.buffer) throw new BadRequestException('No file uploaded');
+    return this.storage.upload({
+      buffer: file.buffer,
+      folder: 'passports',
+      contentType: file.mimetype,
+    });
+  }
+
+  /** Wide slider / notice banner — strict 16:9 → 1920×1080 WebP. */
+  @Post('banner-16-9')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.MANAGEMENT)
+  @ApiBearerAuth()
+  @UploadImage('file', ImagePreset.BANNER_16_9, 10)
+  @ApiOperation({
+    summary:
+      'Upload a widescreen banner (BANNER_16_9 preset pipeline), returns its storage key',
+  })
+  uploadBanner169Image(
+    @UploadedFile(new ImageOptimizationPipe(ImagePreset.BANNER_16_9, true))
+    file?: Express.Multer.File,
+  ) {
+    if (!file?.buffer) throw new BadRequestException('No file uploaded');
+    return this.storage.upload({
+      buffer: file.buffer,
+      folder: 'banners/16-9',
+      contentType: file.mimetype,
+    });
+  }
+
+  /** Ultra-wide header banner — strict 19:6 → 1900×600 WebP. */
+  @Post('banner-19-6')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.MANAGEMENT)
+  @ApiBearerAuth()
+  @UploadImage('file', ImagePreset.BANNER_19_6, 10)
+  @ApiOperation({
+    summary:
+      'Upload an ultra-wide header banner (BANNER_19_6 preset pipeline), returns its storage key',
+  })
+  uploadBanner196Image(
+    @UploadedFile(new ImageOptimizationPipe(ImagePreset.BANNER_19_6, true))
+    file?: Express.Multer.File,
+  ) {
+    if (!file?.buffer) throw new BadRequestException('No file uploaded');
+    return this.storage.upload({
+      buffer: file.buffer,
+      folder: 'banners/19-6',
+      contentType: file.mimetype,
+    });
+  }
+
+  /** Logo / signature — transparency preserved, ≤500×500 'inside', WebP. */
+  @Post('logo')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.MANAGEMENT)
+  @ApiBearerAuth()
+  @UploadImage('file', ImagePreset.LOGO, 5)
+  @ApiOperation({
+    summary:
+      'Upload a logo or signature (LOGO preset pipeline), returns its storage key',
+  })
+  uploadLogoImage(
+    @UploadedFile(new ImageOptimizationPipe(ImagePreset.LOGO, true))
+    file?: Express.Multer.File,
+  ) {
+    if (!file?.buffer) throw new BadRequestException('No file uploaded');
+    return this.storage.upload({
+      buffer: file.buffer,
+      folder: 'logos',
+      contentType: file.mimetype,
+    });
+  }
+
+  /**
+   * Removes a pipeline-managed file from storage. Used by the uploader when
+   * the user discards a freshly-uploaded (not yet persisted) image — the key
+   * is deleted idempotently. Legacy values (`/uploads/…`, `/logo.png`) and
+   * anything outside the managed `schools/` namespace are rejected, so hand
+   * -placed static assets can never be reached through this route.
+   */
+  @Delete()
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.MANAGEMENT)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Delete a managed storage file by key' })
+  deleteStored(@Query('key') key: string) {
+    if (!key?.trim()) throw new BadRequestException('File key is required');
+    if (!isManagedFileKey(key)) {
+      throw new BadRequestException('Not a managed storage key');
+    }
+    return this.storage.deleteFile(key.trim()).then(() => ({ deleted: true }));
   }
 
   /** Optimized generic image — max 1800 px bounds, ratio preserved, WebP. */

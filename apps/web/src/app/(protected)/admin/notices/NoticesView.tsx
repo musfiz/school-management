@@ -6,7 +6,8 @@ import { RiPinDistanceLine } from "react-icons/ri";
 import type { ColumnDef } from "@tanstack/react-table";
 import DataTable from "@/components/dashboard/DataTable";
 import { DashCard } from "@/components/dashboard/DashPage";
-import ImageUploader from "@/components/dashboard/ImageUploader";
+import GlobalImageUploader from "@/components/common/image-uploader/global-image-uploader";
+import { ImagePreset } from "@/constants/image-upload-presets";
 import PdfUploader from "@/components/dashboard/PdfUploader";
 import RichTextEditor from "@/components/dashboard/RichTextEditor";
 import AdminPageLoader from "@/components/dashboard/AdminPageLoader";
@@ -621,11 +622,11 @@ export default function NoticesView() {
                   <span className="mb-1.5 block text-sm font-medium text-ink-700">
                     Notice Banner / Thumbnail Image
                   </span>
-                  <ImageUploader
-                    value={form.imageUrl}
-                    onChange={(url) => patchForm({ imageUrl: url })}
-                    emptyLabel="Notice Banner Image"
-                    previewClassName="aspect-video w-full"
+                  <GlobalImageUploader
+                    preset={ImagePreset.BANNER_16_9}
+                    uploadEndpoint="/api/uploads/banner-16-9"
+                    value={form.imageUrl || null}
+                    onChange={(url) => patchForm({ imageUrl: url ?? "" })}
                   />
                 </div>
 

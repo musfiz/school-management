@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import { FiCopy as Copy, FiExternalLink as ExternalLink, FiLoader as Loader2, FiSave as Save } from "react-icons/fi";
 import { DashCard } from "@/components/dashboard/DashPage";
-import ImageUploader from "@/components/dashboard/ImageUploader";
+import GlobalImageUploader from "@/components/common/image-uploader/global-image-uploader";
+import { ImagePreset } from "@/constants/image-upload-presets";
 import AdminPageLoader from "@/components/dashboard/AdminPageLoader";
 import { toast } from "@/lib/swal";
 
@@ -182,10 +183,11 @@ export default function PageEditor({
       <div className="grid gap-6 lg:grid-cols-2">
         <DashCard title="Image & Display">
           <div className="space-y-4">
-            <ImageUploader
-              value={data.imageUrl}
-              onChange={(url) => patch({ imageUrl: url })}
-              emptyLabel="No image uploaded"
+            <GlobalImageUploader
+              preset={ImagePreset.DOCUMENT}
+              uploadEndpoint="/api/uploads/optimized"
+              value={data.imageUrl || null}
+              onChange={(url) => patch({ imageUrl: url ?? "" })}
             />
             {allowHomepageToggle && (
               <div className="flex items-center justify-between rounded-xs border border-ink-200 bg-white p-3">

@@ -122,7 +122,9 @@ export default function DocumentsView() {
       const isPdf = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
       const fd = new FormData();
       fd.append("file", file);
-      const up = await fetch(isPdf ? "/api/uploads/document" : "/api/uploads", {
+      // Scans → DOCUMENT preset pipeline (WebP, magic-byte verified).
+      // PDFs stay on the legacy document endpoint (image pipeline can't take them).
+      const up = await fetch(isPdf ? "/api/uploads/document" : "/api/uploads/optimized", {
         method: "POST",
         body: fd,
         credentials: "same-origin",

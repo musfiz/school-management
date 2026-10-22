@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import { FiLoader, FiSave } from "react-icons/fi";
 import { DashCard } from "@/components/dashboard/DashPage";
-import ImageUploader from "@/components/dashboard/ImageUploader";
+import GlobalImageUploader from "@/components/common/image-uploader/global-image-uploader";
+import { ImagePreset } from "@/constants/image-upload-presets";
 import AdminPageLoader from "@/components/dashboard/AdminPageLoader";
 import { toast } from "@/lib/swal";
 import type { HeaderDisplayMode, SiteSettings } from "@/lib/site-settings";
@@ -325,11 +326,11 @@ export default function SiteSettingsPage() {
               </div>
 
               <Field label="Logo">
-                <ImageUploader
-                  value={settings.logoUrl}
-                  onChange={(url) => patch({ logoUrl: url })}
-                  emptyLabel="No logo uploaded"
-                  previewClassName="h-40 w-full"
+                <GlobalImageUploader
+                  preset={ImagePreset.LOGO}
+                  uploadEndpoint="/api/uploads/logo"
+                  value={settings.logoUrl || null}
+                  onChange={(url) => patch({ logoUrl: url ?? "" })}
                 />
                 <input
                   value={settings.logoUrl}
