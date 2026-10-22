@@ -1,4 +1,5 @@
 import { NotFoundException } from '@nestjs/common';
+import type { IStorageProvider } from '../modules/storage/interfaces/storage-provider.interface';
 import { TeacherService } from './teacher.service';
 import { asPrisma, createPrismaMock, PrismaMock } from '../../test/support/prisma-mock';
 
@@ -24,7 +25,15 @@ describe('TeacherService', () => {
 
   beforeEach(() => {
     prisma = createPrismaMock();
-    service = new TeacherService(asPrisma(prisma));
+    // Storage is never hit unless an imageUrl swap triggers orphan cleanup;
+    // deleteFile resolves so cleanup paths stay silent in tests.
+    const storage: Pick<IStorageProvider, 'deleteFile'> = {
+      deleteFile: jest.fn().mockResolvedValue(undefined),
+    };
+    service = new TeacherService(
+      asPrisma(prisma),
+      storage as unknown as IStorageProvider,
+    );
   });
 
   it('findAll orders by sortOrder then id and maps timestamps', async () => {
