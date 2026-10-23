@@ -33,6 +33,32 @@ export class CreatePermissionDto {
   module_id?: string;
 }
 
+export class UpdatePermissionDto {
+  @ApiPropertyOptional({
+    example: 'results.edit',
+    description: 'Unique permission name (action.resource)',
+  })
+  @IsOptional()
+  @IsString()
+  @MinLength(3)
+  @MaxLength(100)
+  name?: string;
+
+  @ApiPropertyOptional({ example: 'Edit student results' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  description?: string;
+
+  @ApiPropertyOptional({
+    example: '3fa85f64-5717-4562-b3fc-2c963f66afa6',
+    description: 'Optional module this permission belongs to',
+  })
+  @IsOptional()
+  @IsUUID()
+  module_id?: string | null;
+}
+
 export class AssignPermissionDto {
   @ApiProperty({ example: 'results.edit', description: 'Permission name' })
   @IsString()

@@ -18,6 +18,8 @@
     "prisma:studio": "pnpm --filter api run prisma:studio",
     "prisma:pull": "pnpm --filter api run prisma:pull",
     "prisma:smoke": "pnpm --filter api run prisma:smoke",
+    "seed:authorization": "pnpm --filter api seed:authorization",
+    "seed:auth": "pnpm --filter api seed:auth",
     "ports:free": "node scripts/free-port.mjs"
   },
   "devDependencies": {

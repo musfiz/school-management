@@ -21,8 +21,9 @@ export class MenuPermissionDto {
   @MaxLength(100)
   menuSlug!: string;
 
-  @ApiProperty({ enum: ['canView', 'canCreate', 'canEdit', 'canDelete'] })
-  @IsEnum(['canView', 'canCreate', 'canEdit', 'canDelete'] as const)
+  @ApiProperty({ example: 'canView', description: 'Standard (canView, canCreate, canEdit, canDelete) or custom action key (excel, pdf, etc.)' })
+  @IsString()
+  @IsNotEmpty()
   action!: MenuAction;
 
   @ApiProperty()
@@ -53,8 +54,9 @@ export class ToggleUserMenuPermissionDto {
   @MaxLength(100)
   menuSlug!: string;
 
-  @ApiProperty({ enum: ['canView', 'canCreate', 'canEdit', 'canDelete'] })
-  @IsEnum(['canView', 'canCreate', 'canEdit', 'canDelete'] as const)
+  @ApiProperty({ example: 'canView', description: 'Standard action or custom action key' })
+  @IsString()
+  @IsNotEmpty()
   action!: MenuAction;
 
   @ApiProperty()
@@ -73,7 +75,7 @@ export class MenuPermissionWire {
   @ApiPropertyOptional({ example: '/dashboard' })
   path?: string;
 
-  @ApiProperty({ enum: ['canView', 'canCreate', 'canEdit', 'canDelete'] })
+  @ApiProperty({ example: 'canView' })
   action!: MenuAction;
 
   @ApiProperty()

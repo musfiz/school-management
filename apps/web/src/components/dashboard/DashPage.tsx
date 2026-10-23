@@ -3,16 +3,28 @@ import type { ReactNode } from "react";
 export function DashPageHeader({
   title,
   description,
+  actions,
+  children,
 }: {
   title: string;
   description?: string;
+  actions?: ReactNode;
+  children?: ReactNode;
 }) {
   return (
-    <div className="mb-4">
-      <h1 className="font-display text-xl font-extrabold text-navy-900 sm:text-2xl">
-        {title}
-      </h1>
-      {description && <p className="mt-1 text-sm text-ink-600">{description}</p>}
+    <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+      <div>
+        <h1 className="font-display text-xl font-extrabold text-navy-900 sm:text-2xl">
+          {title}
+        </h1>
+        {description && <p className="mt-1 text-sm text-ink-600">{description}</p>}
+      </div>
+      {(actions || children) && (
+        <div className="flex items-center gap-2 self-start sm:self-auto">
+          {actions}
+          {children}
+        </div>
+      )}
     </div>
   );
 }

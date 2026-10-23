@@ -35,8 +35,7 @@ function collectFlags(nodes: MyMenuApiNode[], out: Record<string, boolean>): Rec
  * Fetch the signed-in user's per-menu `canView` flags.
  *
  * Returns `null` on any failure (no cookie, API unreachable, non-200) so the
- * caller falls back to the unfiltered nav — the backend still 403s every
- * protected API the page hits, so this can never over-grant server-side.
+ * caller falls back to the fail-closed nav (dashboard only).
  */
 export async function fetchMyMenuFlags(): Promise<MenuPermissionFlags | null> {
   const store = await cookies();

@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { FiSearch } from "react-icons/fi";
-import { commandIndexForRole, filterNavByMenuPermissions, filterNavForRole, navItems, searchNav, type MenuPermissionFlags } from "@/lib/nav-config";
+import { commandIndex, filterNav, navItems, searchNav, type MenuPermissionFlags } from "@/lib/nav-config";
 import type { Role } from "@/lib/dashboard-nav";
 
 export const COMMAND_PALETTE_EVENT = "open-command-palette";
@@ -12,14 +12,14 @@ export function openCommandPalette() {
   window.dispatchEvent(new CustomEvent(COMMAND_PALETTE_EVENT));
 }
 
-/** Global Ctrl+K / Cmd+K palette over the role- and permission-filtered nav. */
+/** Global Ctrl+K / Cmd+K palette over the permission-filtered nav. */
 export default function CommandPalette({
   role,
   menuPermissions,
 }: {
-  role: Role;
+  role?: Role;
   /** Per-user menu `canView` flags fetched server-side (hybrid RBAC overlay). */
-  menuPermissions?: MenuPermissionFlags;
+  menuPermissions?: MenuPermissionFlags | null;
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -27,10 +27,9 @@ export default function CommandPalette({
   const [cursor, setCursor] = useState(0);
 
   const index = useMemo(() => {
-    const roleFiltered = filterNavForRole(navItems, role);
-    const visible = filterNavByMenuPermissions(roleFiltered, menuPermissions);
-    return commandIndexForRole(role, visible);
-  }, [role, menuPermissions]);
+    const visible = filterNav(navItems, menuPermissions);
+    return commandIndex(visible);
+  }, [menuPermissions]);
   const results = useMemo(() => searchNav(index, query).slice(0, 12), [index, query]);
 
   useEffect(() => {

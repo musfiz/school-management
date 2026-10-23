@@ -28,7 +28,7 @@ function toLegacyRole(raw: string): Role {
   if ((LEGACY_ROLE_KEYS as string[]).includes(raw)) return raw as Role;
   if (raw === "superadmin") return "admin";
   if (raw === "exam_controller") return "management";
-  return "admin";
+  return "guardian";
 }
 
 /**

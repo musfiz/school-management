@@ -71,12 +71,38 @@ export class MenuPermissionsGuard implements CanActivate {
       throw new ForbiddenException(`Menu not found: ${meta.menuSlug}`);
     }
 
+    const isStandardAction = ['canView', 'canCreate', 'canEdit', 'canDelete'].includes(
+      meta.action,
+    );
+
     const perm = await this.prisma.menuUserPermission.findFirst({
       where: { userId: user.id, menuId: menu.id },
-      select: { [meta.action]: true },
+      select: {
+        canView: true,
+        canCreate: true,
+        canEdit: true,
+        canDelete: true,
+        customActions: true,
+      },
     });
 
-    if (!perm?.[meta.action]) {
+    if (!perm) {
+      throw new ForbiddenException(
+        `Missing permission "${meta.action}" on menu "${meta.menuSlug}"`,
+      );
+    }
+
+    let hasPermission = false;
+    if (isStandardAction) {
+      hasPermission = Boolean((perm as Record<string, any>)[meta.action]);
+    } else {
+      const customs = Array.isArray(perm.customActions)
+        ? (perm.customActions as string[])
+        : [];
+      hasPermission = customs.includes(meta.action);
+    }
+
+    if (!hasPermission) {
       throw new ForbiddenException(
         `Missing permission "${meta.action}" on menu "${meta.menuSlug}"`,
       );

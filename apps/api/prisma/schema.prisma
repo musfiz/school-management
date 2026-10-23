@@ -1336,6 +1336,7 @@ model Menu {
   parentId              String?         @map("parent_id") @db.Char(36)
   sortOrder             Int             @default(0) @map("sort_order")
   isActive              Boolean         @default(true) @map("is_active")
+  actionsConfig         Json?           @map("actions_config")
   createdAt             DateTime        @default(now()) @map("created_at") @db.Timestamp(0)
   updatedAt             DateTime        @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
   parent                Menu?           @relation("MenuHierarchy", fields: [parentId], references: [id], onUpdate: Restrict)
@@ -1349,13 +1350,14 @@ model Menu {
 }
 
 model RoleDefaultPermission {
-  id        Int      @id @default(autoincrement())
-  role      UsersRole
-  menuId    String   @map("menu_id") @db.Char(36)
-  canView   Boolean  @default(false)
-  canCreate Boolean  @default(false)
-  canEdit   Boolean  @default(false)
-  canDelete Boolean  @default(false)
+  id            Int       @id @default(autoincrement())
+  role          UsersRole
+  menuId        String    @map("menu_id") @db.Char(36)
+  canView       Boolean   @default(false)
+  canCreate     Boolean   @default(false)
+  canEdit       Boolean   @default(false)
+  canDelete     Boolean   @default(false)
+  customActions Json?     @map("custom_actions")
 
   menu Menu @relation(fields: [menuId], references: [id], onDelete: Cascade, map: "FK_role_default_menu")
 
@@ -1364,13 +1366,14 @@ model RoleDefaultPermission {
 }
 
 model MenuUserPermission {
-  id        Int      @id @default(autoincrement())
-  userId    String   @map("user_id") @db.Char(36)
-  menuId    String   @map("menu_id") @db.Char(36)
-  canView   Boolean  @default(false)
-  canCreate Boolean  @default(false)
-  canEdit   Boolean  @default(false)
-  canDelete Boolean  @default(false)
+  id            Int      @id @default(autoincrement())
+  userId        String   @map("user_id") @db.Char(36)
+  menuId        String   @map("menu_id") @db.Char(36)
+  canView       Boolean  @default(false)
+  canCreate     Boolean  @default(false)
+  canEdit       Boolean  @default(false)
+  canDelete     Boolean  @default(false)
+  customActions Json?    @map("custom_actions")
 
   user Users @relation("menu_user_permissions_user_idTousers", fields: [userId], references: [id], onDelete: Cascade, map: "FK_menu_user_perm_user")
   menu Menu @relation(fields: [menuId], references: [id], onDelete: Cascade, map: "FK_menu_user_perm_menu")

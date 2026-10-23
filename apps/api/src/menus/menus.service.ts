@@ -1,8 +1,14 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import type { MenuItems } from '../generated/prisma/client';
 import type { MenuLocation } from './menu-item.constants';
 import { MenuChildInputDto, MenuItemInputDto } from './menu-item.dto';
+import { CreateSystemMenuDto, UpdateSystemMenuDto } from './system-menu.dto';
 
 /** One menu entry merged with the current user's action flags. */
 export interface MyMenuEntry {
@@ -17,6 +23,8 @@ export interface MyMenuEntry {
   canCreate: boolean;
   canEdit: boolean;
   canDelete: boolean;
+  customActions?: string[];
+  actionsConfig?: any;
   children: MyMenuEntry[];
 }
 
@@ -135,30 +143,51 @@ export class MenusService {
         parentId: true,
         sortOrder: true,
         isActive: true,
+        actionsConfig: true,
       },
     });
 
-    let perms: { menuId: string; canView: boolean; canCreate: boolean; canEdit: boolean; canDelete: boolean }[];
+    let perms: {
+      menuId: string;
+      canView: boolean;
+      canCreate: boolean;
+      canEdit: boolean;
+      canDelete: boolean;
+      customActions?: any;
+    }[];
     // Same superadmin rule as the guard: isSuperAdmin flag or the role itself.
     if (user.isSuperAdmin || user.role === 'superadmin') {
-      perms = menus.map((m) => ({
-        menuId: m.id,
-        canView: true,
-        canCreate: true,
-        canEdit: true,
-        canDelete: true,
-      }));
+      perms = menus.map((m) => {
+        const customs = Array.isArray((m.actionsConfig as any)?.custom)
+          ? (m.actionsConfig as any).custom.map((c: any) => c.action)
+          : [];
+        return {
+          menuId: m.id,
+          canView: true,
+          canCreate: true,
+          canEdit: true,
+          canDelete: true,
+          customActions: customs,
+        };
+      });
     } else {
       perms = await this.prisma.menuUserPermission.findMany({
         where: { userId },
-        select: { menuId: true, canView: true, canCreate: true, canEdit: true, canDelete: true },
+        select: {
+          menuId: true,
+          canView: true,
+          canCreate: true,
+          canEdit: true,
+          canDelete: true,
+          customActions: true,
+        },
       });
     }
 
-    const byId = new Map<string, typeof menus[number]>();
+    const byId = new Map<string, (typeof menus)[number]>();
     for (const m of menus) byId.set(m.id, m);
 
-    const byPerm = new Map<string, typeof perms[number]>();
+    const byPerm = new Map<string, (typeof perms)[number]>();
     for (const p of perms) byPerm.set(p.menuId, p);
 
     const root: MyMenuEntry[] = [];
@@ -178,6 +207,10 @@ export class MenusService {
         canCreate: p?.canCreate ?? false,
         canEdit: p?.canEdit ?? false,
         canDelete: p?.canDelete ?? false,
+        customActions: Array.isArray(p?.customActions)
+          ? (p.customActions as string[])
+          : [],
+        actionsConfig: m.actionsConfig ?? null,
         children: [],
       };
       const bucket = children.get(m.parentId ?? null) ?? [];
@@ -194,5 +227,153 @@ export class MenusService {
         }));
 
     return toTree(null);
+  }
+
+  // ---------------------------------------------------------------------------
+  // System Menu CRUD (for Hybrid RBAC menu registry)
+  // ---------------------------------------------------------------------------
+
+  /** List all system menus with their parent info. */
+  async findAllSystemMenus() {
+    const menus = await this.prisma.menu.findMany({
+      orderBy: { sortOrder: 'asc' },
+    });
+    const byId = new Map(menus.map((m) => [m.id, m]));
+    return menus.map((m) => ({
+      ...m,
+      parent: m.parentId && byId.has(m.parentId)
+        ? {
+            id: byId.get(m.parentId)!.id,
+            slug: byId.get(m.parentId)!.slug,
+            title: byId.get(m.parentId)!.title,
+          }
+        : null,
+    }));
+  }
+
+  /** Create a new system menu. Automatically grants full defaults to superadmin and admin. */
+  async createSystemMenu(dto: CreateSystemMenuDto) {
+    const existing = await this.prisma.menu.findUnique({
+      where: { slug: dto.slug },
+    });
+    if (existing) {
+      throw new ConflictException(`Menu with slug "${dto.slug}" already exists`);
+    }
+
+    if (dto.parentId) {
+      const parent = await this.prisma.menu.findUnique({
+        where: { id: dto.parentId },
+      });
+      if (!parent) {
+        throw new NotFoundException(`Parent menu ${dto.parentId} not found`);
+      }
+    }
+
+    const created = await this.prisma.menu.create({
+      data: {
+        slug: dto.slug,
+        title: dto.title,
+        path: dto.path ?? null,
+        icon: dto.icon ?? null,
+        parentId: dto.parentId ?? null,
+        sortOrder: dto.sortOrder ?? 0,
+        isActive: dto.isActive ?? true,
+        actionsConfig: (dto.actionsConfig as any) ?? null,
+      },
+    });
+
+    const customs = Array.isArray(dto.actionsConfig?.custom)
+      ? dto.actionsConfig.custom.map((c) => c.action)
+      : [];
+
+    // Seed full defaults for superadmin and admin
+    await this.prisma.roleDefaultPermission.createMany({
+      data: [
+        {
+          role: 'superadmin' as any,
+          menuId: created.id,
+          canView: true,
+          canCreate: true,
+          canEdit: true,
+          canDelete: true,
+          customActions: customs,
+        },
+        {
+          role: 'admin' as any,
+          menuId: created.id,
+          canView: true,
+          canCreate: true,
+          canEdit: true,
+          canDelete: true,
+          customActions: customs,
+        },
+      ],
+      skipDuplicates: true,
+    });
+
+    return created;
+  }
+
+  /** Update an existing system menu. */
+  async updateSystemMenu(id: string, dto: UpdateSystemMenuDto) {
+    const existing = await this.prisma.menu.findUnique({ where: { id } });
+    if (!existing) {
+      throw new NotFoundException(`Menu ${id} not found`);
+    }
+
+    if (dto.slug && dto.slug !== existing.slug) {
+      const slugCheck = await this.prisma.menu.findUnique({
+        where: { slug: dto.slug },
+      });
+      if (slugCheck) {
+        throw new ConflictException(`Slug "${dto.slug}" already in use`);
+      }
+    }
+
+    if (dto.parentId === id) {
+      throw new BadRequestException('A menu cannot be its own parent');
+    }
+
+    if (dto.parentId) {
+      const parent = await this.prisma.menu.findUnique({
+        where: { id: dto.parentId },
+      });
+      if (!parent) {
+        throw new NotFoundException(`Parent menu ${dto.parentId} not found`);
+      }
+    }
+
+    return this.prisma.menu.update({
+      where: { id },
+      data: {
+        slug: dto.slug,
+        title: dto.title,
+        path: dto.path,
+        icon: dto.icon,
+        parentId: dto.parentId === '' ? null : dto.parentId,
+        sortOrder: dto.sortOrder,
+        isActive: dto.isActive,
+        actionsConfig:
+          dto.actionsConfig !== undefined
+            ? ((dto.actionsConfig as any) ?? null)
+            : undefined,
+      },
+    });
+  }
+
+  /** Delete a system menu and unlink any children. */
+  async deleteSystemMenu(id: string) {
+    const existing = await this.prisma.menu.findUnique({ where: { id } });
+    if (!existing) {
+      throw new NotFoundException(`Menu ${id} not found`);
+    }
+
+    // Unlink any children first to prevent foreign key errors
+    await this.prisma.menu.updateMany({
+      where: { parentId: id },
+      data: { parentId: null },
+    });
+
+    return this.prisma.menu.delete({ where: { id } });
   }
 }

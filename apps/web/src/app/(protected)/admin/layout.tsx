@@ -28,9 +28,9 @@ export default async function DashboardLayout({
     <DashboardShell
       session={session}
       menuPermissions={
-        menuPermissions
-          ? { ...menuPermissions, bypassAll: session.isSuperAdmin }
-          : undefined
+        session.isSuperAdmin
+          ? { canView: {}, bypassAll: true }
+          : menuPermissions
       }
       className="dashboard-font"
     >

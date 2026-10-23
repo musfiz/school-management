@@ -9,11 +9,7 @@
  */
 
 import { apiFetch } from "./api";
-import {
-  dashboardTree,
-  type DashTreeNode,
-  ROLES,
-} from "./dashboard-nav";
+import type { MenuActionsConfig } from "./system-menus";
 
 export interface Permission {
   id: string;
@@ -39,12 +35,13 @@ export interface UserSummary {
   role: string;
 }
 
-export type MenuAction = "canView" | "canCreate" | "canEdit" | "canDelete";
+export type StandardMenuAction = "canView" | "canCreate" | "canEdit" | "canDelete";
+export type MenuAction = StandardMenuAction | string;
 
-export const MENU_ACTIONS: MenuAction[] = ["canView", "canCreate", "canEdit", "canDelete"];
+export const MENU_ACTIONS: StandardMenuAction[] = ["canView", "canCreate", "canEdit", "canDelete"];
 
 /** Human label for each menu action, shown as a column header. */
-export const MENU_ACTION_LABELS: Record<MenuAction, string> = {
+export const MENU_ACTION_LABELS: Record<StandardMenuAction, string> = {
   canView: "View",
   canCreate: "Create",
   canEdit: "Edit",
@@ -52,7 +49,8 @@ export const MENU_ACTION_LABELS: Record<MenuAction, string> = {
 };
 
 /** One menu merged with a user's current action flags (from GET /api/permissions/user/:id).
- *  Backend returns one row per menu with the four action flags as booleans.
+ *  Backend returns one row per menu with the standard action flags as booleans, plus
+ *  custom actions array and actionsConfig.
  *  `slug` is the same field as `menuSlug` — kept in sync with the backend's
  *  `MyMenuEntry.slug` / `MenuPermissionWire.menuSlug`. */
 export interface MenuPermissionEntry {
@@ -66,6 +64,8 @@ export interface MenuPermissionEntry {
   canCreate: boolean;
   canEdit: boolean;
   canDelete: boolean;
+  customActions?: string[];
+  actionsConfig?: MenuActionsConfig | null;
 }
 
 /** A single (menu, action) flag to send to PUT /api/permissions/user/:id. */
@@ -73,75 +73,6 @@ export interface MenuPermissionFlag {
   menuSlug: string;
   action: MenuAction;
   granted: boolean;
-}
-
-/** Fixed action verbs — one checkbox column each in the matrix. */
-export const ACTION_VERBS = ["view", "add", "update", "delete", "pdf", "xlsx"] as const;
-export type ActionVerb = (typeof ACTION_VERBS)[number];
-
-/** A flattened page entry extracted from the nav tree for the matrix. */
-export interface MatrixPage {
-  /** Parent module label, e.g. "Website Management". */
-  module: string;
-  /** Page label, e.g. "About Us". */
-  label: string;
-  /** URL slug derived from href, e.g. "about-us". */
-  slug: string;
-  /** Full href, e.g. "/admin/website-management/about-us". */
-  href: string;
-}
-
-/** Recursively extract every leaf page from the nav tree, tagged with its
- *  parent module (top-level group) label. Only includes leaves viewable by at
- *  least one role (which is all of them here). */
-export function flattenTree(nodes: DashTreeNode[] = dashboardTree): MatrixPage[] {
-  const out: MatrixPage[] = [];
-
-  function walk(groupLabel: string, children: DashTreeNode[]) {
-    for (const node of children) {
-      if (node.kind === "leaf") {
-        const slug = extractSlug(node.href);
-        if (slug && node.href) {
-          out.push({
-            module: groupLabel,
-            label: node.label,
-            slug,
-            href: node.href,
-          });
-        }
-      } else {
-        // Nested group — recurse, keeping the same top-level module label.
-        walk(groupLabel, node.children ?? []);
-      }
-    }
-  }
-
-  for (const node of nodes) {
-    if (node.kind === "group") {
-      walk(node.label, node.children ?? []);
-    }
-    // Top-level leaves (like Dashboard) are not module-scoped, so we skip
-    // them — or you could tag them with a generic module. Keeping simple.
-  }
-
-  return out;
-}
-
-/** Extract a slug from an href like "/admin/website-management/about-us". */
-function extractSlug(href?: string): string {
-  if (!href) return "";
-  const parts = href.replace(/\/+$/, "").split("/");
-  return parts[parts.length - 1] ?? "";
-}
-
-/** Build the permission name for a given verb + slug: "view-about-us". */
-export function permissionName(verb: ActionVerb, slug: string): string {
-  return `${verb}-${slug}`;
-}
-
-/** Unique module labels from the nav tree (for the module filter dropdown). */
-export function moduleLabels(): string[] {
-  return dashboardTree.filter((n) => n.kind === "group").map((n) => n.label);
 }
 
 // ---- Permission catalog ----
@@ -158,6 +89,26 @@ export function createPermission(input: {
   return apiFetch<Permission>("/api/permissions", {
     method: "POST",
     body: JSON.stringify(input),
+  });
+}
+
+export function updatePermission(
+  id: string,
+  input: {
+    name?: string;
+    description?: string;
+    module_id?: string | null;
+  },
+): Promise<Permission> {
+  return apiFetch<Permission>(`/api/permissions/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(input),
+  });
+}
+
+export function deletePermission(id: string): Promise<{ success: boolean; id: string }> {
+  return apiFetch<{ success: boolean; id: string }>(`/api/permissions/${id}`, {
+    method: "DELETE",
   });
 }
 

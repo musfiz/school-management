@@ -3,6 +3,8 @@ import {
   Get,
   Post,
   Put,
+  Patch,
+  Delete,
   Body,
   Param,
   ParseUUIDPipe,
@@ -12,6 +14,7 @@ import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagg
 import { PermissionsService } from './permissions.service';
 import {
   CreatePermissionDto,
+  UpdatePermissionDto,
   AssignPermissionDto,
   SetUserPermissionsDto,
 } from './permissions.dto';
@@ -43,6 +46,23 @@ export class PermissionsController {
   @ApiResponse({ status: 409, description: 'Permission already exists' })
   create(@Body() dto: CreatePermissionDto) {
     return this.permissionsService.createPermission(dto);
+  }
+
+  @Patch(':id')
+  @ApiOperation({ summary: 'Update a permission' })
+  @ApiResponse({ status: 200, description: 'Permission updated' })
+  update(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: UpdatePermissionDto,
+  ) {
+    return this.permissionsService.updatePermission(id, dto);
+  }
+
+  @Delete(':id')
+  @ApiOperation({ summary: 'Delete a permission' })
+  @ApiResponse({ status: 200, description: 'Permission deleted' })
+  remove(@Param('id', ParseUUIDPipe) id: string) {
+    return this.permissionsService.deletePermission(id);
   }
 
   @Get('users/:id')

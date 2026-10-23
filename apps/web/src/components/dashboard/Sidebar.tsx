@@ -6,8 +6,7 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } fr
 import { createPortal } from "react-dom";
 import {
   defaultOpenGroups,
-  filterNavByMenuPermissions,
-  filterNavForRole,
+  filterNav,
   isGroupActive,
   isLeafActive,
   navItems,
@@ -490,18 +489,16 @@ export default function Sidebar({
   role: Role;
   name?: string;
   /** Per-user menu `canView` flags fetched server-side (hybrid RBAC overlay). */
-  menuPermissions?: MenuPermissionFlags;
+  menuPermissions?: MenuPermissionFlags | null;
 }) {
   const pathname = usePathname();
   const mounted = useMounted();
   const navRef = useRef<HTMLElement>(null);
 
-  // Filter chain: role gate first, then the per-user menu-permission overlay
-  // (slugs tracked in nav-config's `menuSlug`; unmapped items stay visible).
+  // Single unified filter: menu permissions gate each slug
   const items: NavItem[] = useMemo(() => {
-    const roleFiltered = filterNavForRole(navItems, role);
-    return filterNavByMenuPermissions(roleFiltered, menuPermissions);
-  }, [role, menuPermissions]);
+    return filterNav(navItems, menuPermissions);
+  }, [menuPermissions]);
 
   const [open, setOpen] = useState<Set<string>>(() => defaultOpenGroups(items, pathname));
   const [collapsed, setCollapsed] = useState(false);

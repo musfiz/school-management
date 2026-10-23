@@ -21,19 +21,19 @@ export default function DashboardShell({
   className,
 }: {
   session: Session;
-  /** Per-user menu `canView` flags (null ⇒ unfiltered fallback). */
-  menuPermissions?: MenuPermissionFlags;
+  /** Per-user menu `canView` flags (null ⇒ fail-closed dashboard only). */
+  menuPermissions?: MenuPermissionFlags | null;
   children: React.ReactNode;
   className?: string;
 }) {
   return (
     <RoleProvider initial={session}>
-      <div className={`flex min-h-screen flex-col bg-ink-50 lg:flex-row ${className ?? ""}`}>
+      <div className={`flex h-screen overflow-hidden flex-col bg-ink-50 lg:flex-row ${className ?? ""}`}>
         <Sidebar role={session.role} name={session.name} menuPermissions={menuPermissions} />
         <CommandPalette role={session.role} menuPermissions={menuPermissions} />
-        <div className="flex min-h-screen flex-1 flex-col">
+        <div className="flex h-screen flex-1 flex-col overflow-hidden min-w-0">
           <Topbar name={session.name} email={session.email} role={session.role} />
-          <main className="flex-1 px-2 py-1 sm:px-3 lg:py-2">{children}</main>
+          <main className="scroll-slim flex-1 overflow-y-auto px-2 py-1 sm:px-3 lg:py-2">{children}</main>
         </div>
       </div>
     </RoleProvider>

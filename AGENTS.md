@@ -286,3 +286,113 @@ standard for every image in the system. Full reference:
    uploadEndpoint="/api/<module>/<route>" value={form.imageUrl}
    onChange={…} />` and a thin proxy `route.ts` copying the avatar one.
 5. DB column: `VarChar(255)` minimum (keys are ≈55 chars).
+
+## Hybrid RBAC & Menu Permission System (backend — `apps/api`, frontend — `apps/web`)
+
+The authorization architecture is a hybrid Role-Based Access Control (RBAC)
+model with granular user-level overrides keyed on unified system navigation
+menus. Full reference: `docs/permission-implementation-overview.md`.
+
+**Core Architectural Principles**
+- **Single Source of Truth (`Menu` table):** Every functional module, screen,
+  or submenu is registered in the database `menus` table with a unique `slug`,
+  `title`, `path`, optional `parentId`, `icon`, and `sortOrder`.
+- **4 Standard Action Capabilities & Page Configuration (`actionsConfig`):**
+  Every menu supports standard operations (`canView`, `canCreate`, `canEdit`,
+  and `canDelete`). Pages that are view-only (e.g. `dashboard`, `reports`)
+  configure `actionsConfig` to disable non-applicable CRUD actions, eliminating
+  phantom checkboxes in the User Permissions matrix.
+- **Dynamic Custom Actions (`customActions`):**
+  Menus can declare arbitrary custom action capabilities via `actionsConfig.custom`
+  (e.g., `excel`, `pdf`, `print`, `approve`, `verify`, `reverse`).
+  - Stored on `Menu.actionsConfig`: `{ canView: true, canCreate: false, custom: [{ action: "excel", label: "Excel Export" }] }`.
+  - Granted per user on `MenuUserPermission.customActions` and per role on
+    `RoleDefaultPermission.customActions` as a JSON array of strings (`["excel", "pdf"]`).
+  - Guarded on NestJS endpoints with `@RequirePermission('<slug>', '<customAction>')`,
+    e.g. `@RequirePermission('reports', 'excel')`.
+  - Managed via UI: configured in **System Menus** modal and toggled as
+    interactive badges in **User Permissions**.
+- **Hierarchical Module Structure:** Top-level menus (`parentId === null`)
+  represent primary functional modules (e.g., `accounting`, `exams`,
+  `admission`, `website`). Submenus and pages reference their module's `id`
+  as `parentId`.
+- **SuperAdmin Exemption (Core Rule):** Users with `role === 'superadmin'` or
+  `isSuperAdmin === true` bypass all authorization guards unconditionally.
+  SuperAdmins have no permission boundaries and must be excluded from user
+  permission picker dropdowns to prevent invalid or dead-override state.
+
+**Two-Tier Permission Evaluation Workflow**
+1. **Tier 1 — Role Defaults (`role_default_permissions`):** Baseline
+   template defining default `canView`, `canCreate`, `canEdit`, and `canDelete`
+   flags for each system role (`admin`, `management`, `accountant`, `teacher`,
+   `exam_controller`, `guardian`, `student`). Assigned automatically on user
+   creation.
+2. **Tier 2 — User Overrides (`menu_user_permissions`):** Per-user database
+   records overriding role defaults for specific users. When present, the user
+   override flag (`true` or `false`) takes precedence over the role default.
+3. **Reset to Defaults:** Calling `POST /api/permissions/user/:id/reset` deletes
+   the user's overrides from `menu_user_permissions`, immediately reverting them
+   to their role's baseline template.
+
+**Backend Wiring (`apps/api`)**
+- **Route Guard:** `MenuPermissionsGuard` in
+  `src/common/guards/menu-permissions.guard.ts` intercepts requests and enforces
+  capabilities.
+- **Decorator:** `@RequirePermission('<menuSlug>', '<action>')` from
+  `src/common/decorators/require-permission.decorator.ts`.
+  Example: `@RequirePermission('fees', 'canCreate')` or
+  `@RequirePermission('accounting', 'canView')`.
+- **Evaluation Order:**
+  1. `@Public()` route → allow immediately.
+  2. No permission metadata → open route (JWT authentication still applies).
+  3. `isSuperAdmin` or `SUPERADMIN` role → allow immediately.
+  4. Query `MenuUserPermission` for `(userId, menuId)`. If override exists,
+     validate `[action] === true`.
+  5. Fallback: Query `RoleDefaultPermission` for `(user.role, menuId)`.
+     Validate `[action] === true`. If missing or `false`, throw `403 Forbidden`.
+- **Controllers & Services:**
+  - `SystemMenusController` (`/system-menus`): Admin CRUD for registry menus.
+  - `MenusController` (`/menus/my-menus`): Returns the authenticated user's
+    active navigation tree with computed action booleans.
+  - `PermissionsController` / `PermissionAssignmentService`: User matrix endpoints
+    `GET /permissions/user/:id` and `PUT /permissions/user/:id`.
+
+**Frontend Wiring (`apps/web`)**
+- **System Menus Management (`/admin/permission-management/menus`):**
+  CRUD interface (`MenusView.tsx`) to register new pages, configure routes,
+  icons, slugs, sort orders, and parent-child hierarchy.
+  - Top header standard 30px `Add Menu` button (`DashPageHeader actions`).
+  - Row-level `+ Submenu` button for quickly adding child pages under modules.
+- **User Permissions Matrix (`/admin/permission-management/user-permissions`):**
+  Batch assignment workbench (`UserPermissionsView.tsx`).
+  - SearchSelect user picker (excludes `superadmin` users).
+  - Module filter to isolate functional areas.
+  - Matrix table with module-level Select All, column-level action toggles,
+    and individual View / Create / Edit / Delete checkboxes.
+  - Saves both granted (`true`) and revoked (`false`) states to persist
+    explicit restrictions.
+- **Navigation Filtering:**
+  - `Sidebar.tsx` and `DashboardShell.tsx` match each `leaf` item's `href` or
+    `menuSlug` against `my-menus`. Items where `canView === false` are
+    filtered out of the user's sidebar.
+- **Page Layout Guard:** Server-side layout guards or `requireMenu('<slug>')`
+  validate `canView` before rendering child route components.
+- **Same-Origin API Proxies:**
+  Next.js route handlers under `apps/web/src/app/api/...` (`/api/system-menus`,
+  `/api/permissions/user/[id]`, etc.) proxy browser requests to NestJS
+  (`http://localhost:3031`), forwarding the `school_session` JWT cookie as an
+  `Authorization: Bearer <token>` header.
+
+**Adding a Protected Menu / Page — Checklist**
+1. **Register Menu:** Add the page in **System Menus**
+   (`/admin/permission-management/menus`) with title, unique slug (e.g.,
+   `website_settings`), path (e.g., `/admin/website/settings`), and parent
+   module.
+2. **Backend Protection:** Decorate the API endpoint with
+   `@UseGuards(JwtAuthGuard, MenuPermissionsGuard)` and
+   `@RequirePermission('website_settings', 'canView')` (or `canCreate`/`canEdit`/`canDelete`).
+3. **Frontend Nav:** Add the leaf in `apps/web/src/lib/nav-config.ts` matching
+   the registered route `href`.
+4. **Assign Access:** Open **User Permissions**
+   (`/admin/permission-management/user-permissions`), pick target users, and
+   toggle the required capabilities.

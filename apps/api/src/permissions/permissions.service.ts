@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import type { Modules, Permissions, UserPermissions } from '../generated/prisma/client';
-import { CreatePermissionDto } from './permissions.dto';
+import { CreatePermissionDto, UpdatePermissionDto } from './permissions.dto';
 
 /**
  * Rename Prisma's camelCase fields back to the snake_case wire keys the old
@@ -82,8 +82,67 @@ export class PermissionsService {
         description: dto.description ?? null,
         moduleId: dto.module_id ?? null,
       },
+      include: { modules: true },
     });
-    return permissionWire(row);
+    return {
+      ...permissionWire(row),
+      module: row.modules ? moduleWire(row.modules) : null,
+    };
+  }
+
+  async updatePermission(id: string, dto: UpdatePermissionDto) {
+    const existing = await this.prisma.permissions.findUnique({
+      where: { id },
+    });
+    if (!existing) {
+      throw new NotFoundException(`Permission ${id} not found`);
+    }
+
+    if (dto.name && dto.name !== existing.name) {
+      const nameCheck = await this.findOneByName(dto.name);
+      if (nameCheck) {
+        throw new ConflictException(`Permission "${dto.name}" already exists`);
+      }
+    }
+
+    if (dto.module_id !== undefined && dto.module_id !== null) {
+      const module = await this.prisma.modules.findUnique({
+        where: { id: dto.module_id },
+      });
+      if (!module) {
+        throw new NotFoundException(`Module ${dto.module_id} not found`);
+      }
+    }
+
+    const row = await this.prisma.permissions.update({
+      where: { id },
+      data: {
+        ...(dto.name ? { name: dto.name } : {}),
+        ...(dto.description !== undefined ? { description: dto.description } : {}),
+        ...(dto.module_id !== undefined ? { moduleId: dto.module_id } : {}),
+      },
+      include: { modules: true },
+    });
+
+    return {
+      ...permissionWire(row),
+      module: row.modules ? moduleWire(row.modules) : null,
+    };
+  }
+
+  async deletePermission(id: string) {
+    const existing = await this.prisma.permissions.findUnique({
+      where: { id },
+    });
+    if (!existing) {
+      throw new NotFoundException(`Permission ${id} not found`);
+    }
+
+    await this.prisma.permissions.delete({
+      where: { id },
+    });
+
+    return { success: true, id };
   }
 
   // ---- User assignment ----

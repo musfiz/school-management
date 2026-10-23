@@ -1,5 +1,5 @@
 -- AlterTable
-ALTER TABLE `users` MODIFY `role` ENUM('admin', 'management', 'accountant', 'teacher', 'student', 'guardian', 'exam_controller') NOT NULL DEFAULT 'student';
+ALTER TABLE `users` MODIFY `role` ENUM('superadmin', 'admin', 'management', 'accountant', 'teacher', 'student', 'guardian', 'exam_controller') NOT NULL DEFAULT 'student';
 
 -- CreateTable
 CREATE TABLE `attendance_mark_slabs` (
