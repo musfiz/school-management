@@ -118,7 +118,7 @@ export class MenusService {
   async getMyMenus(userId: string, isSuperAdmin: boolean): Promise<MyMenuEntry[]> {
     const user = await this.prisma.users.findUnique({
       where: { id: userId },
-      select: { id: true, isSuperAdmin: true },
+      select: { id: true, role: true, isSuperAdmin: true },
     });
     if (!user) {
       throw new NotFoundException(`User ${userId} not found`);
@@ -139,7 +139,8 @@ export class MenusService {
     });
 
     let perms: { menuId: string; canView: boolean; canCreate: boolean; canEdit: boolean; canDelete: boolean }[];
-    if (user.isSuperAdmin) {
+    // Same superadmin rule as the guard: isSuperAdmin flag or the role itself.
+    if (user.isSuperAdmin || user.role === 'superadmin') {
       perms = menus.map((m) => ({
         menuId: m.id,
         canView: true,

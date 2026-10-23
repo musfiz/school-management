@@ -25,14 +25,9 @@ import { CurrentUser } from '../common/decorators/current-user.decorator';
 export class MenusController {
   constructor(private readonly menusService: MenusService) {}
 
-  @Get(':location')
-  @Public()
-  @ApiOperation({
-    summary: 'Public menu tree (visible items only) for a given location',
-  })
-  findPublic(@Param('location') location: MenuLocation) {
-    return this.menusService.findPublicTree(location);
-  }
+  // NOTE: static routes must be declared BEFORE the `:location` param route —
+  // NestJS matches handlers in declaration order, so `GET /menus/my-menus`
+  // would otherwise be swallowed by `@Get(':location')` as location='my-menus'.
 
   @Get('my-menus')
   @UseGuards(JwtAuthGuard)
@@ -42,6 +37,15 @@ export class MenusController {
   })
   myMenus(@CurrentUser('id') userId: string, @CurrentUser('isSuperAdmin') isSuperAdmin: boolean) {
     return this.menusService.getMyMenus(userId, !!isSuperAdmin);
+  }
+
+  @Get(':location')
+  @Public()
+  @ApiOperation({
+    summary: 'Public menu tree (visible items only) for a given location',
+  })
+  findPublic(@Param('location') location: MenuLocation) {
+    return this.menusService.findPublicTree(location);
   }
 
   @Get(':location/all')

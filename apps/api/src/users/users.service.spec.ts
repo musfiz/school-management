@@ -6,6 +6,7 @@ import {
   createPrismaMock,
   PrismaMock,
 } from '../../test/support/prisma-mock';
+import type { PermissionAssignmentService } from '../permission-assignment/permission-assignment.service';
 
 const userRow = (over: Record<string, unknown> = {}) => ({
   id: 'u1',
@@ -24,11 +25,20 @@ const userRow = (over: Record<string, unknown> = {}) => ({
 
 describe('UsersService', () => {
   let prisma: PrismaMock;
+  let permissionAssignment: {
+    assignRoleDefaultsToUser: jest.Mock;
+  };
   let service: UsersService;
 
   beforeEach(() => {
     prisma = createPrismaMock();
-    service = new UsersService(asPrisma(prisma));
+    permissionAssignment = {
+      assignRoleDefaultsToUser: jest.fn().mockResolvedValue(undefined),
+    };
+    service = new UsersService(
+      asPrisma(prisma),
+      permissionAssignment as unknown as PermissionAssignmentService,
+    );
   });
 
   it('create rejects a duplicate email without inserting', async () => {
@@ -66,6 +76,26 @@ describe('UsersService', () => {
     });
     expect(out.created_at).toBeInstanceOf(Date);
     expect('createdAt' in out).toBe(false);
+  });
+
+  it('create auto-assigns role-default menu permissions inside the transaction', async () => {
+    prisma.users.findUnique.mockResolvedValue(null);
+    prisma.users.create.mockResolvedValue(userRow({ role: UserRole.TEACHER }));
+
+    await service.create({
+      name: 'Jane',
+      email: 'jane@school.com',
+      password: 'secret1',
+      role: UserRole.TEACHER,
+    });
+
+    expect(permissionAssignment.assignRoleDefaultsToUser).toHaveBeenCalledTimes(1);
+    const [userId, role, tx] = permissionAssignment.assignRoleDefaultsToUser.mock.calls[0];
+    expect(userId).toBe('u1');
+    expect(role).toBe(UserRole.TEACHER);
+    // Third arg must be the tx client handed to the $transaction callback —
+    // defaults join the same transaction as the user insert.
+    expect(tx).toBe(prisma);
   });
 
   it('findAll selects the same subset the TypeORM query used', async () => {

@@ -25,9 +25,12 @@ export class PermissionsGuard implements CanActivate {
 
     const { user } = context.switchToHttp().getRequest();
 
-    // Admin is the super-user: full access to everything, no per-permission
-    // assignment required. This is the default gate — all other roles need
-    // the specific permissions granted via user_permissions.
+    // Super-user bypass (Core Rule 1): superadmin flag or role → full access
+    // with no per-permission assignment. `admin` is the default gate — all
+    // other roles need the specific permissions granted via user_permissions.
+    if (user?.isSuperAdmin === true || user?.role === UserRole.SUPERADMIN) {
+      return true;
+    }
     if (user?.role === UserRole.ADMIN) {
       return true;
     }

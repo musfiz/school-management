@@ -40,7 +40,13 @@ import {
   FiUsers as Users,
   FiZap as Zap,
 } from "react-icons/fi";
-import { BiBuilding as Building2, BiIdCard as IdCard, BiReceipt as Receipt, BiSolidLandmark as Landmark, BiSpreadsheet as FileSpreadsheet } from "react-icons/bi";
+import {
+  BiBuilding as Building2,
+  BiIdCard as IdCard,
+  BiReceipt as Receipt,
+  BiSolidLandmark as Landmark,
+  BiSpreadsheet as FileSpreadsheet,
+} from "react-icons/bi";
 import { GoCalendar as CalendarDays, GoMegaphone as Megaphone } from "react-icons/go";
 import type { Role } from "./dashboard-nav";
 
@@ -98,6 +104,10 @@ export interface NavLeaf {
    *  so they don't also light up when a sub-route leaf is active. */
   exactMatch?: boolean;
   keywords?: string[];
+  /** `menus.slug` this leaf is permission-gated by (hybrid RBAC overlay).
+   *  Children of a group inherit the group's slug when unset. A leaf with no
+   *  resolvable slug is NOT permission-managed yet and stays visible. */
+  menuSlug?: string;
 }
 
 export interface NavGroup {
@@ -109,6 +119,9 @@ export interface NavGroup {
   legacyRoles: Role[];
   /** STRICT 2-LEVEL RULE: leaves only. No nested groups. */
   children: NavLeaf[];
+  /** `menus.slug` inherited by children without their own `menuSlug`; when
+   *  set, also gates the group label itself (canView required to show it). */
+  menuSlug?: string;
 }
 
 /** Visual module divider (e.g. "Accounting & Finance"). Not clickable,
@@ -127,7 +140,15 @@ export type NavItem = NavLeaf | NavGroup | NavSection;
 const FINANCE_LEGACY: Role[] = ["admin", "management", "accountant"];
 
 export const navItems: NavItem[] = [
-  { kind: "leaf", label: "Dashboard", href: "/admin", icon: LayoutDashboard, roles: ALL, legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"] },
+  {
+    kind: "leaf",
+    label: "Dashboard",
+    href: "/admin",
+    icon: LayoutDashboard,
+    roles: ALL,
+    legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"],
+    menuSlug: "dashboard",
+  },
 
   /* ── Module A: Accounting & Finance (daily workflow order) ── */
   { kind: "section", label: "Accounting & Finance" },
@@ -139,7 +160,17 @@ export const navItems: NavItem[] = [
     icon: PieChart,
     roles: FINANCE_FULL,
     legacyRoles: FINANCE_LEGACY,
-    keywords: ["reports", "receipts", "payments", "income", "expenditure", "balance", "defaulter", "audit"],
+    menuSlug: "reports",
+    keywords: [
+      "reports",
+      "receipts",
+      "payments",
+      "income",
+      "expenditure",
+      "balance",
+      "defaulter",
+      "audit",
+    ],
   },
   {
     kind: "leaf",
@@ -149,6 +180,7 @@ export const navItems: NavItem[] = [
     icon: ShieldCheck,
     roles: FINANCE_FULL,
     legacyRoles: FINANCE_LEGACY,
+    menuSlug: "accounting",
     keywords: ["audit", "trail", "log", "immutable"],
   },
   {
@@ -161,6 +193,7 @@ export const navItems: NavItem[] = [
     legacyRoles: FINANCE_LEGACY,
     badge: "Hot",
     matchPaths: ["/admin/accounting/collection/pos"],
+    menuSlug: "fees",
     keywords: ["pos", "collect", "cash", "counter", "fee"],
   },
   {
@@ -171,6 +204,7 @@ export const navItems: NavItem[] = [
     icon: Receipt,
     roles: FINANCE_FULL,
     legacyRoles: FINANCE_LEGACY,
+    menuSlug: "fees",
     keywords: ["billing", "invoice", "fee", "waiver", "scholarship", "deposit"],
   },
   {
@@ -179,6 +213,7 @@ export const navItems: NavItem[] = [
     icon: Landmark,
     roles: FINANCE_FULL,
     legacyRoles: FINANCE_LEGACY,
+    menuSlug: "accounting",
     children: [
       {
         kind: "leaf",
@@ -217,6 +252,7 @@ export const navItems: NavItem[] = [
     icon: BookOpen,
     roles: ["SUPER_ADMIN", "PRINCIPAL", "ACCOUNTANT", "CASHIER"],
     legacyRoles: FINANCE_LEGACY,
+    menuSlug: "accounting",
     keywords: ["voucher", "receive", "payment", "journal", "contra", "approval", "ledger"],
   },
   {
@@ -227,6 +263,7 @@ export const navItems: NavItem[] = [
     icon: BookOpen,
     roles: FINANCE_FULL,
     legacyRoles: FINANCE_LEGACY,
+    menuSlug: "accounting",
     keywords: ["chart of accounts", "coa", "fund", "lillah", "zakat", "ledger"],
   },
   {
@@ -237,6 +274,7 @@ export const navItems: NavItem[] = [
     icon: Building2,
     roles: FINANCE_FULL,
     legacyRoles: FINANCE_LEGACY,
+    menuSlug: "payroll",
     keywords: ["payables", "payroll", "mpo", "vendor", "vds", "tds", "nbr", "tax", "challan", "pf"],
   },
   {
@@ -247,6 +285,7 @@ export const navItems: NavItem[] = [
     icon: Users,
     roles: FINANCE_FULL,
     legacyRoles: FINANCE_LEGACY,
+    menuSlug: "payroll",
     keywords: ["payroll", "salary", "mpo", "pf", "gratuity"],
   },
 
@@ -263,11 +302,22 @@ export const navItems: NavItem[] = [
         kind: "leaf",
         label: "Initial setup",
         href: "/admin/academic-results/settings/initial-setup",
-        description: "Academic session, classes & departments, exam term types, master subjects, and sections/batches",
+        description:
+          "Academic session, classes & departments, exam term types, master subjects, and sections/batches",
         icon: CalendarDays,
         roles: EXAM_FULL,
         legacyRoles: ["admin", "management"],
-        keywords: ["session", "class", "department", "term", "subject", "master", "setup", "section", "batch"],
+        keywords: [
+          "session",
+          "class",
+          "department",
+          "term",
+          "subject",
+          "master",
+          "setup",
+          "section",
+          "batch",
+        ],
       },
       {
         kind: "leaf",
@@ -419,12 +469,48 @@ export const navItems: NavItem[] = [
     roles: ALL,
     legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"],
     children: [
-      { kind: "leaf", label: "Class Schedule", href: "/admin/academic/class-schedule", roles: ALL, legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"] },
-      { kind: "leaf", label: "Academic Rules", href: "/admin/academic/academic-rules", roles: ALL, legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"] },
-      { kind: "leaf", label: "Calendar", href: "/admin/academic/calendar", roles: ALL, legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"] },
-      { kind: "leaf", label: "Attendance", href: "/admin/academic/attendance", roles: ALL, legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"] },
-      { kind: "leaf", label: "Leave Info", href: "/admin/academic/leave-info", roles: ALL, legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"] },
-      { kind: "leaf", label: "Staffs", href: "/admin/academic/staffs", roles: ALL, legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"] },
+      {
+        kind: "leaf",
+        label: "Class Schedule",
+        href: "/admin/academic/class-schedule",
+        roles: ALL,
+        legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"],
+      },
+      {
+        kind: "leaf",
+        label: "Academic Rules",
+        href: "/admin/academic/academic-rules",
+        roles: ALL,
+        legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"],
+      },
+      {
+        kind: "leaf",
+        label: "Calendar",
+        href: "/admin/academic/calendar",
+        roles: ALL,
+        legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"],
+      },
+      {
+        kind: "leaf",
+        label: "Attendance",
+        href: "/admin/academic/attendance",
+        roles: ALL,
+        legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"],
+      },
+      {
+        kind: "leaf",
+        label: "Leave Info",
+        href: "/admin/academic/leave-info",
+        roles: ALL,
+        legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"],
+      },
+      {
+        kind: "leaf",
+        label: "Staffs",
+        href: "/admin/academic/staffs",
+        roles: ALL,
+        legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"],
+      },
     ],
   },
   {
@@ -433,14 +519,58 @@ export const navItems: NavItem[] = [
     icon: Users,
     roles: ALL,
     legacyRoles: ["admin", "management", "teacher"],
+    menuSlug: "students",
     children: [
-      { kind: "leaf", label: "Student List", href: "/admin/students", roles: ["SUPER_ADMIN", "PRINCIPAL", "EXAM_CONTROLLER", "TEACHER"], legacyRoles: ["admin", "management", "teacher"] },
-      { kind: "leaf", label: "Teachers", href: "/admin/teachers", roles: ["SUPER_ADMIN", "PRINCIPAL"], legacyRoles: ["admin", "management"] },
-      { kind: "leaf", label: "Exam Schedule", href: "/admin/student/exam-schedule", roles: ALL, legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"] },
-      { kind: "leaf", label: "Exam System", href: "/admin/student/exam-system", roles: ALL, legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"] },
-      { kind: "leaf", label: "Daily Activities", href: "/admin/student/daily-activities", roles: ALL, legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"] },
-      { kind: "leaf", label: "Rules", href: "/admin/student/rules", roles: ALL, legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"] },
-      { kind: "leaf", label: "Uniform", href: "/admin/student/uniform", roles: ALL, legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"] },
+      {
+        kind: "leaf",
+        label: "Student List",
+        href: "/admin/students",
+        roles: ["SUPER_ADMIN", "PRINCIPAL", "EXAM_CONTROLLER", "TEACHER"],
+        legacyRoles: ["admin", "management", "teacher"],
+      },
+      {
+        kind: "leaf",
+        label: "Teachers",
+        href: "/admin/teachers",
+        roles: ["SUPER_ADMIN", "PRINCIPAL"],
+        legacyRoles: ["admin", "management"],
+        menuSlug: "teachers",
+      },
+      {
+        kind: "leaf",
+        label: "Exam Schedule",
+        href: "/admin/student/exam-schedule",
+        roles: ALL,
+        legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"],
+      },
+      {
+        kind: "leaf",
+        label: "Exam System",
+        href: "/admin/student/exam-system",
+        roles: ALL,
+        legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"],
+      },
+      {
+        kind: "leaf",
+        label: "Daily Activities",
+        href: "/admin/student/daily-activities",
+        roles: ALL,
+        legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"],
+      },
+      {
+        kind: "leaf",
+        label: "Rules",
+        href: "/admin/student/rules",
+        roles: ALL,
+        legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"],
+      },
+      {
+        kind: "leaf",
+        label: "Uniform",
+        href: "/admin/student/uniform",
+        roles: ALL,
+        legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"],
+      },
     ],
   },
   /* ── Module C: Admission & Enrollment (STUDENT_ADMISSION_PLAN §2/§5) ──
@@ -489,7 +619,15 @@ export const navItems: NavItem[] = [
         roles: ADMISSION_FULL,
         legacyRoles: FINANCE_LEGACY,
         badge: "5-Step",
-        keywords: ["direct admission", "wizard", "onboarding", "sibling", "waiver", "pos", "invoice"],
+        keywords: [
+          "direct admission",
+          "wizard",
+          "onboarding",
+          "sibling",
+          "waiver",
+          "pos",
+          "invoice",
+        ],
       },
     ],
   },
@@ -610,19 +748,102 @@ export const navItems: NavItem[] = [
     roles: ["SUPER_ADMIN", "PRINCIPAL"],
     legacyRoles: ["admin", "management"],
     children: [
-      { kind: "leaf", label: "Navigation Menu", href: "/admin/website-management/navigation-menu", roles: ["SUPER_ADMIN", "PRINCIPAL"], legacyRoles: ["admin", "management"] },
-      { kind: "leaf", label: "Site Settings", href: "/admin/website-management/site-settings", roles: ["SUPER_ADMIN", "PRINCIPAL"], legacyRoles: ["admin", "management"] },
-      { kind: "leaf", label: "Hero Section", href: "/admin/website-management/hero-section", roles: ["SUPER_ADMIN", "PRINCIPAL"], legacyRoles: ["admin", "management"], icon: Sparkles },
-      { kind: "leaf", label: "Slider", href: "/admin/website-management/sliders", roles: ALL, legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"], icon: Images },
-      { kind: "leaf", label: "Notice Board", href: "/admin/notices", roles: ALL, legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"], icon: Megaphone },
-      { kind: "leaf", label: "About Us", href: "/admin/website-management/about-us", roles: ALL, legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"], icon: Info },
-      { kind: "leaf", label: "History", href: "/admin/website-management/history", roles: ALL, legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"], icon: History },
-      { kind: "leaf", label: "Chairman Speech", href: "/admin/website-management/chairman-speech", roles: ALL, legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"] },
-      { kind: "leaf", label: "Principal Speech", href: "/admin/website-management/principal-speech", roles: ALL, legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"] },
-      { kind: "leaf", label: "Governing Body", href: "/admin/website-management/governing-body", roles: ALL, legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"] },
-      { kind: "leaf", label: "Ex-Principals", href: "/admin/website-management/ex-principals", roles: ALL, legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"] },
-      { kind: "leaf", label: "Website Teachers", href: "/admin/website-management/teachers", roles: ALL, legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"] },
-      { kind: "leaf", label: "Staff Information", href: "/admin/website-management/staff", roles: ALL, legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"] },
+      {
+        kind: "leaf",
+        label: "Navigation Menu",
+        href: "/admin/website-management/navigation-menu",
+        roles: ["SUPER_ADMIN", "PRINCIPAL"],
+        legacyRoles: ["admin", "management"],
+      },
+      {
+        kind: "leaf",
+        label: "Site Settings",
+        href: "/admin/website-management/site-settings",
+        roles: ["SUPER_ADMIN", "PRINCIPAL"],
+        legacyRoles: ["admin", "management"],
+      },
+      {
+        kind: "leaf",
+        label: "Hero Section",
+        href: "/admin/website-management/hero-section",
+        roles: ["SUPER_ADMIN", "PRINCIPAL"],
+        legacyRoles: ["admin", "management"],
+        icon: Sparkles,
+      },
+      {
+        kind: "leaf",
+        label: "Slider",
+        href: "/admin/website-management/sliders",
+        roles: ALL,
+        legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"],
+        icon: Images,
+      },
+      {
+        kind: "leaf",
+        label: "Notice Board",
+        href: "/admin/notices",
+        roles: ALL,
+        legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"],
+        icon: Megaphone,
+      },
+      {
+        kind: "leaf",
+        label: "About Us",
+        href: "/admin/website-management/about-us",
+        roles: ALL,
+        legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"],
+        icon: Info,
+      },
+      {
+        kind: "leaf",
+        label: "History",
+        href: "/admin/website-management/history",
+        roles: ALL,
+        legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"],
+        icon: History,
+      },
+      {
+        kind: "leaf",
+        label: "Chairman Speech",
+        href: "/admin/website-management/chairman-speech",
+        roles: ALL,
+        legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"],
+      },
+      {
+        kind: "leaf",
+        label: "Principal Speech",
+        href: "/admin/website-management/principal-speech",
+        roles: ALL,
+        legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"],
+      },
+      {
+        kind: "leaf",
+        label: "Governing Body",
+        href: "/admin/website-management/governing-body",
+        roles: ALL,
+        legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"],
+      },
+      {
+        kind: "leaf",
+        label: "Ex-Principals",
+        href: "/admin/website-management/ex-principals",
+        roles: ALL,
+        legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"],
+      },
+      {
+        kind: "leaf",
+        label: "Website Teachers",
+        href: "/admin/website-management/teachers",
+        roles: ALL,
+        legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"],
+      },
+      {
+        kind: "leaf",
+        label: "Staff Information",
+        href: "/admin/website-management/staff",
+        roles: ALL,
+        legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"],
+      },
     ],
   },
   {
@@ -632,13 +853,55 @@ export const navItems: NavItem[] = [
     roles: ALL,
     legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"],
     children: [
-      { kind: "leaf", label: "Library", href: "/admin/facilities/library", roles: ALL, legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"] },
-      { kind: "leaf", label: "Playground", href: "/admin/facilities/playground", roles: ALL, legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"] },
-      { kind: "leaf", label: "Physics Lab", href: "/admin/facilities/physics-lab", roles: ALL, legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"] },
-      { kind: "leaf", label: "Biology Lab", href: "/admin/facilities/biology-lab", roles: ALL, legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"] },
-      { kind: "leaf", label: "ICT Lab", href: "/admin/facilities/ict-lab", roles: ALL, legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"] },
-      { kind: "leaf", label: "Chemistry Lab", href: "/admin/facilities/chemistry-lab", roles: ALL, legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"] },
-      { kind: "leaf", label: "Extra Activities", href: "/admin/facilities/extra-activities", roles: ALL, legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"] },
+      {
+        kind: "leaf",
+        label: "Library",
+        href: "/admin/facilities/library",
+        roles: ALL,
+        legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"],
+      },
+      {
+        kind: "leaf",
+        label: "Playground",
+        href: "/admin/facilities/playground",
+        roles: ALL,
+        legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"],
+      },
+      {
+        kind: "leaf",
+        label: "Physics Lab",
+        href: "/admin/facilities/physics-lab",
+        roles: ALL,
+        legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"],
+      },
+      {
+        kind: "leaf",
+        label: "Biology Lab",
+        href: "/admin/facilities/biology-lab",
+        roles: ALL,
+        legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"],
+      },
+      {
+        kind: "leaf",
+        label: "ICT Lab",
+        href: "/admin/facilities/ict-lab",
+        roles: ALL,
+        legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"],
+      },
+      {
+        kind: "leaf",
+        label: "Chemistry Lab",
+        href: "/admin/facilities/chemistry-lab",
+        roles: ALL,
+        legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"],
+      },
+      {
+        kind: "leaf",
+        label: "Extra Activities",
+        href: "/admin/facilities/extra-activities",
+        roles: ALL,
+        legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"],
+      },
     ],
   },
   {
@@ -648,11 +911,43 @@ export const navItems: NavItem[] = [
     roles: ALL,
     legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"],
     children: [
-      { kind: "leaf", label: "News", href: "/admin/others/news", roles: ALL, legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"] },
-      { kind: "leaf", label: "Gallery", href: "/admin/others/gallery", roles: ALL, legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"] },
-      { kind: "leaf", label: "Events", href: "/admin/others/event", roles: ALL, legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"], icon: CalendarDays },
-      { kind: "leaf", label: "Routine", href: "/admin/others/routine", roles: ALL, legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"], icon: CalendarDays },
-      { kind: "leaf", label: "Downloads", href: "/admin/others/download", roles: ALL, legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"] },
+      {
+        kind: "leaf",
+        label: "News",
+        href: "/admin/others/news",
+        roles: ALL,
+        legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"],
+      },
+      {
+        kind: "leaf",
+        label: "Gallery",
+        href: "/admin/others/gallery",
+        roles: ALL,
+        legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"],
+      },
+      {
+        kind: "leaf",
+        label: "Events",
+        href: "/admin/others/event",
+        roles: ALL,
+        legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"],
+        icon: CalendarDays,
+      },
+      {
+        kind: "leaf",
+        label: "Routine",
+        href: "/admin/others/routine",
+        roles: ALL,
+        legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"],
+        icon: CalendarDays,
+      },
+      {
+        kind: "leaf",
+        label: "Downloads",
+        href: "/admin/others/download",
+        roles: ALL,
+        legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"],
+      },
     ],
   },
 
@@ -660,25 +955,33 @@ export const navItems: NavItem[] = [
   { kind: "section", label: "System" },
   {
     kind: "group",
-    label: "Account",
-    icon: UserCog,
-    roles: ALL,
-    legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"],
-    children: [
-      { kind: "leaf", label: "Profile", href: "/admin/profile", roles: ALL, legacyRoles: ["admin", "management", "accountant", "teacher", "student", "guardian"] },
-      { kind: "leaf", label: "Settings", href: "/admin/settings", roles: ["SUPER_ADMIN", "PRINCIPAL"], legacyRoles: ["admin", "management"], icon: Settings },
-    ],
-  },
-  {
-    kind: "group",
     label: "Permission Management",
     icon: ShieldCheck,
     roles: ["SUPER_ADMIN"],
     legacyRoles: ["admin"],
+    menuSlug: "permission_management",
     children: [
-      { kind: "leaf", label: "Add Permission", href: "/admin/permission-management/add-permission", roles: ["SUPER_ADMIN"], legacyRoles: ["admin"] },
-      { kind: "leaf", label: "Modules", href: "/admin/permission-management/modules", roles: ["SUPER_ADMIN"], legacyRoles: ["admin"] },
-      { kind: "leaf", label: "User Permissions", href: "/admin/permission-management/user-permissions", roles: ["SUPER_ADMIN"], legacyRoles: ["admin"] },
+      {
+        kind: "leaf",
+        label: "Add Permission",
+        href: "/admin/permission-management/add-permission",
+        roles: ["SUPER_ADMIN"],
+        legacyRoles: ["admin"],
+      },
+      {
+        kind: "leaf",
+        label: "Modules",
+        href: "/admin/permission-management/modules",
+        roles: ["SUPER_ADMIN"],
+        legacyRoles: ["admin"],
+      },
+      {
+        kind: "leaf",
+        label: "User Permissions",
+        href: "/admin/permission-management/user-permissions",
+        roles: ["SUPER_ADMIN"],
+        legacyRoles: ["admin"],
+      },
     ],
   },
 ];
@@ -697,9 +1000,7 @@ export function isLeafActive(leaf: NavLeaf, pathname: string): boolean {
   if (leaf.href === "/admin") return pathname === "/admin";
   if (leaf.exactMatch) return pathname === leaf.href;
   if (leaf.href === pathname || pathname.startsWith(`${leaf.href}/`)) return true;
-  return (leaf.matchPaths ?? []).some(
-    (p) => pathname === p || pathname.startsWith(`${p}/`),
-  );
+  return (leaf.matchPaths ?? []).some((p) => pathname === p || pathname.startsWith(`${p}/`));
 }
 
 export function isGroupActive(group: NavGroup, pathname: string): boolean {
@@ -736,17 +1037,7 @@ export function filterNavForRole(items: NavItem[], role: Role): NavItem[] {
     if (visible.length > 0) out.push({ ...item, children: visible });
   }
   // Drop trailing sections and sections with no visible item after them.
-  const pruned: NavItem[] = [];
-  for (let i = 0; i < out.length; i++) {
-    const item = out[i];
-    if (item.kind !== "section") {
-      pruned.push(item);
-      continue;
-    }
-    const hasVisibleAfter = out.slice(i + 1).some((n) => n.kind !== "section");
-    if (hasVisibleAfter) pruned.push(item);
-  }
-  return pruneLeadingSections(pruned);
+  return pruneEmptySections(out);
 }
 
 function pruneLeadingSections(items: NavItem[]): NavItem[] {
@@ -766,6 +1057,78 @@ function pruneLeadingSections(items: NavItem[]): NavItem[] {
     const prev = items[idx - 1];
     return !(prev && prev.kind === "section"); // collapse consecutive sections
   });
+}
+
+/** Drop section dividers that have no visible item after them. */
+function pruneEmptySections(items: NavItem[]): NavItem[] {
+  const pruned: NavItem[] = [];
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i];
+    if (item.kind !== "section") {
+      pruned.push(item);
+      continue;
+    }
+    const hasVisibleAfter = items.slice(i + 1).some((n) => n.kind !== "section");
+    if (hasVisibleAfter) pruned.push(item);
+  }
+  return pruneLeadingSections(pruned);
+}
+
+/* ------------------------------------------------------------------ */
+/*  Per-user menu-permission overlay (hybrid RBAC)                     */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Per-menu `canView` flags fetched server-side from GET /api/menus/my-menus
+ * (see `lib/my-menus.ts`). `canView` maps `menus.slug` → granted; slugs
+ * missing from the object are treated as NOT permission-managed and stay
+ * visible. Superadmin UIs pass an empty map with `bypassAll: true`.
+ */
+export interface MenuPermissionFlags {
+  canView: Record<string, boolean>;
+  /** True for superadmin sessions — every screen stays visible. */
+  bypassAll?: boolean;
+}
+
+/** True when `slug`'s menu grants `canView` (absent slug ⇒ unmanaged ⇒ visible). */
+function menuSlugVisible(slug: string | undefined, flags: MenuPermissionFlags): boolean {
+  if (!slug) return true;
+  return flags.canView[slug] === true;
+}
+
+/**
+ * Overlay the role-filtered nav with per-user menu permissions:
+ * leaves/groups whose `menuSlug` (own, else nearest enclosing group's) is in
+ * the permission map need `canView === true` to appear. Items without a
+ * resolvable slug are unaffected until they are seeded into `menus`.
+ * Backend guards still enforce every page's API calls — this is UX only.
+ */
+export function filterNavByMenuPermissions(
+  items: NavItem[],
+  flags: MenuPermissionFlags | null | undefined,
+): NavItem[] {
+  if (!flags || flags.bypassAll) return items;
+
+  const out: NavItem[] = [];
+  for (const item of items) {
+    if (item.kind === "section") {
+      out.push(item);
+      continue;
+    }
+    if (item.kind === "leaf") {
+      if (menuSlugVisible(item.menuSlug, flags)) out.push(item);
+      continue;
+    }
+    // Group: the group slug gates the label itself; children resolve their
+    // own slug first, then fall back to the group's.
+    const children = item.children.filter((c) =>
+      menuSlugVisible(c.menuSlug ?? item.menuSlug, flags),
+    );
+    if (children.length === 0) continue;
+    if (!menuSlugVisible(item.menuSlug, flags)) continue;
+    out.push({ ...item, children });
+  }
+  return pruneEmptySections(out);
 }
 
 /** Future session-gate filter over canonical `roles`. Groups additionally
@@ -838,10 +1201,11 @@ export const commandPaletteIndex: NavCommand[] = buildCommandIndex(navItems);
 /** Alias kept for consumers expecting a `flatNavIndex` name. */
 export const flatNavIndex: NavCommand[] = commandPaletteIndex;
 
-/** Role-scoped palette entries for the current mock session role. */
-export function commandIndexForRole(role: Role): NavCommand[] {
+/** Role-scoped palette entries — optionally scoped to a pre-filtered nav tree
+ *  (role filter + per-user menu permissions) rather than all of `navItems`. */
+export function commandIndexForRole(role: Role, items: NavItem[] = navItems): NavCommand[] {
   const visible = new Set<string>();
-  for (const item of filterNavForRole(navItems, role)) {
+  for (const item of filterNavForRole(items, role)) {
     if (item.kind === "leaf") visible.add(item.href);
     else if (item.kind === "group") item.children.forEach((c) => visible.add(c.href));
   }

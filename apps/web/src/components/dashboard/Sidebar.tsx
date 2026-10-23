@@ -6,11 +6,13 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } fr
 import { createPortal } from "react-dom";
 import {
   defaultOpenGroups,
+  filterNavByMenuPermissions,
   filterNavForRole,
   isGroupActive,
   isLeafActive,
   navItems,
   navKey,
+  type MenuPermissionFlags,
   type NavGroup,
   type NavItem,
   type NavLeaf,
@@ -480,12 +482,26 @@ function RailItem({
 /*  Sidebar shell                                                     */
 /* ------------------------------------------------------------------ */
 
-export default function Sidebar({ role, name }: { role: Role; name?: string }) {
+export default function Sidebar({
+  role,
+  name,
+  menuPermissions,
+}: {
+  role: Role;
+  name?: string;
+  /** Per-user menu `canView` flags fetched server-side (hybrid RBAC overlay). */
+  menuPermissions?: MenuPermissionFlags;
+}) {
   const pathname = usePathname();
   const mounted = useMounted();
   const navRef = useRef<HTMLElement>(null);
 
-  const items: NavItem[] = useMemo(() => filterNavForRole(navItems, role), [role]);
+  // Filter chain: role gate first, then the per-user menu-permission overlay
+  // (slugs tracked in nav-config's `menuSlug`; unmapped items stay visible).
+  const items: NavItem[] = useMemo(() => {
+    const roleFiltered = filterNavForRole(navItems, role);
+    return filterNavByMenuPermissions(roleFiltered, menuPermissions);
+  }, [role, menuPermissions]);
 
   const [open, setOpen] = useState<Set<string>>(() => defaultOpenGroups(items, pathname));
   const [collapsed, setCollapsed] = useState(false);

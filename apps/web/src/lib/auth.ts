@@ -5,6 +5,32 @@ import { SESSION_COOKIE } from "./session-cookie";
 
 export { SESSION_COOKIE };
 
+/** Legacy mock-gate roles the dashboard chrome is keyed on. */
+const LEGACY_ROLE_KEYS: Role[] = [
+  "admin",
+  "management",
+  "accountant",
+  "teacher",
+  "student",
+  "guardian",
+];
+
+/**
+ * The JWT `role` claim carries the backend `UsersRole` value (`superadmin`,
+ * `exam_controller`, …) while the dashboard chrome (overview stats, sidebar
+ * labels, command palette) is keyed on the legacy mock-session roles. Map
+ * backend roles onto the closest legacy key once, at the session boundary,
+ * so no consumer has to handle both vocabularies. Unrecognized values fall
+ * back to `admin` (the widest legacy view) instead of crashing a role-keyed
+ * Record lookup.
+ */
+function toLegacyRole(raw: string): Role {
+  if ((LEGACY_ROLE_KEYS as string[]).includes(raw)) return raw as Role;
+  if (raw === "superadmin") return "admin";
+  if (raw === "exam_controller") return "management";
+  return "admin";
+}
+
 /**
  * Server-side JWT session helpers.
  *
@@ -29,6 +55,7 @@ export interface Session {
   id: string;
   name: string;
   email: string;
+  /** Legacy mock-gate role (normalized from the JWT claim — see toLegacyRole). */
   role: Role;
   isSuperAdmin: boolean;
 }
@@ -115,7 +142,7 @@ async function decodeToken(): Promise<Session | null> {
   return {
     id: claims.sub,
     email: claims.email,
-    role: claims.role as Role,
+    role: toLegacyRole(claims.role),
     isSuperAdmin: claims.isSuperAdmin === true,
     name: claims.name ?? claims.email.split("@")[0] ?? "User",
   };

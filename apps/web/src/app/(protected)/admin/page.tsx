@@ -16,7 +16,10 @@ export default async function DashboardOverview() {
     redirect("/login?returnTo=/admin");
   }
 
-  const data = overviewByRole[session.role];
+  // The role is normalized at the session boundary, so this entry always
+  // exists for a legacy `Role`; `??` is defense-in-depth for any future
+  // un-normalized role slipping through.
+  const data = overviewByRole[session.role] ?? overviewByRole.admin;
 
   return (
     <div className="p-5">

@@ -7,6 +7,7 @@ import {
 import { Reflector } from '@nestjs/core';
 import { PrismaService } from '../../prisma/prisma.service';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
+import { UserRole } from '../../database/entities/user-role.enum';
 import {
   REQUIRE_PERMISSION_KEY,
   RequirePermissionMetadata,
@@ -18,7 +19,8 @@ import {
  * Order of evaluation:
  * 1. `@Public()` route → skip (no auth required).
  * 2. No metadata → open route (other guards still apply).
- * 3. `isSuperAdmin` on the JWT payload → unrestricted, no DB check.
+ * 3. `isSuperAdmin` flag or `SUPERADMIN` role on the JWT payload →
+ *    unrestricted, no DB check.
  * 4. Otherwise look up `Menu` by slug, then `MenuUserPermission` for this user
  *    + that menu; require the requested action boolean to be true.
  */
@@ -54,8 +56,11 @@ export class MenuPermissionsGuard implements CanActivate {
       throw new ForbiddenException('Authentication required');
     }
 
-    // Superadmin bypass: unrestricted access to everything.
-    if (user.isSuperAdmin === true) return true;
+    // Superadmin bypass: unrestricted access to everything. Matches either
+    // the explicit `isSuperAdmin` flag or the SUPERADMIN role (plan Core Rule 1).
+    if (user.isSuperAdmin === true || user.role === UserRole.SUPERADMIN) {
+      return true;
+    }
 
     const menu = await this.prisma.menu.findUnique({
       where: { slug: meta.menuSlug },

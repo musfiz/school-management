@@ -24,7 +24,9 @@ import { CurrentUser } from '../common/decorators/current-user.decorator';
 @ApiTags('Permissions')
 @Controller('permissions')
 @UseGuards(RolesGuard, PermissionsGuard)
-@Roles(UserRole.ADMIN)
+// Superadmin bypasses centrally in RolesGuard; ADMIN is the default gate for
+// the legacy permission catalog.
+@Roles(UserRole.ADMIN, UserRole.SUPERADMIN)
 @ApiBearerAuth()
 export class PermissionsController {
   constructor(private readonly permissionsService: PermissionsService) {}

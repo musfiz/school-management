@@ -19,7 +19,8 @@ import { UserRole } from '../database/entities/user-role.enum';
 @ApiTags('Modules')
 @Controller('modules')
 @UseGuards(RolesGuard)
-@Roles(UserRole.ADMIN)
+// Superadmin bypasses centrally in RolesGuard; ADMIN is the default gate.
+@Roles(UserRole.ADMIN, UserRole.SUPERADMIN)
 @ApiBearerAuth()
 export class ModulesController {
   constructor(private readonly modulesService: ModulesService) {}

@@ -18,6 +18,14 @@ export class RolesGuard implements CanActivate {
     }
 
     const { user } = context.switchToHttp().getRequest();
+
+    // Core Rule 1: a superadmin (`isSuperAdmin` flag or the `superadmin`
+    // role) has unrestricted access to every role-gated route, regardless
+    // of which roles the controller lists.
+    if (user?.isSuperAdmin === true || user?.role === UserRole.SUPERADMIN) {
+      return true;
+    }
+
     return requiredRoles.includes(user?.role);
   }
 }

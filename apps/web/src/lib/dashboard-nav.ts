@@ -32,7 +32,14 @@ import {
 
 export type Role = "admin" | "management" | "accountant" | "teacher" | "student" | "guardian";
 
-export const ROLES: Role[] = ["admin", "management", "accountant", "teacher", "student", "guardian"];
+export const ROLES: Role[] = [
+  "admin",
+  "management",
+  "accountant",
+  "teacher",
+  "student",
+  "guardian",
+];
 
 export const roleLabels: Record<Role, string> = {
   admin: "Administrator",
@@ -708,22 +715,6 @@ export const dashboardTree: DashTreeNode[] = [
         href: "/admin/student/mobile-banking",
         roles: ROLES,
         icon: RiMoneyDollarCircleLine,
-      },
-    ],
-  },
-
-  // ── Account ──────────────────────────────────────────────────
-  {
-    kind: "group",
-    label: "Account",
-    children: [
-      { kind: "leaf", label: "Profile", href: "/admin/profile", roles: ROLES, icon: RiUserSettingsLine },
-      {
-        kind: "leaf",
-        label: "Settings",
-        href: "/admin/settings",
-        roles: ["admin", "management"],
-        icon: RiSettings3Line,
       },
     ],
   },
