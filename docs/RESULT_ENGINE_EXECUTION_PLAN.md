@@ -30,7 +30,7 @@ Verified by reading the repo, not the plan.
 | Area | Reality | File(s) |
 | --- | --- | --- |
 | Framework | NestJS 11, CommonJS, `strict` **off** | `apps/api/package.json`, `tsconfig.json` |
-| ORM | Prisma 7, MySQL/MariaDB (`@prisma/adapter-mariadb`) | `apps/api/prisma/schema.prisma`, `prisma7.config.ts` |
+| ORM | Prisma 6, MySQL/MariaDB (`@prisma/adapter-mariadb`) | `apps/api/prisma/schema.prisma` |
 | Data model | Prisma models in `schema.prisma`; `PrismaService` is global (no per-module import) | `src/prisma/prisma.service.ts`, `src/prisma/prisma.module.ts` |
 | Migrations | `prisma migrate dev` (local) / `deploy` (servers); SQL in `prisma/migrations/` | `apps/api/prisma/migrations/` |
 | PK convention | UUID `CHAR(36)`, `@default(dbgenerated("(uuid())"))` | `schema.prisma`, migration SQL |

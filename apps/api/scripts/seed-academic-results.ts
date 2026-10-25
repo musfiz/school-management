@@ -204,7 +204,11 @@ async function main(): Promise<void> {
   }
 }
 
-main().catch((err) => {
-  console.error('[seed:results] FAILED:', err);
-  process.exit(1);
-});
+export { main as main };
+
+if (require.main === module) {
+  main().catch((err) => {
+    console.error('[seed:results] FAILED:', err);
+    process.exit(1);
+  });
+}

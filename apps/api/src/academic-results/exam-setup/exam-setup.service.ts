@@ -630,7 +630,7 @@ export class ExamSetupService {
     if (!master) {
       throw new BadRequestException(`Unknown term type "${code}" — please add it under Term Types first`);
     }
-    if (!Boolean(Number(master.isActive))) {
+    if (!Number(master.isActive)) {
       throw new BadRequestException(`Term type "${code}" is inactive`);
     }
     return String(master.engineBehavior);

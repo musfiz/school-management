@@ -14,14 +14,13 @@ allowBuilds:
   unrs-resolver: true
 
 minimumReleaseAgeExclude:
-  - '@prisma/config@7.10.1'
-  - '@prisma/debug@7.10.1'
-  - '@prisma/engines@7.10.1'
-  - '@prisma/fetch-engine@7.10.1'
-  - '@prisma/get-platform@7.10.1'
-  - prisma@7.10.1
-  - '@prisma/client-runtime-utils@7.10.1'
-  - '@prisma/client@7.10.1'
-  - '@prisma/adapter-mariadb@7.10.1'
-  - '@prisma/driver-adapter-utils@7.10.1'
+  - '@prisma/config@6.19.3'
+  - '@prisma/debug@6.19.3'
+  - '@prisma/engines@6.19.3'
+  - '@prisma/fetch-engine@6.19.3'
+  - '@prisma/get-platform@6.19.3'
+  - prisma@6.19.3
+  - '@prisma/client@6.19.3'
+  - '@prisma/adapter-mariadb@6.19.3'
+  - '@prisma/driver-adapter-utils@6.19.3'
   - ts-jest@29.4.15

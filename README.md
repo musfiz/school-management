@@ -55,7 +55,7 @@ A monorepo for a school management platform — a **Next.js** web frontend, a
 | Package mgr. | [pnpm](https://pnpm.io) 11+ with workspaces            |
 | Monorepo     | [Turborepo](https://turborepo.dev)                     |
 | Frontend     | [Next.js](https://nextjs.org) 16, React 19, Tailwind 4 |
-| Backend      | [NestJS](https://nestjs.com) 11, TypeScript 6, [Prisma ORM](https://www.prisma.io) 7 |
+| Backend      | [NestJS](https://nestjs.com) 11, TypeScript 6, [Prisma ORM](https://www.prisma.io) 6 |
 | Shared       | TypeScript 6 (compiled to CommonJS + `.d.ts`)          |
 | Lint/Format  | ESLint (Next config) + Prettier                        |
 
@@ -404,9 +404,10 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for branching, commit, and PR conventions
 
 ## 🗄️ Using Prisma ORM
 
-The `apps/api` backend uses **Prisma ORM 7** as its data access layer (replacing
-TypeORM). Prisma 7 runs without a Rust query engine and connects to MySQL/MariaDB
-via `@prisma/adapter-mariadb` over the `mariadb` driver.
+The `apps/api` backend uses **Prisma ORM 6** as its data access layer (replacing
+TypeORM), generated with `engineType = "client"` (GA since Prisma 6.16.0) so it
+runs without a Rust query engine and connects to MySQL/MariaDB via
+`@prisma/adapter-mariadb` over the `mariadb` driver.
 
 ### Schema
 

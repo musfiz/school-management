@@ -1,20 +1,19 @@
 /**
  * Prisma connectivity smoke check (Wave 0).
  *
- * Verifies the Prisma 7 client + `@prisma/adapter-mariadb` can connect to the
- * same database TypeORM uses, and that both a model query (`count`) and a raw
- * query return expected results. Run: `pnpm --filter api run prisma:smoke`.
+ * Verifies the Prisma 6 client (`engineType = "client"`, no Rust query
+ * engine) + `@prisma/adapter-mariadb` can connect to the same database
+ * TypeORM uses, and that both a model query (`count`) and a raw query return
+ * expected results. Run: `pnpm --filter api run prisma:smoke`.
  */
 import 'dotenv/config';
 import { PrismaMariaDb } from '@prisma/adapter-mariadb';
 import { PrismaClient } from '../src/generated/prisma/client';
-import { buildDatabaseUrl } from '../src/prisma/database-url';
+import { buildMariaDbConnectionConfig } from '../src/prisma/database-url';
 
 async function main(): Promise<void> {
   const prisma = new PrismaClient({
-    adapter: new PrismaMariaDb(buildDatabaseUrl(), {
-      database: process.env.DB_DATABASE ?? 'school',
-    }),
+    adapter: new PrismaMariaDb(buildMariaDbConnectionConfig()),
   });
 
   try {

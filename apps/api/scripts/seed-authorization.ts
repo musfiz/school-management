@@ -4,18 +4,66 @@
  * Seeds:
  *   - Default system menus (slug-based, hierarchical).
  *   - Role default permission templates per role (SUPERADMIN gets all).
- *   - The single `SUPERADMIN` account (`is_super_admin = true`).
+ *   - The first-login default accounts, one per core role (`superadmin`,
+ *     `admin`, `accountant`, `management`), so a fresh DB migration always has
+ *     a working login for each role out of the box.
  *
  * Idempotent: keyed by slug / email, re-running never duplicates.
  *
  * Run: `ts-node -T -r tsconfig-paths/register scripts/seed-authorization.ts`
- *   (set SUPERADMIN_EMAIL / SUPERADMIN_PASSWORD env to override)
+ *   (set <ROLE>_EMAIL / <ROLE>_PASSWORD env vars, e.g. SUPERADMIN_EMAIL /
+ *   SUPERADMIN_PASSWORD, ADMIN_EMAIL / ADMIN_PASSWORD, ACCOUNTANT_EMAIL /
+ *   ACCOUNTANT_PASSWORD, MANAGEMENT_EMAIL / MANAGEMENT_PASSWORD, to override)
  */
 import 'dotenv/config';
 import { PrismaService } from '../src/prisma/prisma.service';
 
-const SUPERADMIN_EMAIL = process.env.SUPERADMIN_EMAIL || 'superadmin@school.com';
-const SUPERADMIN_PASSWORD = process.env.SUPERADMIN_PASSWORD || 'SuperAdmin@123';
+export interface DefaultUserDef {
+  role: 'superadmin' | 'admin' | 'accountant' | 'management';
+  name: string;
+  emailEnvVar: string;
+  passwordEnvVar: string;
+  defaultEmail: string;
+  defaultPassword: string;
+  isSuperAdmin?: boolean;
+}
+
+/** First-login default accounts, one per core role. Overridable via env vars. */
+export const DEFAULT_USERS: DefaultUserDef[] = [
+  {
+    role: 'superadmin',
+    name: 'Super Admin',
+    emailEnvVar: 'SUPERADMIN_EMAIL',
+    passwordEnvVar: 'SUPERADMIN_PASSWORD',
+    defaultEmail: 'sadmin@school.com',
+    defaultPassword: 'sadmin@365',
+    isSuperAdmin: true,
+  },
+  {
+    role: 'admin',
+    name: 'Admin',
+    emailEnvVar: 'ADMIN_EMAIL',
+    passwordEnvVar: 'ADMIN_PASSWORD',
+    defaultEmail: 'admin@school.com',
+    defaultPassword: 'admin@365',
+  },
+  {
+    role: 'accountant',
+    name: 'Accountant',
+    emailEnvVar: 'ACCOUNTANT_EMAIL',
+    passwordEnvVar: 'ACCOUNTANT_PASSWORD',
+    defaultEmail: 'accountant@school.com',
+    defaultPassword: 'accountant@365',
+  },
+  {
+    role: 'management',
+    name: 'Management',
+    emailEnvVar: 'MANAGEMENT_EMAIL',
+    passwordEnvVar: 'MANAGEMENT_PASSWORD',
+    defaultEmail: 'management@school.com',
+    defaultPassword: 'management@365',
+  },
+];
 
 export interface CustomActionDef {
   action: string;
@@ -327,27 +375,30 @@ async function seedRoleDefaults(prisma: PrismaService, menuBySlug: Map<string, s
   }
 }
 
-async function seedSuperAdmin(prisma: PrismaService) {
-  const existing = await prisma.users.findUnique({ where: { email: SUPERADMIN_EMAIL } });
-  if (existing) {
-    console.log(`[seed-authorization] superadmin exists: ${SUPERADMIN_EMAIL}`);
-    return existing;
+/** Seeds the one first-login default user for each core role (env-overridable). */
+async function seedDefaultUsers(prisma: PrismaService) {
+  for (const u of DEFAULT_USERS) {
+    const email = process.env[u.emailEnvVar] || u.defaultEmail;
+    const password = process.env[u.passwordEnvVar] || u.defaultPassword;
+
+    const existing = await prisma.users.findUnique({ where: { email } });
+    if (existing) {
+      console.log(`[seed-authorization] ${u.role} exists: ${email}`);
+      continue;
+    }
+    await prisma.users.create({
+      data: {
+        name: u.name,
+        email,
+        password, // hashed centrally by the Prisma extension
+        role: u.role,
+        isSuperAdmin: u.isSuperAdmin ?? false,
+        isActive: true,
+        isVerified: true,
+      },
+    });
+    console.log(`[seed-authorization] created ${u.role}: ${email} (password: ${password})`);
   }
-  const user = await prisma.users.create({
-    data: {
-      name: 'Super Admin',
-      email: SUPERADMIN_EMAIL,
-      password: SUPERADMIN_PASSWORD, // hashed centrally by the Prisma extension
-      role: 'superadmin',
-      isSuperAdmin: true,
-      isActive: true,
-      isVerified: true,
-    },
-  });
-  console.log(
-    `[seed-authorization] created superadmin: ${SUPERADMIN_EMAIL} (password: ${SUPERADMIN_PASSWORD})`,
-  );
-  return user;
 }
 
 async function main(): Promise<void> {
@@ -355,12 +406,14 @@ async function main(): Promise<void> {
   try {
     const menuBySlug = await seedMenus(prisma);
     await seedRoleDefaults(prisma, menuBySlug);
-    await seedSuperAdmin(prisma);
+    await seedDefaultUsers(prisma);
     console.log('[seed-authorization] done');
   } finally {
     await prisma.$disconnect();
   }
 }
+
+export { main };
 
 if (require.main === module) {
   main().catch((e) => {

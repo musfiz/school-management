@@ -7,6 +7,7 @@
     "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
     "target": "ES2021",
+    "lib": ["ES2021"],
     "sourceMap": true,
     "outDir": "./dist",
     "rootDir": "./src",
@@ -20,23 +21,20 @@
     "noFallthroughCasesInSwitch": false,
     "useDefineForClassFields": false,
     "moduleResolution": "node",
-    "ignoreDeprecations": "6.0",
     "baseUrl": "./src",
     "paths": {
       "@/*": ["./*"]
-    }
+    },
+    "strict": false,
+    "types": ["node", "jest"]
   },
-  "//": "Prisma's CLI files live outside rootDir (src) and are executed by the",
-  "//2": "Prisma CLI / tsx, not by nest build. Exclude them from the tsc program.",
-  "//3": "scripts/ (parity harness, smoke) are likewise tsx-run and live outside",
-  "//4": "rootDir, so they are excluded here; tsconfig.spec.json re-includes them.",
   "exclude": [
     "node_modules",
     "dist",
     "prisma",
-    "prisma7.config.ts",
     "scripts",
     "**/*.spec.ts",
-    "test"
+    "test",
+    "src/generated"
   ]
 }

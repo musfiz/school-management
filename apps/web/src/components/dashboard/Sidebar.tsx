@@ -15,6 +15,7 @@ import {
   type NavGroup,
   type NavItem,
   type NavLeaf,
+  type TopLevelNavLeaf,
 } from "@/lib/nav-config";
 import { roleLabels, type Role } from "@/lib/dashboard-nav";
 export type { Role };
@@ -590,7 +591,7 @@ export default function Sidebar({
   }, []);
 
   const railNodes = useMemo(
-    () => items.filter((n): n is NavLeaf | NavGroup => n.kind !== "section"),
+    () => items.filter((n): n is TopLevelNavLeaf | NavGroup => n.kind !== "section"),
     [items],
   );
 

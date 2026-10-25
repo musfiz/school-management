@@ -92,6 +92,7 @@ describe('PermissionsService', () => {
 
     expect(prisma.permissions.create).toHaveBeenCalledWith({
       data: { name: 'results.view', description: null, moduleId: null },
+      include: { modules: true },
     });
     expect(out.created_at).toBeInstanceOf(Date);
     expect(out.module_id).toBeNull();

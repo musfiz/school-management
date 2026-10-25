@@ -1,9 +1,8 @@
-import { round2 } from './decimal.util';
 import type { GradeRange } from './grade-lookup.util';
 
 /* ================= engine input (see §5: pure, DB-free) ================= */
 
-export interface EngineRange extends GradeRange {}
+export type EngineRange = GradeRange;
 
 export interface EngineScale {
   scaleType: string;
@@ -145,9 +144,10 @@ export interface EngineOutput {
 
 /* ================= Prisma row → engine input mappers ================= */
 /*
- * Prisma 7 returns `DECIMAL` columns as *strings* at runtime while the generated
- * TS type claims `Decimal`, so mapper inputs are typed `unknown` and coerced
- * with `String()` (CC-20: read as strings, compute with decimal.js).
+ * The `@prisma/adapter-mariadb` driver returns `DECIMAL` columns as *strings*
+ * at runtime while the generated TS type claims `Decimal`, so mapper inputs
+ * are typed `unknown` and coerced with `String()` (CC-20: read as strings,
+ * compute with decimal.js).
  */
 
 export function mapScale(row: {

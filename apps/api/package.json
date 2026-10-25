@@ -14,6 +14,7 @@
     "prisma:generate": "prisma generate",
     "prisma:pull": "prisma db pull",
     "prisma:migrate": "prisma migrate dev",
+    "prisma:db-seed": "prisma db seed",
     "prisma:deploy": "prisma migrate deploy",
     "prisma:status": "prisma migrate status",
     "prisma:studio": "prisma studio",
@@ -38,8 +39,8 @@
     "@nestjs/passport": "^11.0.0",
     "@nestjs/platform-express": "^11.2.3",
     "@nestjs/swagger": "^11.0.0",
-    "@prisma/adapter-mariadb": "7.10.1",
-    "@prisma/client": "7.10.1",
+    "@prisma/adapter-mariadb": "6.19.3",
+    "@prisma/client": "6.19.3",
     "bcryptjs": "^2.4.3",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
@@ -56,6 +57,7 @@
     "sharp": "^0.35.5"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@nestjs/cli": "^11.0.24",
     "@types/bcryptjs": "^2.4.6",
     "@types/jest": "30.0.0",
@@ -63,12 +65,17 @@
     "@types/node": "22.20.1",
     "@types/passport-jwt": "^4.0.1",
     "@types/passport-local": "^1.0.38",
+    "eslint": "^9.39.5",
     "jest": "30.5.2",
-    "prisma": "7.10.1",
+    "prisma": "6.19.3",
     "ts-jest": "29.4.15",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
     "tsx": "^4.23.12",
-    "typescript": "^6.0.3"
+    "typescript": "^5.7.3",
+    "typescript-eslint": "^8.72.0"
+  },
+  "prisma": {
+    "seed": "ts-node -T -r tsconfig-paths/register prisma/seed.ts"
   }
 }

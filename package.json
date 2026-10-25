@@ -13,6 +13,7 @@
     "clean": "turbo run clean",
     "prisma:generate": "pnpm --filter api run prisma:generate",
     "prisma:migrate": "pnpm --filter api run prisma:migrate",
+    "prisma:db-seed": "pnpm --filter api run prisma:db-seed",
     "prisma:deploy": "pnpm --filter api run prisma:deploy",
     "prisma:status": "pnpm --filter api run prisma:status",
     "prisma:studio": "pnpm --filter api run prisma:studio",

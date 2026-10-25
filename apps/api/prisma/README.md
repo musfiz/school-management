@@ -1,8 +1,10 @@
 # Prisma ORM & Database Migration Guide (`apps/api`)
 
-Complete reference and step-by-step operating guide for database schemas, reversible migrations, deployment, rollback procedures, recovery from failure states, and Prisma 7 driver-adapter runtime operations in this repository.
+Complete reference and step-by-step operating guide for database schemas, reversible migrations, deployment, rollback procedures, recovery from failure states, and Prisma 6 driver-adapter runtime operations in this repository.
 
 All commands documented below are executed from the **`apps/api/`** directory.
+
+> **Package Manager:** This is a **pnpm + Turborepo** monorepo (`packageManager: pnpm@11.23.0`). Always use `pnpm`, never `npm`/`npx` — `pnpm run <script>` from `apps/api/` (or the shorthand `pnpm <script>`), and `pnpm install` for dependencies. From the **repository root**, you can delegate to the `api` workspace with `pnpm --filter api run <script>` or the root wrapper scripts (`pnpm prisma:generate`, `pnpm prisma:deploy`, `pnpm seed:auth`, …).
 
 ---
 
@@ -10,12 +12,14 @@ All commands documented below are executed from the **`apps/api/`** directory.
 
 | Component | Specification | Description |
 |---|---|---|
-| **ORM Engine** | **Prisma 7** (`7.10.1`) | Driver-adapter architecture (no binary Rust query engine runtime) |
+| **ORM Engine** | **Prisma 6** (`6.19.3`) | `engineType = "client"` (GA since 6.16.0) — no binary Rust query engine runtime |
 | **Database Driver** | `@prisma/adapter-mariadb` + `mariadb` | High-performance native JavaScript driver connecting to MySQL / MariaDB |
-| **Schema Source** | `apps/api/prisma/schema.prisma` | Single declarative source of truth for database entities and relations |
+| **Schema Source** | `apps/api/prisma/schema.prisma` | Single declarative source of truth for database entities, relations **and the datasource URL** (`env("DATABASE_URL")`) |
 | **Generated Client** | `apps/api/src/generated/prisma/` | Generated TypeScript client (rebuilt on migration; never edit manually) |
 | **Migration Directory** | `apps/api/prisma/migrations/` | Timestamped directories with paired `migration.sql` (up) and `down.sql` (down) |
 | **Migration Engine** | `apps/api/scripts/db-migrate.ts` | Reversible migration manager enforcing symmetric up/down scripts & scratch DB verification |
+| **Prisma Config** | *(none — classic setup)* | No `prisma.config.ts`; the CLI auto-loads `apps/api/.env` and reads the datasource URL + seed command (`package.json` → `"prisma": { "seed": ... }`) the classic way |
+| **Seed Entry** | `apps/api/prisma/seed.ts` | Standard Prisma 6 seed orchestration (run via `prisma db seed`) |
 | **Session Timezone** | UTC (`+00:00`) | Every connection automatically executes `SET time_zone = '+00:00'` (`src/prisma/database-url.ts`) |
 | **Runtime Service** | `src/prisma/prisma.service.ts` | NestJS injectable provider wrapping Prisma client extensions |
 
@@ -35,6 +39,7 @@ apps/api/
 ├── prisma/
 │   ├── README.md                                  ← This guide
 │   ├── schema.prisma                              ← Canonical schema definition
+│   ├── seed.ts                                    ← Standard Prisma 6 seed orchestration (prisma db seed)
 │   └── migrations/
 │       ├── 20261016000000_init/
 │       │   ├── migration.sql                      ← Up script (applies baseline)
@@ -46,7 +51,7 @@ apps/api/
 ├── scripts/
 │   ├── db-migrate.ts                              ← Reversible migration & rollback engine
 │   ├── prisma-smoke.ts                            ← Connection healthcheck script
-│   ├── seed-authorization.ts                      ← Authorization, menus & superadmin seed
+│   ├── seed-authorization.ts                      ← Authorization, menus & first-login role accounts seed
 │   └── seed-academic-results.ts                   ← Academic results engine seed
 └── src/
     ├── generated/prisma/                          ← Auto-generated Prisma client (git-ignored)
@@ -62,19 +67,19 @@ apps/api/
 
 ## 3. Environment Variables Configuration
 
-Configure these parameters in `apps/api/.env` (refer to `.env.example`). The connection URL is built automatically unless an explicit `DATABASE_URL` is provided:
+Configure these parameters in `apps/api/.env` (refer to `.env.example`). Prisma ORM 6 has no config file: the CLI auto-loads `.env` and `schema.prisma`'s `datasource` block reads `DATABASE_URL` / `SHADOW_DATABASE_URL` literally via `env(...)`, so those two **must** be set explicitly (they are not derived from `DB_*` for the CLI). The NestJS app itself still derives its own runtime connection from `DB_*` (`src/prisma/database-url.ts`), independent of the CLI — keep both in sync.
 
 | Variable | Description | Default | Notes |
 |---|---|---|---|
-| `DB_HOST` | Database host | `localhost` | MySQL/MariaDB server host |
-| `DB_PORT` | Database port | `3306` | Default port |
-| `DB_USERNAME` | Database username | `root` | Must have table DDL privileges |
-| `DB_PASSWORD` | Database password | *(empty)* | Password for DB user |
-| `DB_DATABASE` | Primary database name | `school` | Production & dev database |
-| `DATABASE_URL` | Explicit connection URL | *(derived)* | Example: `mysql://root:pass@localhost:3306/school` |
-| `SHADOW_DATABASE_URL` | Shadow DB for Prisma differ | *(derived)* | Defaults to `<DB_DATABASE>_shadow`. Required if user cannot `CREATE DATABASE`. |
+| `DB_HOST` | Database host | `localhost` | MySQL/MariaDB server host; used by the NestJS app runtime |
+| `DB_PORT` | Database port | `3306` | Default port; used by the NestJS app runtime |
+| `DB_USERNAME` | Database username | `root` | Must have table DDL privileges; used by the NestJS app runtime |
+| `DB_PASSWORD` | Database password | *(empty)* | Password for DB user; used by the NestJS app runtime |
+| `DB_DATABASE` | Primary database name | `school` | Production & dev database; used by the NestJS app runtime |
+| `DATABASE_URL` | Connection URL (required) | *(none)* | Read directly by `schema.prisma`'s `datasource db { url = env("DATABASE_URL") }` for every Prisma CLI command (`generate`, `migrate`, `studio`, `db seed`) |
+| `SHADOW_DATABASE_URL` | Shadow DB for Prisma differ (required) | *(none)* | Read directly by `schema.prisma`'s `shadowDatabaseUrl = env("SHADOW_DATABASE_URL")`. Point it at `<DB_DATABASE>_shadow` (or any DB the user can create/use). |
 
-> **Note on Shadow Database:** `prisma migrate diff` and `db:migrate:new` require a shadow database to calculate schema diffs. If your database user lacks `CREATE DATABASE` privilege, create a separate database named `school_shadow` and set `SHADOW_DATABASE_URL="mysql://user:pass@localhost:3306/school_shadow"` in `.env`.
+> **Note on Shadow Database:** `prisma migrate diff` and `db:migrate:new` require a shadow database to calculate schema diffs. If your database user lacks `CREATE DATABASE` privilege, create a separate database named `school_shadow` and point `SHADOW_DATABASE_URL` at it in `.env`.
 
 ---
 
@@ -84,26 +89,28 @@ Configure these parameters in `apps/api/.env` (refer to `.env.example`). The con
 
 | Command | Action | Description |
 |---|---|---|
-| `npm run db:migrate` | **Up / Apply** | Verifies checksums, checks for failed migrations, runs `prisma migrate deploy`, regenerates client. |
-| `npm run db:migrate:new -- --name <slug>` | **Author New** | Generates paired `migration.sql` + `down.sql`, verifies round-trip reversibility on scratch DB. |
-| `npm run db:rollback` | **Rollback (1 step)** | Executes `down.sql` of newest applied migration, deletes history row, regenerates client. |
-| `npm run db:rollback -- --steps=N` | **Rollback (N steps)** | Rolls back the last `N` applied migrations sequentially. |
-| `npm run db:rollback -- --dry-run` | **Preview Rollback** | Lists statements that would execute during rollback without modifying DB. |
-| `npm run db:migrate:status` | **Status** | Displays status table of applied, pending, and rolled-back migrations with checksum checks. |
-| `npm run db:migrate:repair -- <name> --applied` | **Repair (Applied)** | Resolves a failed migration by recording it as successfully applied. |
-| `npm run db:migrate:repair -- <name> --rolled-back` | **Repair (Rolled Back)** | Resolves a failed migration by marking it rolled back so it can be re-applied. |
+| `pnpm run db:migrate` | **Up / Apply** | Verifies checksums, checks for failed migrations, runs `prisma migrate deploy`, regenerates client. |
+| `pnpm run db:migrate:new -- --name <slug>` | **Author New** | Generates paired `migration.sql` + `down.sql`, verifies round-trip reversibility on scratch DB. |
+| `pnpm run db:rollback` | **Rollback (1 step)** | Executes `down.sql` of newest applied migration, deletes history row, regenerates client. |
+| `pnpm run db:rollback -- --steps=N` | **Rollback (N steps)** | Rolls back the last `N` applied migrations sequentially. |
+| `pnpm run db:rollback -- --dry-run` | **Preview Rollback** | Lists statements that would execute during rollback without modifying DB. |
+| `pnpm run db:migrate:status` | **Status** | Displays status table of applied, pending, and rolled-back migrations with checksum checks. |
+| `pnpm run db:migrate:repair -- <name> --applied` | **Repair (Applied)** | Resolves a failed migration by recording it as successfully applied. |
+| `pnpm run db:migrate:repair -- <name> --rolled-back` | **Repair (Rolled Back)** | Resolves a failed migration by marking it rolled back so it can be re-applied. |
 
 ### Standard Prisma CLI Commands
 
 | Command | Action | Description |
 |---|---|---|
-| `npm run prisma:generate` | **Generate Client** | Regenerates TypeScript client into `src/generated/prisma`. Run after schema changes. |
-| `npm run prisma:deploy` | **Deploy (Native)** | Runs raw `prisma migrate deploy` directly against the database. |
-| `npm run prisma:status` | **Status (Native)** | Runs native Prisma CLI migration status check. |
-| `npm run prisma:studio` | **Prisma Studio** | Launches browser GUI at `http://localhost:5555` to browse/edit database records. |
-| `npm run prisma:pull` | **Introspect DB** | Introspects existing DB structure back into `schema.prisma` (**overwrites file**). |
-| `npm run prisma:smoke` | **Smoke Check** | Executes connection sanity test (`scripts/prisma-smoke.ts`). |
-| `npx prisma migrate reset` | **Reset (Dev Only)** | ⚠️ Drops schema, recreates DB, re-runs all migrations from scratch. Dev only! |
+| `pnpm run prisma:generate` | **Generate Client** | Regenerates TypeScript client into `src/generated/prisma`. Run after schema changes. |
+| `pnpm run prisma:deploy` | **Deploy (Native)** | Runs raw `prisma migrate deploy` directly against the database. |
+| `pnpm run prisma:migrate` | **Migrate (Native dev)** | Runs native `prisma migrate dev` (interactive; uses the configured shadow DB). The reversible engine above is the repository standard. |
+| `pnpm run prisma:db-seed` | **Seed (Standard)** | Runs the standard Prisma 6 seeding: `prisma db seed` → `prisma/seed.ts` (authorization core → results engine). See §10. |
+| `pnpm run prisma:status` | **Status (Native)** | Runs native Prisma CLI migration status check. |
+| `pnpm run prisma:studio` | **Prisma Studio** | Launches browser GUI at `http://localhost:5555` to browse/edit database records. |
+| `pnpm run prisma:pull` | **Introspect DB** | Introspects existing DB structure back into `schema.prisma` (**overwrites file**). |
+| `pnpm run prisma:smoke` | **Smoke Check** | Executes connection sanity test (`scripts/prisma-smoke.ts`). |
+| `pnpm exec prisma migrate reset` | **Reset (Dev Only)** | ⚠️ Drops schema, recreates DB, re-runs all migrations from scratch. Dev only! |
 
 ---
 
@@ -113,21 +120,21 @@ Every database modification in this repository **must be reversible**. That mean
 - `migration.sql` (applies the schema changes)
 - `down.sql` (completely reverses the changes back to the exact prior state)
 
-The automated script `npm run db:migrate:new` guarantees this contract.
+The automated script `pnpm run db:migrate:new` guarantees this contract.
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────┐
 │                 REVERSIBLE MIGRATION AUTHORING WORKFLOW                  │
 ├──────────────────────────────────────────────────────────────────────────┤
 │ 1. Edit schema.prisma                                                    │
-│ 2. npm run db:migrate:new -- --name <slug>                               │
+│ 2. pnpm run db:migrate:new -- --name <slug>                               │
 │    ├── Validates working tree                                            │
 │    ├── Generates migration.sql via prisma migrate diff                   │
 │    ├── Materializes scratch DB (school_migrate_verify)                   │
 │    ├── Generates symmetric down.sql via reverse diff                    │
 │    └── Reversibility test: replay all -> up -> down -> check for 0 drift │
 │ 3. Review migration.sql & down.sql                                       │
-│ 4. npm run db:migrate (apply to local DB)                                │
+│ 4. pnpm run db:migrate (apply to local DB)                                │
 │ 5. Commit migration folder, migration_lock.toml, and schema.prisma       │
 └──────────────────────────────────────────────────────────────────────────┘
 ```
@@ -145,7 +152,7 @@ Follow repository conventions:
 Run the generator script with a descriptive snake_case name:
 
 ```bash
-npm run db:migrate:new -- --name add_custom_actions_to_menu_permissions
+pnpm run db:migrate:new -- --name add_custom_actions_to_menu_permissions
 ```
 
 **What the script executes behind the scenes:**
@@ -168,7 +175,7 @@ Check the newly created folder under `apps/api/prisma/migrations/<timestamp>_<na
 Apply the verified migration to your active database:
 
 ```bash
-npm run db:migrate
+pnpm run db:migrate
 ```
 
 This applies the SQL, registers the migration in `_prisma_migrations`, and automatically runs `prisma generate` to update the TypeScript client in `src/generated/prisma`.
@@ -194,15 +201,15 @@ When pulling new commits created by teammates:
 git pull origin main
 
 # 2. Apply all pending migrations safely
-npm run db:migrate
+pnpm run db:migrate
 
 # 3. Verify status
-npm run db:migrate:status
+pnpm run db:migrate:status
 ```
 
 ### In Production / CI Pipelines
 
-`npm run db:migrate` is safe for CI/CD and production environments because:
+`pnpm run db:migrate` is safe for CI/CD and production environments because:
 1. It verifies all committed migration files against checksums in `_prisma_migrations`.
 2. It blocks execution if any failed migration is detected in the database.
 3. It uses `prisma migrate deploy`, which **never prompts for input and never resets or drops tables**.
@@ -211,22 +218,22 @@ npm run db:migrate:status
 In deployment Dockerfiles or CI deployment steps:
 ```bash
 # Inside apps/api
-npm run db:migrate
+pnpm run db:migrate
 ```
 
 ---
 
 ## 7. Step-by-Step Guide: Rolling Back Migrations
 
-When a migration introduces an issue or a deployment needs to be reverted, use the rollback engine (`npm run db:rollback`).
+When a migration introduces an issue or a deployment needs to be reverted, use the rollback engine (`pnpm run db:rollback`).
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────┐
 │                         ROLLBACK EXECUTION FLOW                          │
 ├──────────────────────────────────────────────────────────────────────────┤
-│ 1. npm run db:rollback -- --dry-run                                      │
+│ 1. pnpm run db:rollback -- --dry-run                                      │
 │    └── Previews target migration and SQL statements                      │
-│ 2. npm run db:rollback [--steps=N]                                       │
+│ 2. pnpm run db:rollback [--steps=N]                                       │
 │    ├── Reads newest applied migration from _prisma_migrations            │
 │    ├── Refuses baseline migration (protects base schema from drop)       │
 │    ├── Executes statements in down.sql                                   │
@@ -241,7 +248,7 @@ When a migration introduces an issue or a deployment needs to be reverted, use t
 Always test with `--dry-run` first to see which migration will be targeted and what statements will execute:
 
 ```bash
-npm run db:rollback -- --dry-run
+pnpm run db:rollback -- --dry-run
 ```
 
 Output example:
@@ -257,13 +264,13 @@ Output example:
 To roll back the single most recently applied migration:
 
 ```bash
-npm run db:rollback
+pnpm run db:rollback
 ```
 
 To roll back multiple applied migrations in reverse chronological order:
 
 ```bash
-npm run db:rollback -- --steps=2
+pnpm run db:rollback -- --steps=2
 ```
 
 ### Step 3: Reconcile `schema.prisma`
@@ -275,18 +282,18 @@ Choose one of two reconciliation methods:
    ```bash
    # Revert schema.prisma to the git commit state
    git checkout -- prisma/schema.prisma
-   npm run prisma:generate
+   pnpm run prisma:generate
    ```
 2. **If you want Prisma to sync from the current rolled-back database:**
    ```bash
-   npm run prisma:pull
-   npm run prisma:generate
+   pnpm run prisma:pull
+   pnpm run prisma:generate
    ```
 
 ### Safety Protections Built into Rollback:
 - **Baseline Protection:** The engine will **refuse** to roll back `20261016000000_init`. Attempting to do so would drop every table in the database.
 - **Missing `down.sql` Blocker:** The engine aborts before executing if any migration targeted for rollback lacks a `down.sql` file.
-- **Re-appliable State:** The history row is deleted from `_prisma_migrations`, leaving the database clean so that running `npm run db:migrate` later will re-apply the migration cleanly.
+- **Re-appliable State:** The history row is deleted from `_prisma_migrations`, leaving the database clean so that running `pnpm run db:migrate` later will re-apply the migration cleanly.
 
 ---
 
@@ -308,10 +315,10 @@ If a migration fails midway during execution (e.g. syntax error, data truncation
  │ Option A: Complete it │                       │ Option B: Clean up and retry      │
  ├───────────────────────┤                       ├───────────────────────────────────┤
  │ 1. Fix data/run SQL   │                       │ 1. Drop partial tables (if any)   │
- │    manually in MySQL  │                       │ 2. npm run db:migrate:repair --   │
- │ 2. npm run            │                       │    <name> --rolled-back           │
+ │    manually in MySQL  │                       │ 2. pnpm run db:migrate:repair --   │
+ │ 2. pnpm run            │                       │    <name> --rolled-back           │
  │    db:migrate:repair  │                       │ 3. Fix migration.sql file         │
- │    -- <name> --applied│                       │ 4. npm run db:migrate             │
+ │    -- <name> --applied│                       │ 4. pnpm run db:migrate             │
  └───────────────────────┘                       └───────────────────────────────────┘
 ```
 
@@ -339,11 +346,11 @@ An `ALTER TABLE users MODIFY role ENUM(...)` was executed, but existing database
    ```
 3. Mark the failed migration as rolled-back:
    ```bash
-   npm run db:migrate:repair -- 20261017135221_create_result_engine_tables --rolled-back
+   pnpm run db:migrate:repair -- 20261017135221_create_result_engine_tables --rolled-back
    ```
 4. Re-run deployment:
    ```bash
-   npm run db:migrate
+   pnpm run db:migrate
    ```
 
 ---
@@ -365,11 +372,11 @@ A migration failed on query #2 or later, but query #1 already created `attendanc
 **Approach A (If the table and schema were already created successfully):**
 If you verified the tables exist and match the migration intent, tell Prisma it has been applied:
 ```bash
-npm run db:migrate:repair -- 20261017135221_create_result_engine_tables --applied
+pnpm run db:migrate:repair -- 20261017135221_create_result_engine_tables --applied
 ```
 Then proceed with:
 ```bash
-npm run db:migrate
+pnpm run db:migrate
 ```
 
 **Approach B (If you want a clean re-run):**
@@ -379,11 +386,11 @@ npm run db:migrate
    ```
 2. Mark the migration as rolled back:
    ```bash
-   npm run db:migrate:repair -- 20261017135221_create_result_engine_tables --rolled-back
+   pnpm run db:migrate:repair -- 20261017135221_create_result_engine_tables --rolled-back
    ```
 3. Re-run migration deployment:
    ```bash
-   npm run db:migrate
+   pnpm run db:migrate
    ```
 
 ---
@@ -402,8 +409,8 @@ You ran `prisma migrate resolve --applied <migration>` on a migration that is al
 **Recovery Steps:**
 You do not need to resolve it. Simply check the status or continue deployment:
 ```bash
-npm run db:migrate:status
-npm run db:migrate
+pnpm run db:migrate:status
+pnpm run db:migrate
 ```
 
 ---
@@ -414,11 +421,10 @@ If a local development database drifts heavily due to test experimentation, manu
 
 ```bash
 # ⚠️ DEV ONLY: Drops database, recreates, runs all migrations from scratch
-npx prisma migrate reset
+pnpm exec prisma migrate reset
 
-# Re-run standard seeders
-npx ts-node -T -r tsconfig-paths/register scripts/seed-authorization.ts
-npm run seed:results
+# Re-run the standard ordered seed (authorization core → results engine)
+pnpm run prisma:db-seed
 ```
 
 ---
@@ -457,14 +463,144 @@ By default, Prisma's differ interprets a renamed field as `DROP COLUMN old` + `A
 
 ## 10. Seeding & Verification
 
-All seed scripts live in `apps/api/scripts/`. They are designed to be **idempotent** (safe to run multiple times without creating duplicate records or throwing primary key conflicts).
+Seeding follows the **classic Prisma 6 workflow**: the seed command is declared once in `package.json` (the `"prisma": { "seed": ... }` field) and executed with the built-in `prisma db seed` command. Seed scripts live in `apps/api/scripts/` and are orchestrated in dependency order by the single entry `apps/api/prisma/seed.ts`:
+
+```jsonc
+// package.json (excerpt)
+"prisma": {
+  "seed": "ts-node -T -r tsconfig-paths/register prisma/seed.ts"
+}
+```
+
+All seed scripts are **idempotent** (safe to run multiple times without creating duplicate records or throwing primary key conflicts).
+
+### 10.0 Standard Seed Command (`prisma db seed`)
+
+```bash
+# from apps/api/
+pnpm run prisma:db-seed        # package script wrapping the CLI command
+pnpm exec prisma db seed       # canonical Prisma command
+
+# from the repository root
+pnpm prisma:db-seed            # root wrapper
+pnpm --filter api exec prisma db seed
+```
+
+Running it executes the ordered orchestration in `prisma/seed.ts`:
+
+1. **Authorization core** (`scripts/seed-authorization.ts`) — system menus → role default permissions → first-login default accounts for `superadmin`, `admin`, `accountant`, and `management`.
+2. **Academic results engine** (`scripts/seed-academic-results.ts`) — grading scales → attendance slabs → exam-controller user.
+
+Both `prisma/seed.ts` and the underlying seeder scripts `import 'dotenv/config'` themselves; the Prisma CLI additionally auto-loads `apps/api/.env` on its own (classic Prisma 6 behavior — no config file involved), so no extra environment setup is required.
+
+### 10.1 Individual Seeders (Direct Run)
 
 | Target | Command | Purpose |
 |---|---|---|
-| **Authorization Core** | `npx ts-node -T -r tsconfig-paths/register scripts/seed-authorization.ts` | Seeds 10 system menus, role default permissions, and default SuperAdmin (`superadmin@school.com` / `SuperAdmin@123`). |
-| **Custom SuperAdmin Credentials** | `SUPERADMIN_EMAIL=admin@domain.com SUPERADMIN_PASSWORD=SecretPassword! npx ts-node -T -r tsconfig-paths/register scripts/seed-authorization.ts` | Overrides default SuperAdmin credentials via environment variables during seeding. |
-| **Academic Results Engine** | `npm run seed:results` | Populates grading scales, exam terms, subject components, and attendance slabs. |
-| **Verify Results Engine** | `npm run verify:results` | Runs calculation engine integrity test. |
+| **Full Order (canonical)** | `pnpm run prisma:db-seed` | Runs `prisma db seed` — authorization core, then results engine, in order. |
+| **Authorization Core** | `pnpm run seed:auth` *(alias: `pnpm run seed:authorization`)* | Seeds the system menus, role default permissions, and the four first-login accounts (one per core role): SuperAdmin `sadmin@school.com` / `sadmin@365`, Admin `admin@school.com` / `admin@365`, Accountant `accountant@school.com` / `accountant@365`, Management `management@school.com` / `management@365`. |
+| **Custom Default Credentials** | `SUPERADMIN_EMAIL=... SUPERADMIN_PASSWORD=... ADMIN_EMAIL=... ADMIN_PASSWORD=... ACCOUNTANT_EMAIL=... ACCOUNTANT_PASSWORD=... MANAGEMENT_EMAIL=... MANAGEMENT_PASSWORD=... pnpm run seed:auth` | Overrides any of the four default accounts' credentials via environment variables during seeding (each pair is independent and optional). |
+| **Academic Results Engine** | `pnpm run seed:results` | Populates grading scales, exam terms, subject components, and attendance slabs. |
+| **Verify Results Engine** | `pnpm run verify:results` | Runs calculation engine integrity test. |
+
+Individual seeders can also be run from the repository root, e.g. `pnpm seed:auth` (root wrapper delegating to the `api` workspace) or `pnpm --filter api run seed:results`.
+
+### 10.2 Writing a New Seed Script
+
+Follow this workflow whenever a feature needs seed data (fixtures, demo rows, lookup tables):
+
+**Step 1 — Create the script file.**
+Place it in `apps/api/scripts/` with a `seed-<topic>.ts` / `seed-<topic>-<sub>.ts` name, and start it with a JSDoc header stating what it seeds, that it is idempotent, and the run command (see `scripts/seed-authorization.ts` for the canonical example):
+
+```ts
+/**
+ * Seed <description>.
+ *
+ * Seeds:
+ *   - <what>
+ *
+ * Idempotent: keyed by <unique key>, re-running never duplicates.
+ *
+ * Run: `pnpm run seed:<name>`
+ */
+import 'dotenv/config';
+import { PrismaService } from '../src/prisma/prisma.service';
+
+async function main() {
+  const prisma = new PrismaService();
+  await prisma.$connect();
+  try {
+    // ... inserts / upserts ...
+  } finally {
+    await prisma.$disconnect();
+  }
+}
+
+main()
+  .then(() => {
+    console.log('✅ Seed completed');
+    process.exit(0);
+  })
+  .catch((err) => {
+    console.error('❌ Seed failed:', err);
+    process.exit(1);
+  });
+```
+
+**Step 2 — Follow the seeding rules.**
+- **Always idempotent.** Key rows by a natural unique field (`slug`, `email`) using `upsert`, or split-check each batch with a `findMany` before `createMany` — re-running must never duplicate or throw PK conflicts.
+- Use the query paths through `PrismaService` so the global extensions apply (password fields are bcrypt-hashed automatically — never hash manually in seed scripts).
+- Do not rely on server runtime context: read config from `process.env` with sane defaults (`import 'dotenv/config'` at the top picks up `apps/api/.env`).
+- Log clearly per block (group/section names and counts), and exit with code `0` on success / non-zero on failure so CI catches failures.
+- For large datasets, chunk `createMany` batches (e.g. 500 rows per call) to stay under driver limits.
+
+**Step 3 — Register a package script (optional) & hook into the standard seed.**
+- For a seeder that must also run with the canonical `pnpm run prisma:db-seed`, append its `main()` to the ordered orchestration in `apps/api/prisma/seed.ts` (export `main` from your script, guard direct execution with `require.main === module`, then import and `await` it in order):
+
+  ```ts
+  // apps/api/prisma/seed.ts  (append your seeder last, after the existing ones)
+  import { main as seedNewTopic } from '../scripts/seed-<topic>';
+
+  async function main(): Promise<void> {
+    console.log('[db seed] (1/3) authorization core ...');
+    await seedAuthorization();
+    console.log('[db seed] (2/3) results engine ...');
+    await seedResults();
+    console.log('[db seed] (3/3) new topic ...');
+    await seedNewTopic();
+  }
+  ```
+
+- For standalone runs only, also add a `seed:<name>` entry to `apps/api/package.json` using the standard runner:
+
+  ```json
+  "seed:<name>": "ts-node -T -r tsconfig-paths/register scripts/seed-<topic>.ts"
+  ```
+
+**Step 4 — Expose a root (optional but customary).**
+For seeders you want runnable from the monorepo root, add a wrapper in the root `package.json`:
+
+```json
+"seed:<name>": "pnpm --filter api run seed:<name>"
+```
+
+**Step 5 — Run & verify.**
+
+```bash
+# Standalone (from apps/api/):
+pnpm run seed:<name>
+
+# Standalone (from the repository root):
+pnpm --filter api run seed:<name>
+
+# Or re-run the full canonical ordered seed:
+pnpm run prisma:db-seed
+```
+
+**Step 6 — Commit.**
+Commit the script in `apps/api/scripts/`, the hook-up in `prisma/seed.ts`, and the `package.json` script entries together so teammates get the seed data automatically after `pnpm run db:migrate`.
+
+> **Ordering matters:** seeders assume their schema exists. On a fresh machine always run `pnpm run db:migrate` first, then `pnpm run prisma:db-seed` — the authorization core (menus/roles) is seeded before everything else, so any new seeder must be appended **after** it in `prisma/seed.ts`.
 
 ---
 
@@ -568,31 +704,30 @@ describe('UsersService', () => {
 
 ```bash
 # ── Setup Fresh Machine ───────────────────────────────────────────────
-npm install && cp .env.example .env
-npm run db:migrate
-npm run seed:auth
-npm run seed:results
+pnpm install && cp .env.example .env
+pnpm run db:migrate
+pnpm run prisma:db-seed      # or: pnpm exec prisma db seed
 
 # ── Daily Schema Workflow (Reversible) ────────────────────────────────
 # 1. Edit apps/api/prisma/schema.prisma
 # 2. Author reversible migration pair (migration.sql + down.sql):
-npm run db:migrate:new -- --name add_fee_collection_tables
+pnpm run db:migrate:new -- --name add_fee_collection_tables
 
 # 3. Apply to local database:
-npm run db:migrate
+pnpm run db:migrate
 
 # ── Rollback Changes ──────────────────────────────────────────────────
-npm run db:rollback -- --dry-run          # Preview target and statements
-npm run db:rollback                       # Roll back 1 migration step
-npm run db:rollback -- --steps=2          # Roll back 2 migration steps
+pnpm run db:rollback -- --dry-run          # Preview target and statements
+pnpm run db:rollback                       # Roll back 1 migration step
+pnpm run db:rollback -- --steps=2          # Roll back 2 migration steps
 git checkout -- prisma/schema.prisma      # Reconcile schema.prisma
 
 # ── Status & Diagnostics ──────────────────────────────────────────────
-npm run db:migrate:status                 # Reversible migration status table
-npm run prisma:status                     # Native Prisma status check
-npm run prisma:smoke                      # Database ping & driver health
+pnpm run db:migrate:status                 # Reversible migration status table
+pnpm run prisma:status                     # Native Prisma status check
+pnpm run prisma:smoke                      # Database ping & driver health
 
 # ── Repair Stuck Migrations ───────────────────────────────────────────
-npm run db:migrate:repair -- <name> --applied      # If SQL already ran in DB
-npm run db:migrate:repair -- <name> --rolled-back  # If retrying from scratch
+pnpm run db:migrate:repair -- <name> --applied      # If SQL already ran in DB
+pnpm run db:migrate:repair -- <name> --rolled-back  # If retrying from scratch
 ```

@@ -59,6 +59,7 @@ const HEADER_BG = rgb(0.93, 0.95, 0.98);
 /** Strip characters the built-in WinAnsi fonts cannot encode. */
 export function safeText(s: string | null | undefined): string {
   if (s == null) return '';
+  // eslint-disable-next-line no-control-regex
   return String(s).replace(/[^\x09\x0A\x0D\x20-\x7E]/g, '');
 }
 

@@ -3,10 +3,17 @@ generator client {
   output       = "../src/generated/prisma"
   moduleFormat = "cjs"
   runtime      = "nodejs"
+  // GA since Prisma 6.16.0: ships Prisma Client with no Rust query engine
+  // binary, querying exclusively through the `@prisma/adapter-mariadb`
+  // driver adapter (see PrismaService). Required explicitly in v6 — v7 made
+  // this the only mode.
+  engineType   = "client"
 }
 
 datasource db {
-  provider = "mysql"
+  provider          = "mysql"
+  url               = env("DATABASE_URL")
+  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
 }
 
 model AcademicSubjects {
