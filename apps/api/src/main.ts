@@ -1,4 +1,4 @@
-import dotenv from 'dotenv';
+import * as dotenv from 'dotenv';
 import { existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
 
