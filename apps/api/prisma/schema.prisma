@@ -23,15 +23,15 @@ model AcademicSubjects {
 }
 
 model AcademicSessions {
-  id          String   @id @default(dbgenerated("(uuid())")) @db.Char(36)
-  sessionName String   @map("session_name") @db.VarChar(50)
-  sessionCode String   @unique(map: "uq_academic_sessions_code") @map("session_code") @db.VarChar(20)
+  id          String    @id @default(dbgenerated("(uuid())")) @db.Char(36)
+  sessionName String    @map("session_name") @db.VarChar(50)
+  sessionCode String    @unique(map: "uq_academic_sessions_code") @map("session_code") @db.VarChar(20)
   startDate   DateTime? @map("start_date") @db.Date
   endDate     DateTime? @map("end_date") @db.Date
-  isActive    Boolean  @default(true) @map("is_active")
-  isCurrent   Boolean  @default(false) @map("is_current")
-  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamp(0)
-  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+  isActive    Boolean   @default(true) @map("is_active")
+  isCurrent   Boolean   @default(false) @map("is_current")
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt   DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
 
   @@index([isActive], map: "IDX_ACADEMIC_SESSIONS_ACTIVE")
   @@map("academic_sessions")
@@ -53,15 +53,15 @@ model ClassOrDepts {
 }
 
 model ExamTermTypes {
-  id              String   @id @default(dbgenerated("(uuid())")) @db.Char(36)
-  name            String   @db.VarChar(100)
-  code            String   @unique(map: "uq_exam_term_types_code") @db.VarChar(30)
-  engineBehavior  String   @map("engine_behavior") @db.VarChar(30)
-  description     String?  @db.VarChar(255)
-  displayOrder    Int      @default(1) @map("display_order")
-  isActive        Boolean  @default(true) @map("is_active")
-  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamp(0)
-  updatedAt       DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+  id             String   @id @default(dbgenerated("(uuid())")) @db.Char(36)
+  name           String   @db.VarChar(100)
+  code           String   @unique(map: "uq_exam_term_types_code") @db.VarChar(30)
+  engineBehavior String   @map("engine_behavior") @db.VarChar(30)
+  description    String?  @db.VarChar(255)
+  displayOrder   Int      @default(1) @map("display_order")
+  isActive       Boolean  @default(true) @map("is_active")
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt      DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
 
   @@index([isActive], map: "IDX_EXAM_TERM_TYPES_ACTIVE")
   @@index([engineBehavior], map: "IDX_EXAM_TERM_TYPES_BEHAVIOR")
@@ -370,12 +370,12 @@ model ExamTerms {
   status                     String                       @default("SETUP") @db.VarChar(20)
   createdAt                  DateTime                     @default(now()) @map("created_at") @db.Timestamp(0)
   updatedAt                  DateTime                     @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
-  childTerms                 ExamTerms[]                  @relation("exam_terms_parent")
   examSubjectComponents      ExamSubjectComponents[]
   examTermWeightsChild       ExamTermWeights[]            @relation("exam_term_weights_child")
   examTermWeightsParent      ExamTermWeights[]            @relation("exam_term_weights_parent")
-  gradingScales              GradingScales                @relation(fields: [gradingScaleId], references: [id], onUpdate: Restrict, map: "FK_exam_terms_scale")
   parentTerminalExam         ExamTerms?                   @relation("exam_terms_parent", fields: [parentTerminalExamId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "FK_exam_terms_parent")
+  childTerms                 ExamTerms[]                  @relation("exam_terms_parent")
+  gradingScales              GradingScales                @relation(fields: [gradingScaleId], references: [id], onUpdate: Restrict, map: "FK_exam_terms_scale")
   resultGenerationJobs       ResultGenerationJobs[]
   studentAttendanceSummaries StudentAttendanceSummaries[]
   studentComponentMarks      StudentComponentMarks[]
@@ -385,6 +385,7 @@ model ExamTerms {
   @@index([academicSessionId, classOrDeptId], map: "IDX_EXAM_TERMS_SESSION_CLASS")
   @@index([parentTerminalExamId], map: "FK_exam_terms_parent")
   @@index([status], map: "IDX_EXAM_TERMS_STATUS")
+  @@index([gradingScaleId], map: "FK_exam_terms_scale")
   @@map("exam_terms")
 }
 
@@ -823,8 +824,8 @@ model ResultGenerationJobs {
   startedAt         DateTime? @map("started_at") @db.Timestamp(0)
   finishedAt        DateTime? @map("finished_at") @db.Timestamp(0)
   createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamp(0)
-  examTerms         ExamTerms @relation(fields: [examTermId], references: [id], onUpdate: Restrict, map: "FK_result_jobs_term")
   users             Users?    @relation(fields: [requestedBy], references: [id], onUpdate: Restrict, map: "FK_result_jobs_requested_by")
+  examTerms         ExamTerms @relation(fields: [examTermId], references: [id], onUpdate: Restrict, map: "FK_result_jobs_term")
 
   @@index([examTermId, status], map: "IDX_RESULT_JOBS_TERM_STATUS")
   @@index([requestedBy], map: "FK_result_jobs_requested_by")
@@ -872,25 +873,6 @@ model Sliders {
   @@map("sliders")
 }
 
-model Galleries {
-  id         String   @id @default(dbgenerated("(uuid())")) @db.Char(36)
-  imageUrl   String   @map("image_url") @db.VarChar(255)
-  titleEn    String?  @map("title_en") @db.VarChar(200)
-  titleBn    String?  @map("title_bn") @db.VarChar(200)
-  subtitleEn String?  @map("subtitle_en") @db.VarChar(255)
-  subtitleBn String?  @map("subtitle_bn") @db.VarChar(255)
-  tagEn      String?  @map("tag_en") @db.VarChar(100)
-  tagBn      String?  @map("tag_bn") @db.VarChar(100)
-  sortOrder  Int      @default(0) @map("sort_order")
-  isActive   Boolean  @default(true) @map("is_active")
-  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamp(0)
-  updatedAt  DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
-
-  @@index([isActive], map: "IDX_galleries_is_active")
-  @@index([tagEn], map: "IDX_galleries_tag_en")
-  @@map("galleries")
-}
-
 model StaffMembers {
   id            String   @id @default(dbgenerated("(uuid())")) @db.Char(36)
   name          String   @db.VarChar(150)
@@ -912,8 +894,8 @@ model StudentAttendanceSummaries {
   attendancePercentage Decimal   @map("attendance_percentage") @db.Decimal(5, 2)
   source               String    @default("MANUAL") @db.VarChar(20)
   updatedAt            DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
-  examTerms            ExamTerms @relation(fields: [examTermId], references: [id], onUpdate: Restrict, map: "FK_attendance_summaries_term")
   students             Students  @relation(fields: [studentId], references: [id], onUpdate: Restrict, map: "FK_attendance_summaries_student")
+  examTerms            ExamTerms @relation(fields: [examTermId], references: [id], onUpdate: Restrict, map: "FK_attendance_summaries_term")
 
   @@unique([examTermId, studentId], map: "uq_attendance_summaries")
   @@index([studentId], map: "FK_attendance_summaries_student")
@@ -951,11 +933,11 @@ model StudentComponentMarks {
   isPassedComponent     Boolean               @default(true) @map("is_passed_component")
   enteredBy             String                @map("entered_by") @db.Char(36)
   updatedAt             DateTime              @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
-  classSyllabusSubjects ClassSyllabusSubjects @relation(fields: [syllabusSubjectId], references: [id], onUpdate: Restrict, map: "FK_student_component_marks_syllabus")
   examSubjectComponents ExamSubjectComponents @relation(fields: [componentId], references: [id], onUpdate: Restrict, map: "FK_student_component_marks_component")
-  examTerms             ExamTerms             @relation(fields: [examTermId], references: [id], onUpdate: Restrict, map: "FK_student_component_marks_term")
-  students              Students              @relation(fields: [studentId], references: [id], onUpdate: Restrict, map: "FK_student_component_marks_student")
   users                 Users                 @relation(fields: [enteredBy], references: [id], onUpdate: Restrict, map: "FK_student_component_marks_entered_by")
+  students              Students              @relation(fields: [studentId], references: [id], onUpdate: Restrict, map: "FK_student_component_marks_student")
+  classSyllabusSubjects ClassSyllabusSubjects @relation(fields: [syllabusSubjectId], references: [id], onUpdate: Restrict, map: "FK_student_component_marks_syllabus")
+  examTerms             ExamTerms             @relation(fields: [examTermId], references: [id], onUpdate: Restrict, map: "FK_student_component_marks_term")
 
   @@unique([examTermId, studentId, componentId], map: "uq_student_exam_comp")
   @@index([examTermId, syllabusSubjectId], map: "IDX_STUDENT_COMP_MARKS_TERM_SUBJECT")
@@ -1130,9 +1112,9 @@ model StudentSubjectResults {
   weightedCreditPoints   Decimal                @default(0.00) @map("weighted_credit_points") @db.Decimal(6, 2)
   isPassed               Boolean                @map("is_passed")
   failReason             String?                @map("fail_reason") @db.VarChar(100)
+  students               Students               @relation(fields: [studentId], references: [id], onUpdate: Restrict, map: "FK_subject_results_student")
   classSyllabusSubjects  ClassSyllabusSubjects? @relation(fields: [syllabusSubjectId], references: [id], onUpdate: Restrict, map: "FK_subject_results_syllabus")
   examTerms              ExamTerms              @relation(fields: [examTermId], references: [id], onUpdate: Restrict, map: "FK_subject_results_term")
-  students               Students               @relation(fields: [studentId], references: [id], onUpdate: Restrict, map: "FK_subject_results_student")
 
   @@unique([examTermId, studentId, syllabusSubjectId], map: "uq_result_subject")
   @@index([examTermId, studentId, combinedGroupCode], map: "IDX_SUBJECT_RESULTS_TERM_STUDENT_GROUP")
@@ -1166,8 +1148,8 @@ model StudentTermMarksheets {
   meritPositionShift      Int?      @map("merit_position_shift")
   principalRemark         String?   @map("principal_remark") @db.VarChar(255)
   generatedAt             DateTime  @default(now()) @map("generated_at") @db.Timestamp(0)
-  examTerms               ExamTerms @relation(fields: [examTermId], references: [id], onUpdate: Restrict, map: "FK_term_marksheets_term")
   students                Students  @relation(fields: [studentId], references: [id], onUpdate: Restrict, map: "FK_term_marksheets_student")
+  examTerms               ExamTerms @relation(fields: [examTermId], references: [id], onUpdate: Restrict, map: "FK_term_marksheets_term")
 
   @@unique([examTermId, studentId], map: "uq_term_marksheet")
   @@index([examTermId, sectionId], map: "IDX_TERM_MARKSHEETS_TERM_SECTION")
@@ -1320,14 +1302,14 @@ model Users {
   email                                               String                   @unique(map: "UQ_97672ac88f789774dd47f7c8be3") @db.VarChar(100)
   password                                            String                   @db.VarChar(255)
   role                                                UsersRole                @default(student)
-  isSuperAdmin                                        Boolean                  @default(false)
+  is_super_admin                                      Boolean                  @default(false)
   phone                                               String?                  @db.VarChar(20)
   isActive                                            Boolean                  @default(true) @map("is_active")
   isVerified                                          Boolean                  @default(false) @map("is_verified")
   lastLoginAt                                         DateTime?                @map("last_login_at") @db.Timestamp(0)
   createdAt                                           DateTime                 @default(now()) @map("created_at") @db.Timestamp(0)
   updatedAt                                           DateTime                 @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
-  menuUserPermissions                                 MenuUserPermission[]     @relation("menu_user_permissions_user_idTousers")
+  isSuperAdmin                                        Boolean                  @default(false)
   accountingAuditLogs                                 AccountingAuditLogs[]
   adjunctHonorariumBills                              AdjunctHonorariumBills[]
   journalEntriesJournalEntriesApprovedByUserIdTousers JournalEntries[]         @relation("journal_entries_approved_by_user_idTousers")
@@ -1348,21 +1330,20 @@ model Users {
 }
 
 model Menu {
-  id                    String          @id @default(dbgenerated("(uuid())")) @db.Char(36)
-  title                 String          @db.VarChar(150)
-  slug                  String          @unique(map: "UQ_menu_slug") @map("slug") @db.VarChar(100)
-  path                  String?         @map("path") @db.VarChar(255)
-  icon                  String?         @db.VarChar(100)
-  parentId              String?         @map("parent_id") @db.Char(36)
-  sortOrder             Int             @default(0) @map("sort_order")
-  isActive              Boolean         @default(true) @map("is_active")
-  actionsConfig         Json?           @map("actions_config")
-  createdAt             DateTime        @default(now()) @map("created_at") @db.Timestamp(0)
-  updatedAt             DateTime        @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
-  parent                Menu?           @relation("MenuHierarchy", fields: [parentId], references: [id], onUpdate: Restrict)
-  children              Menu[]          @relation("MenuHierarchy")
-  roleDefaults          RoleDefaultPermission[]
-  userPermissions       MenuUserPermission[]
+  id            String                  @id @default(dbgenerated("(uuid())")) @db.Char(36)
+  title         String                  @db.VarChar(150)
+  slug          String                  @unique(map: "UQ_menu_slug") @map("slug") @db.VarChar(100)
+  path          String?                 @map("path") @db.VarChar(255)
+  icon          String?                 @db.VarChar(100)
+  parentId      String?                 @map("parent_id") @db.Char(36)
+  sortOrder     Int                     @default(0) @map("sort_order")
+  isActive      Boolean                 @default(true) @map("is_active")
+  createdAt     DateTime                @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt     DateTime                @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+  actionsConfig String?                 @map("actions_config") @db.LongText
+  parent        Menu?                   @relation("MenuHierarchy", fields: [parentId], references: [id], onUpdate: Restrict)
+  children      Menu[]                  @relation("MenuHierarchy")
+  roleDefaults  RoleDefaultPermission[]
 
   @@index([parentId], map: "FK_menu_parent")
   @@index([slug], map: "IDX_MENU_SLUG")
@@ -1373,33 +1354,31 @@ model RoleDefaultPermission {
   id            Int       @id @default(autoincrement())
   role          UsersRole
   menuId        String    @map("menu_id") @db.Char(36)
-  canView       Boolean   @default(false)
   canCreate     Boolean   @default(false)
-  canEdit       Boolean   @default(false)
   canDelete     Boolean   @default(false)
-  customActions Json?     @map("custom_actions")
-
-  menu Menu @relation(fields: [menuId], references: [id], onDelete: Cascade, map: "FK_role_default_menu")
+  canEdit       Boolean   @default(false)
+  canView       Boolean   @default(false)
+  customActions String?   @map("custom_actions") @db.LongText
+  menu          Menu      @relation(fields: [menuId], references: [id], onDelete: Cascade, map: "FK_role_default_menu")
 
   @@unique([role, menuId], map: "uq_role_default_permission")
+  @@index([menuId], map: "FK_role_default_menu")
   @@map("role_default_permissions")
 }
 
 model MenuUserPermission {
-  id            Int      @id @default(autoincrement())
-  userId        String   @map("user_id") @db.Char(36)
-  menuId        String   @map("menu_id") @db.Char(36)
-  canView       Boolean  @default(false)
-  canCreate     Boolean  @default(false)
-  canEdit       Boolean  @default(false)
-  canDelete     Boolean  @default(false)
-  customActions Json?    @map("custom_actions")
-
-  user Users @relation("menu_user_permissions_user_idTousers", fields: [userId], references: [id], onDelete: Cascade, map: "FK_menu_user_perm_user")
-  menu Menu @relation(fields: [menuId], references: [id], onDelete: Cascade, map: "FK_menu_user_perm_menu")
+  id            Int     @id @default(autoincrement())
+  userId        String  @map("user_id") @db.Char(36)
+  menuId        String  @map("menu_id") @db.Char(36)
+  canCreate     Boolean @default(false)
+  canDelete     Boolean @default(false)
+  canEdit       Boolean @default(false)
+  canView       Boolean @default(false)
+  customActions String? @map("custom_actions") @db.LongText
 
   @@unique([userId, menuId], map: "uq_menu_user_permission")
   @@index([userId], map: "FK_menu_user_perm_user")
+  @@index([menuId], map: "FK_menu_user_perm_menu")
   @@map("menu_user_permissions")
 }
 

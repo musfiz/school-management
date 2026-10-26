@@ -277,7 +277,7 @@ async function seedMenus(prisma: PrismaService): Promise<Map<string, string>> {
       if (m.actionsConfig) {
         await prisma.menu.update({
           where: { id: existing.id },
-          data: { actionsConfig: m.actionsConfig as any },
+          data: { actionsConfig: JSON.stringify(m.actionsConfig) },
         });
       }
       map.set(m.slug, existing.id);
@@ -291,7 +291,7 @@ async function seedMenus(prisma: PrismaService): Promise<Map<string, string>> {
         path: m.path,
         icon: m.icon ?? null,
         sortOrder: m.sortOrder,
-        actionsConfig: (m.actionsConfig as any) ?? null,
+        actionsConfig: m.actionsConfig ? JSON.stringify(m.actionsConfig) : null,
       },
     });
     map.set(m.slug, row.id);
@@ -305,7 +305,7 @@ async function seedMenus(prisma: PrismaService): Promise<Map<string, string>> {
       if (m.actionsConfig) {
         await prisma.menu.update({
           where: { id: existing.id },
-          data: { actionsConfig: m.actionsConfig as any },
+          data: { actionsConfig: JSON.stringify(m.actionsConfig) },
         });
       }
       map.set(m.slug, existing.id);
@@ -320,7 +320,7 @@ async function seedMenus(prisma: PrismaService): Promise<Map<string, string>> {
         icon: m.icon ?? null,
         sortOrder: m.sortOrder,
         parent: { connect: { id: parentId } },
-        actionsConfig: (m.actionsConfig as any) ?? null,
+        actionsConfig: m.actionsConfig ? JSON.stringify(m.actionsConfig) : null,
       },
     });
     map.set(m.slug, row.id);
@@ -354,7 +354,7 @@ async function seedRoleDefaults(prisma: PrismaService, menuBySlug: Map<string, s
             canCreate: e.actions.includes('canCreate'),
             canEdit: e.actions.includes('canEdit'),
             canDelete: e.actions.includes('canDelete'),
-            customActions: customActions.length > 0 ? (customActions as any) : null,
+            customActions: customActions.length > 0 ? JSON.stringify(customActions) : null,
           },
         });
         continue;
@@ -367,7 +367,7 @@ async function seedRoleDefaults(prisma: PrismaService, menuBySlug: Map<string, s
           canCreate: e.actions.includes('canCreate'),
           canEdit: e.actions.includes('canEdit'),
           canDelete: e.actions.includes('canDelete'),
-          customActions: customActions.length > 0 ? (customActions as any) : null,
+          customActions: customActions.length > 0 ? JSON.stringify(customActions) : null,
         },
       });
     }

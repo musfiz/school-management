@@ -158,8 +158,9 @@ export class MenusService {
     // Same superadmin rule as the guard: isSuperAdmin flag or the role itself.
     if (user.isSuperAdmin || user.role === 'superadmin') {
       perms = menus.map((m) => {
-        const customs = Array.isArray((m.actionsConfig as any)?.custom)
-          ? (m.actionsConfig as any).custom.map((c: any) => c.action)
+        const cfg = m.actionsConfig ? JSON.parse(m.actionsConfig) : {};
+        const customs = Array.isArray(cfg?.custom)
+          ? cfg.custom.map((c: any) => c.action)
           : [];
         return {
           menuId: m.id,
@@ -207,10 +208,8 @@ export class MenusService {
         canCreate: p?.canCreate ?? false,
         canEdit: p?.canEdit ?? false,
         canDelete: p?.canDelete ?? false,
-        customActions: Array.isArray(p?.customActions)
-          ? (p.customActions as string[])
-          : [],
-        actionsConfig: m.actionsConfig ?? null,
+        customActions: p?.customActions ? JSON.parse(p.customActions) : [],
+        actionsConfig: m.actionsConfig ? JSON.parse(m.actionsConfig) : null,
         children: [],
       };
       const bucket = children.get(m.parentId ?? null) ?? [];
@@ -278,12 +277,15 @@ export class MenusService {
         parentId: dto.parentId ?? null,
         sortOrder: dto.sortOrder ?? 0,
         isActive: dto.isActive ?? true,
-        actionsConfig: (dto.actionsConfig as any) ?? null,
+        actionsConfig: dto.actionsConfig
+          ? JSON.stringify(dto.actionsConfig)
+          : null,
       },
     });
 
-    const customs = Array.isArray(dto.actionsConfig?.custom)
-      ? dto.actionsConfig.custom.map((c) => c.action)
+    const cfg = dto.actionsConfig ?? {};
+    const customs = Array.isArray(cfg.custom)
+      ? cfg.custom.map((c) => c.action)
       : [];
 
     // Seed full defaults for superadmin and admin
@@ -296,7 +298,7 @@ export class MenusService {
           canCreate: true,
           canEdit: true,
           canDelete: true,
-          customActions: customs,
+          customActions: customs.length > 0 ? JSON.stringify(customs) : null,
         },
         {
           role: 'admin' as any,
@@ -305,7 +307,7 @@ export class MenusService {
           canCreate: true,
           canEdit: true,
           canDelete: true,
-          customActions: customs,
+          customActions: customs.length > 0 ? JSON.stringify(customs) : null,
         },
       ],
       skipDuplicates: true,
@@ -355,7 +357,9 @@ export class MenusService {
         isActive: dto.isActive,
         actionsConfig:
           dto.actionsConfig !== undefined
-            ? ((dto.actionsConfig as any) ?? null)
+            ? dto.actionsConfig
+              ? JSON.stringify(dto.actionsConfig)
+              : null
             : undefined,
       },
     });

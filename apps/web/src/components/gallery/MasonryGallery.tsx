@@ -2,7 +2,11 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import { MasonryPhotoAlbum, type RenderImageContext, type RenderImageProps } from "react-photo-album";
 import Lightbox from "yet-another-react-lightbox";
+import Fullscreen from "yet-another-react-lightbox/plugins/fullscreen";
+import Zoom from "yet-another-react-lightbox/plugins/zoom";
+import "react-photo-album/masonry.css";
 import "yet-another-react-lightbox/styles.css";
 import { isExternalImage } from "@/lib/media";
 
@@ -87,15 +91,51 @@ interface MasonryGalleryProps {
 }
 
 /**
- * Responsive Masonry Image Gallery with Next.js Image Optimization
- * and Yet-Another-React-Lightbox full-screen preview.
+ * Custom image renderer that swaps react-photo-album's plain <img> for the
+ * Next.js <Image> component (official "Next.js Image" integration pattern).
+ *
+ * The wrapping div carries the photo's aspect ratio and relative positioning,
+ * so the fill-sized <Image> always keeps the exact proportions computed by the
+ * masonry layout algorithm while still getting Next.js optimization.
+ */
+function renderNextImage(
+  { alt = "", title, sizes }: RenderImageProps,
+  { photo, width, height, index }: RenderImageContext,
+) {
+  return (
+    <div
+      style={{
+        width: "100%",
+        position: "relative",
+        aspectRatio: `${width} / ${height}`,
+      }}
+    >
+      <Image
+        fill
+        src={photo.src}
+        alt={alt}
+        title={title}
+        sizes={sizes}
+        priority={index < 4}
+        className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
+        unoptimized={isExternalImage(photo.src)}
+      />
+    </div>
+  );
+}
+
+/**
+ * Responsive Masonry Image Gallery built on react-photo-album (handles aspect
+ * ratios and column counts dynamically across breakpoints) with a
+ * yet-another-react-lightbox full-screen viewer (Prev/Next, close, zoom &
+ * fullscreen, built-in open/close transitions).
  */
 export default function MasonryGallery({
   images = MOCK_GALLERY_IMAGES,
 }: MasonryGalleryProps) {
   const [photoIndex, setPhotoIndex] = useState<number>(-1);
 
-  // Prepare slides configuration expected by yet-another-react-lightbox
+  // Slides expected by yet-another-react-lightbox (src + intrinsic dimensions).
   const slides = images.map((image) => ({
     src: image.src,
     alt: image.alt,
@@ -106,69 +146,36 @@ export default function MasonryGallery({
 
   return (
     <div className="w-full">
-      {/*
-        Masonry Grid Layout using CSS column multi-column layout.
-        Break-inside-avoid prevents cards from breaking across column lines.
-      */}
-      <div className="columns-1 gap-4 sm:columns-2 md:columns-3 lg:columns-4">
-        {images.map((img, idx) => (
-          <div
-            key={img.id}
-            onClick={() => setPhotoIndex(idx)}
-            className="group relative mb-4 break-inside-avoid cursor-pointer overflow-hidden rounded-xs border border-ink-200 bg-white shadow-soft transition-all duration-300 hover:border-brand-400 hover:shadow-card"
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                setPhotoIndex(idx);
-              }
-            }}
-            aria-label={`View ${img.title} full screen`}
-          >
-            {/* Preserves original aspect ratio without cropping */}
-            <div className="relative overflow-hidden bg-ink-100">
-              <Image
-                src={img.src}
-                alt={img.alt}
-                width={img.width}
-                height={img.height}
-                sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                className="h-auto w-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
-                priority={idx < 4}
-                unoptimized={isExternalImage(img.src)}
-              />
-            </div>
+      <MasonryPhotoAlbum
+        photos={images}
+        // Every photo renders as an accessible <button>; clicking opens the lightbox.
+        onClick={({ index }) => setPhotoIndex(index)}
+        render={{ image: renderNextImage }}
+        // Tailwind-only hover affordance; the album handles layout, we handle style.
+        componentsProps={{ button: { className: "group" } }}
+        spacing={16}
+        columns={(containerWidth) => {
+          if (containerWidth < 400) return 2;
+          if (containerWidth < 900) return 3;
+          return 4;
+        }}
+        // Recalculate layout only when the container crosses a breakpoint.
+        breakpoints={[400, 900, 1200]}
+        // SSR fallback width (content column) so the grid isn't empty pre-hydration.
+        defaultContainerWidth={1000}
+        sizes={{
+          size: "1000px",
+          sizes: [{ viewport: "(max-width: 1280px)", size: "calc(100vw - 64px)" }],
+        }}
+      />
 
-            {/*
-              TODO: Future feature - image title, description and category tag
-              <div className="flex items-center justify-between border-t border-ink-100 bg-white p-3">
-                <div className="min-w-0 pr-2">
-                  <p className="truncate text-xs font-semibold text-navy-900 group-hover:text-brand-600 transition-colors">
-                    {img.title}
-                  </p>
-                  <p className="truncate text-[11px] text-ink-500">{img.alt}</p>
-                </div>
-                {img.category && (
-                  <span className="shrink-0 rounded-xs bg-ink-100 px-2 py-0.5 text-[10px] font-medium text-ink-600">
-                    {img.category}
-                  </span>
-                )}
-              </div>
-            */}
-
-            {/* Subtle overlay affordance on hover */}
-            <div className="pointer-events-none absolute inset-0 bg-navy-950/10 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-          </div>
-        ))}
-      </div>
-
-      {/* Fullscreen Lightbox Modal */}
+      {/* Fullscreen Lightbox Modal — Prev/Next, close, zoom & fullscreen */}
       <Lightbox
         open={photoIndex >= 0}
         index={photoIndex}
         close={() => setPhotoIndex(-1)}
         slides={slides}
+        plugins={[Fullscreen, Zoom]}
       />
     </div>
   );

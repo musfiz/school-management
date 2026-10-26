@@ -96,8 +96,8 @@ export class MenuPermissionsGuard implements CanActivate {
     if (isStandardAction) {
       hasPermission = Boolean((perm as Record<string, any>)[meta.action]);
     } else {
-      const customs = Array.isArray(perm.customActions)
-        ? (perm.customActions as string[])
+      const customs = perm.customActions
+        ? JSON.parse(perm.customActions)
         : [];
       hasPermission = customs.includes(meta.action);
     }

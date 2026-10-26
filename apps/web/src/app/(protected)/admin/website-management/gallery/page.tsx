@@ -528,12 +528,7 @@ export default function GalleryManagementPage() {
       )}
 
       {/* Gallery Table */}
-      <DataTable
-        columns={columns}
-        data={items}
-        searchKey="titleEn"
-        searchPlaceholder="Search gallery photos..."
-      />
+      <DataTable columns={columns} data={items} emptyMessage="No gallery photos yet." />
     </section>
   );
 }

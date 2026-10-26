@@ -154,8 +154,8 @@ export class PermissionAssignmentService {
       where: { userId_menuId: { userId, menuId: menu.id } },
     });
 
-    const currentCustoms: string[] = Array.isArray(existing?.customActions)
-      ? (existing.customActions as string[])
+    const currentCustoms: string[] = existing?.customActions
+      ? JSON.parse(existing.customActions)
       : [];
     const set = new Set(currentCustoms);
     if (granted) {
@@ -174,9 +174,9 @@ export class PermissionAssignmentService {
         canCreate: false,
         canEdit: false,
         canDelete: false,
-        customActions: updatedCustoms,
+        customActions: JSON.stringify(updatedCustoms),
       },
-      update: { customActions: updatedCustoms },
+      update: { customActions: JSON.stringify(updatedCustoms) },
     });
   }
 
