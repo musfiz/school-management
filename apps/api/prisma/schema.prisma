@@ -872,6 +872,25 @@ model Sliders {
   @@map("sliders")
 }
 
+model Galleries {
+  id         String   @id @default(dbgenerated("(uuid())")) @db.Char(36)
+  imageUrl   String   @map("image_url") @db.VarChar(255)
+  titleEn    String?  @map("title_en") @db.VarChar(200)
+  titleBn    String?  @map("title_bn") @db.VarChar(200)
+  subtitleEn String?  @map("subtitle_en") @db.VarChar(255)
+  subtitleBn String?  @map("subtitle_bn") @db.VarChar(255)
+  tagEn      String?  @map("tag_en") @db.VarChar(100)
+  tagBn      String?  @map("tag_bn") @db.VarChar(100)
+  sortOrder  Int      @default(0) @map("sort_order")
+  isActive   Boolean  @default(true) @map("is_active")
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt  DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  @@index([isActive], map: "IDX_galleries_is_active")
+  @@index([tagEn], map: "IDX_galleries_tag_en")
+  @@map("galleries")
+}
+
 model StaffMembers {
   id            String   @id @default(dbgenerated("(uuid())")) @db.Char(36)
   name          String   @db.VarChar(150)

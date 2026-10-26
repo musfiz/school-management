@@ -15,6 +15,7 @@ export const ImagePreset = {
   BANNER_19_6: "BANNER_19_6",
   DOCUMENT: "DOCUMENT",
   LOGO: "LOGO",
+  GALLERY: "GALLERY",
 } as const;
 
 export type ImagePreset = (typeof ImagePreset)[keyof typeof ImagePreset];
@@ -127,6 +128,19 @@ export const IMAGE_UPLOAD_PRESETS: Record<ImagePreset, PresetConfig> = {
     outputQuality: 0.9, // higher — transparency survives compression better
     maxFileSizeMB: 5,
     slug: "logo",
+  },
+  [ImagePreset.GALLERY]: {
+    aspect: 3 / 2,
+    maxWidth: 1200,
+    maxHeight: 800,
+    skipCrop: false,
+    cropShape: "rect",
+    showGrid: true,
+    label: "Gallery Photo (3:2)",
+    helperText: "Standard 3:2 ratio, ideal for campus events & photo gallery",
+    outputQuality: 0.88,
+    maxFileSizeMB: 10,
+    slug: "gallery",
   },
 };
 

@@ -10,6 +10,7 @@ import { UploadsModule } from './uploads/uploads.module';
 import { GoverningBodyModule } from './governing-body/governing-body.module';
 import { ExPrincipalsModule } from './ex-principals/ex-principals.module';
 import { SlidersModule } from './sliders/sliders.module';
+import { GalleriesModule } from './galleries/galleries.module';
 import { StaffModule } from './staff/staff.module';
 import { TeachersModule } from './teachers/teachers.module';
 import { PermissionsModule } from './permissions/permissions.module';
@@ -41,6 +42,7 @@ import { MenuPermissionsGuard } from './common/guards/menu-permissions.guard';
     GoverningBodyModule,
     ExPrincipalsModule,
     SlidersModule,
+    GalleriesModule,
     StaffModule,
     TeachersModule,
     PermissionsModule,

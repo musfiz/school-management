@@ -244,6 +244,28 @@ export class UploadsController {
     });
   }
 
+  /** Gallery photo — 3:2 ratio → 1200×800 WebP with crop. */
+  @Post('gallery')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.MANAGEMENT)
+  @ApiBearerAuth()
+  @UploadImage('file', ImagePreset.GALLERY, 10)
+  @ApiOperation({
+    summary:
+      'Upload a gallery photo (GALLERY preset pipeline), returns its storage key',
+  })
+  uploadGalleryImage(
+    @UploadedFile(new ImageOptimizationPipe(ImagePreset.GALLERY, true))
+    file?: Express.Multer.File,
+  ) {
+    if (!file?.buffer) throw new BadRequestException('No file uploaded');
+    return this.storage.upload({
+      buffer: file.buffer,
+      folder: 'gallery',
+      contentType: file.mimetype,
+    });
+  }
+
   /**
    * Removes a pipeline-managed file from storage. Used by the uploader when
    * the user discards a freshly-uploaded (not yet persisted) image — the key

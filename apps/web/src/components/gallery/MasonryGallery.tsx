@@ -4,6 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import Lightbox from "yet-another-react-lightbox";
 import "yet-another-react-lightbox/styles.css";
+import { isExternalImage } from "@/lib/media";
 
 export interface GalleryItem {
   id: string;
@@ -135,6 +136,7 @@ export default function MasonryGallery({
                 sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
                 className="h-auto w-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
                 priority={idx < 4}
+                unoptimized={isExternalImage(img.src)}
               />
             </div>
 

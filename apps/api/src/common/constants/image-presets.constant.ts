@@ -13,6 +13,7 @@ export enum ImagePreset {
   BANNER_19_6 = 'BANNER_19_6',
   DOCUMENT = 'DOCUMENT',
   LOGO = 'LOGO',
+  GALLERY = 'GALLERY',
 }
 
 export interface ImagePresetConfig {
@@ -103,5 +104,15 @@ export const IMAGE_PRESET_CONFIG: Record<ImagePreset, ImagePresetConfig> = {
     fit: 'inside',
     requiresCrop: false,
     quality: 90, // higher quality — transparency survives compression better
+  },
+  [ImagePreset.GALLERY]: {
+    width: 1200,
+    height: 800,
+    maxWidth: null,
+    maxHeight: null,
+    aspectRatio: 1200 / 800, // 3:2 standard photo ratio
+    fit: 'cover',
+    requiresCrop: true,
+    quality: 85,
   },
 };

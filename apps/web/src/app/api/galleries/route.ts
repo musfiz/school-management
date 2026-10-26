@@ -1,0 +1,38 @@
+import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
+import { SESSION_COOKIE } from "@/lib/session-cookie";
+
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3031";
+
+/** Forwards requests to the NestJS `/galleries` endpoints with the session's
+ * JWT attached, so the browser never needs to know about port 3031. */
+async function authHeaders(): Promise<Record<string, string>> {
+  const store = await cookies();
+  const token = store.get(SESSION_COOKIE)?.value;
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
+// Admin manager lists ALL gallery items (including inactive ones) via /galleries/all.
+export async function GET(req: Request) {
+  const { searchParams } = new URL(req.url);
+  const isPublic = searchParams.get("public") === "true";
+  const endpoint = isPublic ? `${API_BASE}/galleries` : `${API_BASE}/galleries/all`;
+
+  const res = await fetch(endpoint, {
+    headers: isPublic ? {} : await authHeaders(),
+    cache: "no-store",
+  });
+  const data = await res.json().catch(() => null);
+  return NextResponse.json(data, { status: res.status });
+}
+
+export async function POST(req: Request) {
+  const body = await req.text();
+  const res = await fetch(`${API_BASE}/galleries`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...(await authHeaders()) },
+    body,
+  });
+  const data = await res.json().catch(() => null);
+  return NextResponse.json(data, { status: res.status });
+}

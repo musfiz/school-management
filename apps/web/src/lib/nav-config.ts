@@ -596,6 +596,12 @@ export const navItems: NavItem[] = [
       },
       {
         kind: "leaf",
+        label: "Gallery",
+        href: "/admin/website-management/gallery",
+        icon: Images,
+      },
+      {
+        kind: "leaf",
         label: "Notice Board",
         href: "/admin/notices",
         icon: Megaphone,
@@ -697,11 +703,6 @@ export const navItems: NavItem[] = [
         kind: "leaf",
         label: "News",
         href: "/admin/others/news",
-      },
-      {
-        kind: "leaf",
-        label: "Gallery",
-        href: "/admin/others/gallery",
       },
       {
         kind: "leaf",

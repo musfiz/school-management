@@ -24,11 +24,14 @@
  * failed so a manual repair is precise.
  */
 import 'dotenv/config';
-import fs from 'node:fs';
-import path from 'node:path';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 import { execSync } from 'node:child_process';
-import mariadb from 'mariadb';
+import * as mariadb from 'mariadb';
 import { buildDatabaseUrl } from '../src/prisma/database-url';
+
+const createConnection =
+  (mariadb as any).createConnection ?? (mariadb as any).default?.createConnection;
 
 const MIGRATIONS_DIR = path.join(__dirname, '..', 'prisma', 'migrations');
 const MIG_NAME_RE = /^\d{14}_[a-z0-9_]+$/;
@@ -78,7 +81,7 @@ async function migrationHistory(): Promise<MigrationRow[]> {
 async function openConn(database?: string): Promise<mariadb.Connection> {
   const url = new URL(buildDatabaseUrl());
   const db = database ?? (decodeURIComponent(url.pathname.replace(/^\//, '')) || 'school');
-  return mariadb.createConnection({
+  return createConnection({
     host: url.hostname,
     port: url.port ? Number(url.port) : 3306,
     user: url.username ? decodeURIComponent(url.username) : undefined,
@@ -339,7 +342,7 @@ async function cmdNew(args: string[]): Promise<void> {
   // baseSubset = inventory copy WITHOUT the new folder — it defines the
   // pre-migration state for both the down diff and its round-trip check.
   const baseSubset = path.join(MIGRATIONS_DIR, '.tmp-author-base');
-  const dbServer = await mariadb.createConnection({
+  const dbServer = await createConnection({
     host: new URL(buildDatabaseUrl()).hostname,
     port: Number(new URL(buildDatabaseUrl()).port || 3306),
     user: process.env.DB_USERNAME || 'root',
