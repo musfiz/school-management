@@ -13,19 +13,16 @@ export default function StaffsPage() {
 
   return (
     <>
-      <PageHeader
-        eyebrow="Academic"
-        title="Our Staff"
-        description="The team that keeps the school running smoothly."
-      />
+      <PageHeader eyebrow="Academic" title="Our Staff" className="py-6 sm:py-8" />
       <Breadcrumbs
+        className="py-1.5"
         items={[
           { name: "Home", href: "/" },
           { name: "Academic", href: "/academic" },
           { name: "Staffs", href: "/academic/staffs" },
         ]}
       />
-      <Section>
+      <Section className="py-6! sm:py-8!">
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {current.map((s) => (
             <div

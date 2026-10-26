@@ -13,12 +13,9 @@ export default function TeachersPage() {
 
   return (
     <>
-      <PageHeader
-        eyebrow="Academic"
-        title="Our Teachers"
-        description="Dedicated educators who make learning come alive."
-      />
+      <PageHeader eyebrow="Academic" title="Our Teachers" className="py-6 sm:py-8" />
       <Breadcrumbs
+        className="py-1.5"
         items={[
           { name: "Home", href: "/" },
           { name: "Academic", href: "/academic" },
@@ -26,7 +23,7 @@ export default function TeachersPage() {
         ]}
       />
 
-      <Section>
+      <Section className="py-6! sm:py-8!">
         <h2 className="font-display text-xl font-bold text-navy-900">Current Faculty</h2>
         <div className="mt-4 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {current.map((t) => (

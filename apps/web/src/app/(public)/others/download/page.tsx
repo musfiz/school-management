@@ -11,19 +11,16 @@ export const metadata: Metadata = {
 export default function DownloadPage() {
   return (
     <>
-      <PageHeader
-        eyebrow="Others"
-        title="Downloads"
-        description="Forms, routines and documents in one place."
-      />
+      <PageHeader eyebrow="Others" title="Downloads" className="py-6 sm:py-8" />
       <Breadcrumbs
+        className="py-1.5"
         items={[
           { name: "Home", href: "/" },
           { name: "Others", href: "/others" },
           { name: "Download", href: "/others/download" },
         ]}
       />
-      <Section>
+      <Section className="py-6! sm:py-8!">
         <ul className="divide-y divide-ink-200 overflow-hidden rounded-xs border border-ink-200 bg-white shadow-soft">
           {downloads.map((d) => (
             <li key={d.id}>

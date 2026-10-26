@@ -10,19 +10,16 @@ export const metadata: Metadata = {
 export default function NewsPage() {
   return (
     <>
-      <PageHeader
-        eyebrow="Others"
-        title="School News"
-        description="Stories, achievements and happenings from across campus."
-      />
+      <PageHeader eyebrow="Others" title="School News" className="py-6 sm:py-8" />
       <Breadcrumbs
+        className="py-1.5"
         items={[
           { name: "Home", href: "/" },
           { name: "Others", href: "/others" },
           { name: "News", href: "/others/news" },
         ]}
       />
-      <Section>
+      <Section className="py-6! sm:py-8!">
         <div className="grid gap-6 md:grid-cols-2">
           {news.map((item) => (
             <article

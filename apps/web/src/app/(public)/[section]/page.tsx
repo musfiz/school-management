@@ -40,10 +40,13 @@ export default async function SectionPage({
   return (
     <>
       <JsonLd data={breadcrumbJsonLd([{ name: "Home", href: "/" }, { name: doc.title, href: `/${section}` }])} />
-      <PageHeader eyebrow={nav.label} title={doc.title} description={doc.description} />
-      <Breadcrumbs items={[{ name: "Home", href: "/" }, { name: nav.label, href: `/${section}` }]} />
+      <PageHeader eyebrow={nav.label} title={doc.title} className="py-6 sm:py-8" />
+      <Breadcrumbs
+        className="py-1.5"
+        items={[{ name: "Home", href: "/" }, { name: nav.label, href: `/${section}` }]}
+      />
 
-      <Section>
+      <Section className="py-6! sm:py-8!">
         <ContentRenderer blocks={doc.blocks} />
 
         {childLinks.length > 0 && (

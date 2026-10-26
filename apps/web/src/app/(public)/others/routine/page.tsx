@@ -17,19 +17,16 @@ const weekly = [
 export default function RoutinePage() {
   return (
     <>
-      <PageHeader
-        eyebrow="Others"
-        title="Routine"
-        description="Daily class routine and examination schedules."
-      />
+      <PageHeader eyebrow="Others" title="Routine" className="py-6 sm:py-8" />
       <Breadcrumbs
+        className="py-1.5"
         items={[
           { name: "Home", href: "/" },
           { name: "Others", href: "/others" },
           { name: "Routine", href: "/others/routine" },
         ]}
       />
-      <Section>
+      <Section className="py-6! sm:py-8!">
         <div className="overflow-hidden rounded-xs border border-ink-200 bg-white shadow-soft">
           <div className="border-b border-ink-200 bg-navy-50 px-6 py-4">
             <h2 className="font-display text-lg font-bold text-navy-900">

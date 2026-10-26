@@ -11,19 +11,16 @@ export const metadata: Metadata = {
 export default function EventPage() {
   return (
     <>
-      <PageHeader
-        eyebrow="Others"
-        title="Events"
-        description="Mark your calendar for what's coming up on campus."
-      />
+      <PageHeader eyebrow="Others" title="Events" className="py-6 sm:py-8" />
       <Breadcrumbs
+        className="py-1.5"
         items={[
           { name: "Home", href: "/" },
           { name: "Others", href: "/others" },
           { name: "Event", href: "/others/event" },
         ]}
       />
-      <Section>
+      <Section className="py-6! sm:py-8!">
         <div className="space-y-4">
           {events.map((e) => (
             <div

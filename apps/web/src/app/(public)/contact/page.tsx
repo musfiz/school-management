@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { site } from "@/lib/site";
 import { MailIcon, PhoneIcon, PinIcon } from "@/components/icons";
-import { Container, JsonLd, PageHeader, Section } from "@/components/ui";
+import { Breadcrumbs, Container, JsonLd, PageHeader, Section } from "@/components/ui";
 import { articleJsonLd } from "@/lib/jsonld";
 
 export const metadata: Metadata = {
@@ -19,13 +19,16 @@ export default function ContactPage() {
           url: "/contact",
         })}
       />
-      <PageHeader
-        eyebrow="Contact"
-        title="We'd love to hear from you"
-        description="Reach the school office for admissions, results, or a campus visit. A real person answers every message."
+      <PageHeader eyebrow="Contact" title="Contact Us" className="py-6 sm:py-8" />
+      <Breadcrumbs
+        className="py-1.5"
+        items={[
+          { name: "Home", href: "/" },
+          { name: "Contact", href: "/contact" },
+        ]}
       />
 
-      <Section>
+      <Section className="py-6! sm:py-8!">
         <div className="grid gap-10 rounded-xs border border-ink-200 bg-white p-8 shadow-soft sm:p-12 lg:grid-cols-2">
           <div>
             <ul className="space-y-5">

@@ -59,7 +59,7 @@ export function Button({
 
 export function Breadcrumbs({
   items,
-  className = "py-3",
+  className = "py-1.5",
 }: {
   items: { name: string; href: string }[];
   className?: string;
@@ -103,7 +103,7 @@ export function PageHeader({
   title,
   description,
   children,
-  className = "py-12 sm:py-16",
+  className = "py-6 sm:py-8",
 }: {
   eyebrow?: string;
   title: string;

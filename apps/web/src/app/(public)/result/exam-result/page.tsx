@@ -18,19 +18,16 @@ export default function ExamResultPage() {
           { name: "Exam Result", href: "/result/exam-result" },
         ])}
       />
-      <PageHeader
-        eyebrow="Result"
-        title="Exam Result"
-        description="Enter your class and roll number to view your published result."
-      />
+      <PageHeader eyebrow="Result" title="Exam Result" className="py-6 sm:py-8" />
       <Breadcrumbs
+        className="py-1.5"
         items={[
           { name: "Home", href: "/" },
           { name: "Result", href: "/result" },
           { name: "Exam Result", href: "/result/exam-result" },
         ]}
       />
-      <Section>
+      <Section className="py-6! sm:py-8!">
         <ResultLookup />
         <p className="mt-6 text-sm text-ink-500">
           For public board examinations, please use the{" "}
