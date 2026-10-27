@@ -11,6 +11,7 @@ import { GoverningBodyModule } from './governing-body/governing-body.module';
 import { ExPrincipalsModule } from './ex-principals/ex-principals.module';
 import { SlidersModule } from './sliders/sliders.module';
 import { GalleriesModule } from './galleries/galleries.module';
+import { RoutinesModule } from './routines/routines.module';
 import { StaffModule } from './staff/staff.module';
 import { TeachersModule } from './teachers/teachers.module';
 import { PermissionsModule } from './permissions/permissions.module';
@@ -43,6 +44,7 @@ import { MenuPermissionsGuard } from './common/guards/menu-permissions.guard';
     ExPrincipalsModule,
     SlidersModule,
     GalleriesModule,
+    RoutinesModule,
     StaffModule,
     TeachersModule,
     PermissionsModule,

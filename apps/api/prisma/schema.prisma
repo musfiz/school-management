@@ -30,6 +30,8 @@ model AcademicSessions {
   createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamp(0)
   updatedAt   DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
 
+  routines    Routines[]
+
   @@index([isActive], map: "IDX_ACADEMIC_SESSIONS_ACTIVE")
   @@map("academic_sessions")
 }
@@ -43,6 +45,8 @@ model ClassOrDepts {
   isActive     Boolean  @default(true) @map("is_active")
   createdAt    DateTime @default(now()) @map("created_at") @db.Timestamp(0)
   updatedAt    DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  routines     Routines[]
 
   @@index([isActive], map: "IDX_CLASS_OR_DEPTS_ACTIVE")
   @@index([level], map: "IDX_CLASS_OR_DEPTS_LEVEL")
@@ -88,6 +92,8 @@ model AcademicGroups {
   isActive     Boolean  @default(true) @map("is_active")
   createdAt    DateTime @default(now()) @map("created_at") @db.Timestamp(0)
   updatedAt    DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  routines     Routines[]
 
   @@index([isActive], map: "IDX_ACADEMIC_GROUPS_ACTIVE")
   @@map("academic_groups")
@@ -887,6 +893,33 @@ model Galleries {
   @@index([isActive], map: "IDX_galleries_is_active")
   @@index([tagEn], map: "IDX_galleries_tag_en")
   @@map("galleries")
+}
+
+model Routines {
+  id                String            @id @default(dbgenerated("(uuid())")) @db.Char(36)
+  title             String            @db.VarChar(255)
+  titleBn           String?           @map("title_bn") @db.VarChar(255)
+  academicSessionId String            @map("academic_session_id") @db.Char(36)
+  classOrDeptId     String            @map("class_or_dept_id") @db.Char(36)
+  academicGroupId   String?           @map("academic_group_id") @db.Char(36)
+  type              String            @default("CLASS") @db.VarChar(50)
+  pdfUrl            String            @map("pdf_url") @db.VarChar(500)
+  description       String?           @db.Text
+  sortOrder         Int               @default(0) @map("sort_order")
+  isActive          Boolean           @default(true) @map("is_active")
+  createdAt         DateTime          @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt         DateTime          @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  academicSession   AcademicSessions  @relation(fields: [academicSessionId], references: [id], onDelete: Cascade, onUpdate: Cascade, map: "FK_routines_academic_session")
+  classOrDept       ClassOrDepts      @relation(fields: [classOrDeptId], references: [id], onDelete: Cascade, onUpdate: Cascade, map: "FK_routines_class_or_dept")
+  academicGroup     AcademicGroups?   @relation(fields: [academicGroupId], references: [id], onDelete: SetNull, onUpdate: Cascade, map: "FK_routines_academic_group")
+
+  @@index([academicSessionId], map: "IDX_routines_academic_session")
+  @@index([classOrDeptId], map: "IDX_routines_class_or_dept")
+  @@index([academicGroupId], map: "IDX_routines_academic_group")
+  @@index([isActive], map: "IDX_routines_is_active")
+  @@index([type], map: "IDX_routines_type")
+  @@map("routines")
 }
 
 model StaffMembers {
