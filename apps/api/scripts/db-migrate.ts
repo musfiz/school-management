@@ -377,7 +377,7 @@ async function cmdNew(args: string[]): Promise<void> {
     // side replays the inventory into the shadow DB), so the result is
     // symmetric and free of datamodel-source index noise.
     let downSql = prisma(
-      ['migrate', 'diff', '--from-schema-datasource', '--to-migrations', baseSubset, '--script'],
+      ['migrate', 'diff', '--from-config-datasource', '--to-migrations', baseSubset, '--script'],
       { capture: true, env: { DATABASE_URL: scratchUrl } },
     );
     downSql = stripJsonNoopDdls(downSql);
@@ -402,7 +402,7 @@ async function cmdNew(args: string[]): Promise<void> {
       let mismatch = false;
       try {
         diffOut = prisma(
-          ['migrate', 'diff', '--from-schema-datasource', '--to-migrations', baseSubset, '--exit-code', '--script'],
+          ['migrate', 'diff', '--from-config-datasource', '--to-migrations', baseSubset, '--exit-code', '--script'],
           { capture: true, env: { DATABASE_URL: scratchUrl } },
         );
       } catch (e: any) {

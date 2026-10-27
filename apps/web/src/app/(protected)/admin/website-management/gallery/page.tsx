@@ -327,7 +327,7 @@ export default function GalleryManagementPage() {
         <div>
           <h1 className="text-xl font-bold text-ink-900">Photo Gallery</h1>
           <p className="text-xs text-ink-500">
-            Manage public website photo gallery with interactive cropping and locale support.
+            Manage public website photo gallery with automatic optimization and masonry support.
           </p>
         </div>
         {!formOpen && (
@@ -377,7 +377,7 @@ export default function GalleryManagementPage() {
                   </span>
                 )}
                 <p className="mt-2 text-[11px] text-ink-400">
-                  Click or drag a photo to open the interactive 3:2 cropper.
+                  Upload any photo — original ratio (portrait, landscape, square) is preserved for the masonry layout.
                 </p>
               </div>
 

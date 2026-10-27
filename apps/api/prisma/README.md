@@ -12,14 +12,14 @@ All commands documented below are executed from the **`apps/api/`** directory.
 
 | Component | Specification | Description |
 |---|---|---|
-| **ORM Engine** | **Prisma 6** (`6.19.3`) | `engineType = "client"` (GA since 6.16.0) — no binary Rust query engine runtime |
+| **ORM Engine** | **Prisma 7** (`7.10.1`) | `provider = "prisma-client"` — standard client engine, no binary Rust query engine runtime |
 | **Database Driver** | `@prisma/adapter-mariadb` + `mariadb` | High-performance native JavaScript driver connecting to MySQL / MariaDB |
-| **Schema Source** | `apps/api/prisma/schema.prisma` | Single declarative source of truth for database entities, relations **and the datasource URL** (`env("DATABASE_URL")`) |
+| **Schema Source** | `apps/api/prisma/schema.prisma` | Single declarative source of truth for database entities and relations |
 | **Generated Client** | `apps/api/src/generated/prisma/` | Generated TypeScript client (rebuilt on migration; never edit manually) |
 | **Migration Directory** | `apps/api/prisma/migrations/` | Timestamped directories with paired `migration.sql` (up) and `down.sql` (down) |
 | **Migration Engine** | `apps/api/scripts/db-migrate.ts` | Reversible migration manager enforcing symmetric up/down scripts & scratch DB verification |
-| **Prisma Config** | *(none — classic setup)* | No `prisma.config.ts`; the CLI auto-loads `apps/api/.env` and reads the datasource URL + seed command (`package.json` → `"prisma": { "seed": ... }`) the classic way |
-| **Seed Entry** | `apps/api/prisma/seed.ts` | Standard Prisma 6 seed orchestration (run via `prisma db seed`) |
+| **Prisma Config** | `apps/api/prisma.config.ts` | Configures datasource URLs and seed command (`defineConfig` from `@prisma/config`) |
+| **Seed Entry** | `apps/api/prisma/seed.ts` | Standard Prisma 7 seed orchestration (run via `prisma db seed`) |
 | **Session Timezone** | UTC (`+00:00`) | Every connection automatically executes `SET time_zone = '+00:00'` (`src/prisma/database-url.ts`) |
 | **Runtime Service** | `src/prisma/prisma.service.ts` | NestJS injectable provider wrapping Prisma client extensions |
 

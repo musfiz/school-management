@@ -1,7 +1,7 @@
 /**
- * Standard Prisma 6 seed entry point (`prisma db seed`).
+ * Standard Prisma 7 seed entry point (`prisma db seed`).
  *
- * Registered in `package.json` under the `prisma.seed` key, so the canonical
+ * Registered in `prisma.config.ts` under the `migrations.seed` key, so the canonical
  * seeding command is:
  *
  *   pnpm exec prisma db seed

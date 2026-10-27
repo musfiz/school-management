@@ -1,7 +1,7 @@
 /**
  * Prisma connectivity smoke check (Wave 0).
  *
- * Verifies the Prisma 6 client (`engineType = "client"`, no Rust query
+ * Verifies the Prisma 7 client (`provider = "prisma-client"`, no Rust query
  * engine) + `@prisma/adapter-mariadb` can connect to the same database
  * TypeORM uses, and that both a model query (`count`) and a raw query return
  * expected results. Run: `pnpm --filter api run prisma:smoke`.

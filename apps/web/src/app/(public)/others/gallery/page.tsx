@@ -51,8 +51,6 @@ export default async function GalleryPage() {
             alt: title || subtitle || "Campus Gallery Photo",
             title,
             category: tag,
-            width: 1200,
-            height: 800,
           };
         })
       : undefined;

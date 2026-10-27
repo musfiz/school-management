@@ -154,9 +154,17 @@ export class PermissionAssignmentService {
       where: { userId_menuId: { userId, menuId: menu.id } },
     });
 
-    const currentCustoms: string[] = existing?.customActions
-      ? JSON.parse(existing.customActions)
-      : [];
+    let currentCustoms: string[] = [];
+    if (Array.isArray(existing?.customActions)) {
+      currentCustoms = existing.customActions;
+    } else if (typeof existing?.customActions === 'string' && existing.customActions.trim()) {
+      try {
+        const parsed = JSON.parse(existing.customActions);
+        if (Array.isArray(parsed)) currentCustoms = parsed;
+      } catch {
+        currentCustoms = [];
+      }
+    }
     const set = new Set(currentCustoms);
     if (granted) {
       set.add(action);

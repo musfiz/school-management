@@ -1,14 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
-import { MasonryPhotoAlbum, type RenderImageContext, type RenderImageProps } from "react-photo-album";
 import Lightbox from "yet-another-react-lightbox";
 import Fullscreen from "yet-another-react-lightbox/plugins/fullscreen";
 import Zoom from "yet-another-react-lightbox/plugins/zoom";
-import "react-photo-album/masonry.css";
 import "yet-another-react-lightbox/styles.css";
-import { isExternalImage } from "@/lib/media";
 
 export interface GalleryItem {
   id: string;
@@ -16,12 +12,12 @@ export interface GalleryItem {
   alt: string;
   title: string;
   category?: string;
-  width: number;
-  height: number;
+  width?: number;
+  height?: number;
 }
 
 /**
- * Clean mock data showcasing different aspect ratios:
+ * Clean mock data showcasing different natural aspect ratios:
  * - Landscape (16:10, 3:2)
  * - Portrait (2:3, 3:4)
  * - Square (1:1)
@@ -91,51 +87,17 @@ interface MasonryGalleryProps {
 }
 
 /**
- * Custom image renderer that swaps react-photo-album's plain <img> for the
- * Next.js <Image> component (official "Next.js Image" integration pattern).
- *
- * The wrapping div carries the photo's aspect ratio and relative positioning,
- * so the fill-sized <Image> always keeps the exact proportions computed by the
- * masonry layout algorithm while still getting Next.js optimization.
- */
-function renderNextImage(
-  { alt = "", title, sizes }: RenderImageProps,
-  { photo, width, height, index }: RenderImageContext,
-) {
-  return (
-    <div
-      style={{
-        width: "100%",
-        position: "relative",
-        aspectRatio: `${width} / ${height}`,
-      }}
-    >
-      <Image
-        fill
-        src={photo.src}
-        alt={alt}
-        title={title}
-        sizes={sizes}
-        priority={index < 4}
-        className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
-        unoptimized={isExternalImage(photo.src)}
-      />
-    </div>
-  );
-}
-
-/**
- * Responsive Masonry Image Gallery built on react-photo-album (handles aspect
- * ratios and column counts dynamically across breakpoints) with a
- * yet-another-react-lightbox full-screen viewer (Prev/Next, close, zoom &
- * fullscreen, built-in open/close transitions).
+ * Responsive Masonry Image Gallery built on native CSS multi-column layout
+ * (preserves 100% natural aspect ratios without forced 16:9 / 3:2 cropping)
+ * with a yet-another-react-lightbox full-screen viewer (Prev/Next, zoom &
+ * fullscreen).
  */
 export default function MasonryGallery({
   images = MOCK_GALLERY_IMAGES,
 }: MasonryGalleryProps) {
   const [photoIndex, setPhotoIndex] = useState<number>(-1);
 
-  // Slides expected by yet-another-react-lightbox (src + intrinsic dimensions).
+  // Slides expected by yet-another-react-lightbox (src + intrinsic dimensions if available).
   const slides = images.map((image) => ({
     src: image.src,
     alt: image.alt,
@@ -146,28 +108,40 @@ export default function MasonryGallery({
 
   return (
     <div className="w-full">
-      <MasonryPhotoAlbum
-        photos={images}
-        // Every photo renders as an accessible <button>; clicking opens the lightbox.
-        onClick={({ index }) => setPhotoIndex(index)}
-        render={{ image: renderNextImage }}
-        // Tailwind-only hover affordance; the album handles layout, we handle style.
-        componentsProps={{ button: { className: "group" } }}
-        spacing={16}
-        columns={(containerWidth) => {
-          if (containerWidth < 400) return 2;
-          if (containerWidth < 900) return 3;
-          return 4;
-        }}
-        // Recalculate layout only when the container crosses a breakpoint.
-        breakpoints={[400, 900, 1200]}
-        // SSR fallback width (content column) so the grid isn't empty pre-hydration.
-        defaultContainerWidth={1000}
-        sizes={{
-          size: "1000px",
-          sizes: [{ viewport: "(max-width: 1280px)", size: "calc(100vw - 64px)" }],
-        }}
-      />
+      <div className="columns-1 gap-4 sm:columns-2 md:columns-3 lg:columns-4 [column-fill:_balance]">
+        {images.map((image, index) => (
+          <figure
+            key={image.id || index}
+            onClick={() => setPhotoIndex(index)}
+            className="group relative mb-4 break-inside-avoid cursor-pointer overflow-hidden rounded-xs border border-ink-200 bg-white shadow-soft transition-all duration-300 hover:border-brand-300 hover:shadow-card"
+          >
+            <div className="relative overflow-hidden bg-ink-100">
+              <img
+                src={image.src}
+                alt={image.alt}
+                loading={index < 4 ? "eager" : "lazy"}
+                decoding="async"
+                className="h-auto w-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
+              />
+              <div className="absolute inset-0 bg-navy-950/20 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+            </div>
+            {(image.title || image.category) && (
+              <figcaption className="p-3">
+                {image.title && (
+                  <h3 className="font-display text-sm font-semibold text-navy-900 transition-colors group-hover:text-brand-600">
+                    {image.title}
+                  </h3>
+                )}
+                {image.category && (
+                  <span className="mt-1 inline-block rounded-xs bg-ink-100 px-1.5 py-0.5 text-[10px] font-semibold text-ink-600">
+                    {image.category}
+                  </span>
+                )}
+              </figcaption>
+            )}
+          </figure>
+        ))}
+      </div>
 
       {/* Fullscreen Lightbox Modal — Prev/Next, close, zoom & fullscreen */}
       <Lightbox

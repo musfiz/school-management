@@ -244,7 +244,7 @@ export class UploadsController {
     });
   }
 
-  /** Gallery photo — 3:2 ratio → 1200×800 WebP with crop. */
+  /** Gallery photo — original ratio preserved, ≤1920×1920 'inside', WebP. */
   @Post('gallery')
   @UseGuards(RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.MANAGEMENT)

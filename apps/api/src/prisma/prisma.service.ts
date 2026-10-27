@@ -11,12 +11,12 @@ import { passwordHashingExtension } from './password-hashing.extension';
 import { wireFormatExtension } from './wire.extension';
 
 /**
- * Application-wide Prisma Client (Prisma ORM 6).
+ * Application-wide Prisma Client (Prisma ORM 7).
  *
- * Generated with `engineType = "client"` (GA since Prisma 6.16.0): no Rust
- * query engine binary is downloaded or shipped — Prisma Client talks to
- * MySQL/MariaDB exclusively through a driver adapter; for MySQL/MariaDB that
- * is `@prisma/adapter-mariadb` over the `mariadb` driver.
+ * Generated with `provider = "prisma-client"`: no Rust query engine binary
+ * is downloaded or shipped — Prisma Client talks to MySQL/MariaDB exclusively
+ * through a driver adapter; for MySQL/MariaDB that is `@prisma/adapter-mariadb`
+ * over the `mariadb` driver.
  */
 @Injectable()
 export class PrismaService

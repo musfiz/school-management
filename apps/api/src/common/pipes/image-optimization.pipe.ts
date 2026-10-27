@@ -1,10 +1,18 @@
 import {
   BadRequestException,
   Injectable,
+  Logger,
   PipeTransform,
 } from '@nestjs/common';
-import sharp from 'sharp';
+import * as sharpModule from 'sharp';
 import type { Metadata as SharpMetadata } from 'sharp';
+
+// Robust CJS/ESM interop: in CommonJS under ts-node without esModuleInterop,
+// require('sharp') returns the callable function directly, so default is undefined.
+const sharp: typeof sharpModule.default =
+  typeof (sharpModule as any).default === 'function'
+    ? (sharpModule as any).default
+    : (sharpModule as any);
 import {
   ASPECT_RATIO_TOLERANCE,
   IMAGE_PRESET_CONFIG,
@@ -73,6 +81,8 @@ export class ImageOptimizationPipe
       Promise<Express.Multer.File | undefined>
     >
 {
+  private readonly logger = new Logger(ImageOptimizationPipe.name);
+
   constructor(
     private readonly preset: ImagePreset,
     private readonly required = true,
@@ -118,14 +128,17 @@ export class ImageOptimizationPipe
         failOn: 'error', // refuse truncated / corrupt raster data
       }).metadata();
     } catch (err) {
-      const message = err instanceof Error ? err.message : '';
+      const message = err instanceof Error ? err.message : String(err);
+      this.logger.error(
+        `Failed to decode image for preset ${this.preset} (file: ${file.originalname}, size: ${file.size ?? file.buffer?.length}B): ${message}`,
+      );
       if (/dimensions|pixel/i.test(message)) {
         throw new BadRequestException(
           'Image exceeds the maximum allowed dimensions (pixel flood attempt blocked).',
         );
       }
       throw new BadRequestException(
-        'Invalid or corrupted image file — the upload is not a decodable image.',
+        `Invalid or corrupted image file — the upload is not a decodable image: ${message}`,
       );
     }
 

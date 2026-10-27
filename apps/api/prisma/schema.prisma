@@ -1,13 +1,10 @@
 generator client {
-  provider   = "prisma-client-js"
-  output     = "../src/generated/prisma"
-  engineType = "client"
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
 }
 
 datasource db {
-  provider          = "mysql"
-  url               = env("DATABASE_URL")
-  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
+  provider = "mysql"
 }
 
 model AcademicSubjects {
@@ -873,6 +870,25 @@ model Sliders {
   @@map("sliders")
 }
 
+model Galleries {
+  id         String   @id @default(dbgenerated("(uuid())")) @db.Char(36)
+  imageUrl   String   @map("image_url") @db.VarChar(255)
+  titleEn    String?  @map("title_en") @db.VarChar(200)
+  titleBn    String?  @map("title_bn") @db.VarChar(200)
+  subtitleEn String?  @map("subtitle_en") @db.VarChar(255)
+  subtitleBn String?  @map("subtitle_bn") @db.VarChar(255)
+  tagEn      String?  @map("tag_en") @db.VarChar(100)
+  tagBn      String?  @map("tag_bn") @db.VarChar(100)
+  sortOrder  Int      @default(0) @map("sort_order")
+  isActive   Boolean  @default(true) @map("is_active")
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt  DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  @@index([isActive], map: "IDX_galleries_is_active")
+  @@index([tagEn], map: "IDX_galleries_tag_en")
+  @@map("galleries")
+}
+
 model StaffMembers {
   id            String   @id @default(dbgenerated("(uuid())")) @db.Char(36)
   name          String   @db.VarChar(150)
@@ -1302,14 +1318,14 @@ model Users {
   email                                               String                   @unique(map: "UQ_97672ac88f789774dd47f7c8be3") @db.VarChar(100)
   password                                            String                   @db.VarChar(255)
   role                                                UsersRole                @default(student)
-  is_super_admin                                      Boolean                  @default(false)
+  isSuperAdmin                                        Boolean                  @default(false) @map("is_super_admin")
   phone                                               String?                  @db.VarChar(20)
   isActive                                            Boolean                  @default(true) @map("is_active")
   isVerified                                          Boolean                  @default(false) @map("is_verified")
   lastLoginAt                                         DateTime?                @map("last_login_at") @db.Timestamp(0)
   createdAt                                           DateTime                 @default(now()) @map("created_at") @db.Timestamp(0)
   updatedAt                                           DateTime                 @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
-  isSuperAdmin                                        Boolean                  @default(false)
+  menuUserPermissions                                 MenuUserPermission[]     @relation("menu_user_permissions_user_idTousers")
   accountingAuditLogs                                 AccountingAuditLogs[]
   adjunctHonorariumBills                              AdjunctHonorariumBills[]
   journalEntriesJournalEntriesApprovedByUserIdTousers JournalEntries[]         @relation("journal_entries_approved_by_user_idTousers")
@@ -1344,6 +1360,7 @@ model Menu {
   parent        Menu?                   @relation("MenuHierarchy", fields: [parentId], references: [id], onUpdate: Restrict)
   children      Menu[]                  @relation("MenuHierarchy")
   roleDefaults  RoleDefaultPermission[]
+  userPermissions MenuUserPermission[]
 
   @@index([parentId], map: "FK_menu_parent")
   @@index([slug], map: "IDX_MENU_SLUG")
@@ -1370,11 +1387,14 @@ model MenuUserPermission {
   id            Int     @id @default(autoincrement())
   userId        String  @map("user_id") @db.Char(36)
   menuId        String  @map("menu_id") @db.Char(36)
-  canCreate     Boolean @default(false)
-  canDelete     Boolean @default(false)
-  canEdit       Boolean @default(false)
   canView       Boolean @default(false)
+  canCreate     Boolean @default(false)
+  canEdit       Boolean @default(false)
+  canDelete     Boolean @default(false)
   customActions String? @map("custom_actions") @db.LongText
+
+  user Users @relation("menu_user_permissions_user_idTousers", fields: [userId], references: [id], onDelete: Cascade, map: "FK_menu_user_perm_user")
+  menu Menu  @relation(fields: [menuId], references: [id], onDelete: Cascade, map: "FK_menu_user_perm_menu")
 
   @@unique([userId, menuId], map: "uq_menu_user_permission")
   @@index([userId], map: "FK_menu_user_perm_user")

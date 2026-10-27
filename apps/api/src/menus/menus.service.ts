@@ -38,6 +38,20 @@ export interface MenuTreeNode {
   children: MenuTreeNode[];
 }
 
+function safeJsonParse<T>(value: unknown, fallback: T): T {
+  if (value === null || value === undefined) return fallback;
+  if (typeof value !== 'string') {
+    return (value as T) ?? fallback;
+  }
+  const trimmed = value.trim();
+  if (!trimmed) return fallback;
+  try {
+    return JSON.parse(trimmed) as T;
+  } catch {
+    return fallback;
+  }
+}
+
 @Injectable()
 export class MenusService {
   constructor(private readonly prisma: PrismaService) {}
@@ -158,7 +172,7 @@ export class MenusService {
     // Same superadmin rule as the guard: isSuperAdmin flag or the role itself.
     if (user.isSuperAdmin || user.role === 'superadmin') {
       perms = menus.map((m) => {
-        const cfg = m.actionsConfig ? JSON.parse(m.actionsConfig) : {};
+        const cfg = safeJsonParse(m.actionsConfig, {} as any);
         const customs = Array.isArray(cfg?.custom)
           ? cfg.custom.map((c: any) => c.action)
           : [];
@@ -208,8 +222,8 @@ export class MenusService {
         canCreate: p?.canCreate ?? false,
         canEdit: p?.canEdit ?? false,
         canDelete: p?.canDelete ?? false,
-        customActions: p?.customActions ? JSON.parse(p.customActions) : [],
-        actionsConfig: m.actionsConfig ? JSON.parse(m.actionsConfig) : null,
+        customActions: safeJsonParse<string[]>(p?.customActions, []),
+        actionsConfig: safeJsonParse(m.actionsConfig, null),
         children: [],
       };
       const bucket = children.get(m.parentId ?? null) ?? [];

@@ -106,13 +106,13 @@ export const IMAGE_PRESET_CONFIG: Record<ImagePreset, ImagePresetConfig> = {
     quality: 90, // higher quality — transparency survives compression better
   },
   [ImagePreset.GALLERY]: {
-    width: 1200,
-    height: 800,
-    maxWidth: null,
-    maxHeight: null,
-    aspectRatio: 1200 / 800, // 3:2 standard photo ratio
-    fit: 'cover',
-    requiresCrop: true,
+    width: null,
+    height: null,
+    maxWidth: 1920,
+    maxHeight: 1920,
+    aspectRatio: null, // preserves original ratio (portrait, landscape, square) for masonry display
+    fit: 'inside',
+    requiresCrop: false,
     quality: 85,
   },
 };

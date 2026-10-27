@@ -385,11 +385,6 @@ export const navItems: NavItem[] = [
         label: "Leave Info",
         href: "/admin/academic/leave-info",
       },
-      {
-        kind: "leaf",
-        label: "Staffs",
-        href: "/admin/academic/staffs",
-      },
     ],
   },
   {
@@ -402,12 +397,6 @@ export const navItems: NavItem[] = [
         kind: "leaf",
         label: "Student List",
         href: "/admin/students",
-      },
-      {
-        kind: "leaf",
-        label: "Teachers",
-        href: "/admin/teachers",
-        menuSlug: "teachers",
       },
       {
         kind: "leaf",
@@ -699,11 +688,6 @@ export const navItems: NavItem[] = [
     icon: Bell,
     menuSlug: "others",
     children: [
-      {
-        kind: "leaf",
-        label: "News",
-        href: "/admin/others/news",
-      },
       {
         kind: "leaf",
         label: "Events",
